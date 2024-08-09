@@ -22,7 +22,7 @@ ENV PATH=/root/.ghcup/bin:/root/.local/bin:$PATH \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 
 RUN ghcup install stack --set 2.15.5 \
-  && ghcup install hls --set 2.7.0.0 \
+  && ghcup install hls --set 2.9.0.1 \
   && ghcup install cabal --set 3.10.3.0 \
   && ghcup install ghc --set 9.4.8
 
