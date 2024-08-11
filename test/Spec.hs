@@ -1,2 +1,17 @@
+{-# LANGUAGE ImportQualifiedPost #-}
+import Test.Tasty ( TestTree, defaultMain, testGroup )
+import Test.Tasty.HUnit ( testCase, (@?=) )
+
+import Lib1 qualified
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = defaultMain tests
+
+tests :: TestTree
+tests = testGroup "Tests" [unitTests]
+
+unitTests :: TestTree
+unitTests = testGroup "Lib1 tests"
+  [ testCase "List of completionds is not empty" $
+      null Lib1.completions @?= False
+  ]

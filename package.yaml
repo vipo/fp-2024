@@ -46,6 +46,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - fp2024
+    - repline
 
 tests:
   fp2024-test:
@@ -57,3 +58,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - fp2024
+    - tasty
+    - tasty-hunit
