@@ -12,6 +12,6 @@ tests = testGroup "Tests" [unitTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Lib1 tests"
-  [ testCase "List of completionds is not empty" $
+  [ testCase "List of completions is not empty" $
       null Lib1.completions @?= False
   ]
