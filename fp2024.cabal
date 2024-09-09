@@ -53,6 +53,21 @@ executable fp2024-one
     , repline
   default-language: Haskell2010
 
+test-suite fp2024-doctest
+  type: exitcode-stdio-1.0
+  main-is: Doctest.hs
+  other-modules:
+      Paths_fp2024
+  autogen-modules:
+      Paths_fp2024
+  hs-source-dirs:
+      doctest
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , doctest
+  default-language: Haskell2010
+
 test-suite fp2024-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
