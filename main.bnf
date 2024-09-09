@@ -1,0 +1,33 @@
+<vehicle_garage> ::= <task_list>
+
+<task_list> ::= <task> | <task> ";" <task_list>
+
+<task> ::= <add_vehicle> | <perform_maintenance> | <sell_vehicle> | <inventory>
+
+<add_vehicle> ::= "add_vehicle" "(" <vehicle_type> "," <model> "," <year> "," <mileage> ")"
+
+<perform_maintenance> ::= "perform_maintenance" "(" <vehicle_type> "," <maintenance_type> "," <duration> ")"
+
+<sell_vehicle> ::= "sell_vehicle" "(" <vehicle_type> "," <model> "," <year> "," <price> ")"
+
+<inventory> ::= "inventory" "(" <vehicle_type> ")"
+
+<vehicle_type> ::= "Car" | "Truck" | "Motorcycle" | "SUV"
+
+<model> ::= <string>
+
+<year> ::= <number>
+
+<mileage> ::= <number> "km"
+
+<maintenance_type> ::= "OilChange" | "TireRotation" | "BrakeInspection" | "EngineTuneUp"
+
+<duration> ::= <number> "hours" | <number> "days"
+
+<price> ::= <number> "." <number>
+
+<string> ::= <letter> | <letter> <string>
+
+<letter> ::= "a" | "b" | "c" | ... | "z" | "A" | "B" | ... | "Z"
+
+<number> ::= "0" | "1" | "2" | ... | "9"
