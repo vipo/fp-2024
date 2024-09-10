@@ -1,0 +1,11 @@
+Domain: Motorcycle
+
+REPL:
+<command> ::= <add-make> | <add-model> | <add-motorcycle> | <list-motorcycles>
+<add-make> ::= "add" "make" <make>
+<add-model> ::= "add" "model" <model>
+<add-motorcycle> ::= "add" "motorcycle" <make> <model>
+<list-motorcycles> ::= "list" "motorcycles"
+<make> ::= <word> | <word> <make>
+<model> ::= <word> | <word> <model>
+<word> ::= "a" | "b" | "c" | ... | "z"
