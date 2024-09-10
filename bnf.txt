@@ -1,0 +1,10 @@
+<animal_list> ::= <animal> <animal_list> | <animal>
+<animal> ::= <species> <name> <age>
+<species> ::= <string>
+<name> ::= <string>
+<age> ::= <integer>
+
+<string> ::= <letter> <string> | <letter>
+
+<integer> ::= <digit> <integer> | <digit>
+<digit> ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
