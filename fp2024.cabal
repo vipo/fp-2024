@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      BoardgameShop
       Lessons.Lesson01
       Lib1
   other-modules:

@@ -5,4 +5,21 @@ module Lib1
 -- | This function returns a list of words
 -- to be autocompleted in your program's repl.
 completions :: [String]
-completions = []
+completions = [
+     "boardgameShop"
+    , "bundleDiscount"
+    , "shippingCost"
+    , "add"
+    , "checkShipping"
+    , "buy"
+    , "giveDiscountForBundle"
+    , "roundTo"
+    , "catanBase"
+    , "catanBase_GameOfThrones"
+    , "catanExp_5to6players"
+    , "catanExp_seafarers"
+    , "catanExp_citiesandknights"
+    , "catanWithAllExpBundle"
+    ]
+
+
