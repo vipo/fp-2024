@@ -1,0 +1,77 @@
+<program> ::= <module_declaration> <rest>
+
+<module_declaration> ::= "module" <identifier> "(" <identifier> ")" "where"
+
+<rest> ::= <statement> | <statement>
+
+<statement> ::= <variable_declaration> | <function_definition> | <comment> 
+
+
+
+<variable_declaration> ::= <identifier> "::" <data_type> "\n" <identifier> "=" <expression>
+
+<function_definition> ::= <identifier> "::" <data_type> "\n" <identifier> <console_input> "=" <expression>
+
+<console_input> ::= <identifier> | <identifier>
+
+
+
+<comment> ::= "--" <comment_text>
+
+<comment_text> ::= <character> | <character> 
+
+<expression> ::= <identifier>
+               | <number>
+               | <String>
+               | <expression> "+" <expression>
+               | <expression> "*" <expression>
+               | <expression> "/" <expression>
+               | "if" <condition> "then" <expression> "else" <expression>
+               | <function_call>
+
+
+<condition> ::= <expression> ">=" <expression> | <expression> "<" <expression>
+
+<function_call> ::= <identifier> <expression>
+
+
+
+
+<data_type> ::= "Double" | "Int" | "String"
+
+<identifier> ::= <lowercase_letter> | <identifier_rest>
+
+<identifier_rest> ::= <letter> | <digit> | "_"
+
+
+
+<Int> ::= <number> 
+
+<Double> ::= <number> | "." <number>
+
+<number> ::= <digit> | <digit>
+
+
+
+
+<String> ::= "\"" <characters> "\""
+
+<characters> ::= <character> | <character>
+
+<character> ::= <letter> | <digit> | <symbol>
+
+
+
+<letter> ::= <lowercase_letter> | <uppercase_letter>
+
+<uppercase_letter> ::= [A-Z]
+
+<lowercase_letter> ::= [a-z]
+
+<digit> ::= [0-9]
+
+<symbol> ::= "!" | "@" | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "_" | "=" | "+" | "[" | "]" | "{" | "}" | ";" | ":" | "'" | "\"" | "," | "." | "<" | ">" | "/" | "?" | "\\" | "|" | "`" | "~"
+
+
+
+

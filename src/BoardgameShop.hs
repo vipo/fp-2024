@@ -1,14 +1,16 @@
-module BoardgameShop (boargameShop) where
+module BoardgameShop (boardgameShop) where
 
-boargameShop :: String
-boargameShop = "Hello and welcome to the boardgame shop!"
+boardgameShop :: String
+boardgameShop = "Hello and welcome to the best boardgame shop!"
 
 -- <<Information>>
+
 bundleDiscount :: Double
 bundleDiscount = 15
 
 shippingCost :: Double
 shippingCost = 3.99
+
 -- <<>>
 
 -- <<Primary functions>>
@@ -67,9 +69,13 @@ catanExp_citiesandknights = 32.50
 
 -- <<>>
 
--- <<Special offers>>
+
+
+-- <<Special bundles>>
+
 catanWithAllExpBundle :: Double
 catanWithAllExpBundle = giveDiscountForBundle (add catanBase (add catanExp_5to6players (add catanExp_seafarers catanExp_citiesandknights)))
+
 -- <<>>
 
 
