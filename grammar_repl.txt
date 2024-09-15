@@ -1,0 +1,19 @@
+<command> ::= <exercise> | <trainer> | <query>
+
+<exercise> ::= "exercise" <exercise_type> <details>
+<exercise_type> ::= "chest" | "arms" | "legs" | "back"
+<details> ::= <description> | <reps> <sets>
+
+<trainer> ::= "trainer" <trainer_name> <action>
+<trainer_name> ::= "Harry" | "Mike" | "Emanuel"
+<action> ::= "available" | "assigned" | "schedule" <date>
+
+<query> ::= "show" <report>
+<report> ::= "today" | "week" | "month"
+
+<description> ::= <text>
+<reps> ::= "reps" <number>
+<sets> ::= "sets" <number>
+<date> ::= <text>
+<number> ::= [0-9]+
+<text> ::= [a-zA-Z ]+

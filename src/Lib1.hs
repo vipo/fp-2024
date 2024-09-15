@@ -5,4 +5,11 @@ module Lib1
 -- | This function returns a list of words
 -- to be autocompleted in your program's repl.
 completions :: [String]
-completions = []
+completions = 
+    [
+        "exercise", "trainer", "show"
+        ,   "chest", "arms", "legs", "back"
+        ,   "reps", "sets"
+        ,   "available", "assigned", "schedule"
+        ,   "today", "week", "month"
+    ]

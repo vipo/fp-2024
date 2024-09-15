@@ -1,2 +1,11 @@
-.stack-work/
-*~
+*.hi
+*.o
+*.stack-work/
+dist/
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+*.log
