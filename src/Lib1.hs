@@ -6,11 +6,13 @@ module Lib1
 -- to be autocompleted in your program's repl.
 completions :: [String]
 completions = [
+    "hotel",
+    "floor",
     "room",
     "guest",
     -- commands
-    "add_room",
-    "remove_room",
+    "add_hotel_room",
+    "remove_hotel_room",
     "make_reservation",
     "cancel_reservation",
     "add_additional_guest",
@@ -23,6 +25,7 @@ completions = [
     "name",
     "surname",
     "time",
+    "price",
 
     "digit",
     "char",
