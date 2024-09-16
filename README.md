@@ -8,17 +8,17 @@ This is a functional programming project designed to mimic a hotel management sy
 
 ```markdown
 
-<add_room> ::= "ADD" <room>
-<remove_room> ::= "REMOVE" <room>
+<add_room> ::= "ADD " <room>
+<remove_room> ::= "REMOVE " <room>
 
-<make_reservation> ::= "MAKE RESERVATION" <guest> <number> <check_in> <check_out>
-<cancel_reservation> ::= "CANCEL RESERVATION" <number>
-<add_additional_guest> ::= "ADD ADDITIONAL GUEST" <guest> <number>
+<make_reservation> ::= "MAKE RESERVATION " <guest> <number> <check_in> <check_out>
+<cancel_reservation> ::= "CANCEL RESERVATION " <number>
+<add_additional_guest> ::= "ADD ADDITIONAL GUEST " <guest> <number>
 
-<check_in> ::= "CHECK IN" <date> <time>
-<check_out> ::= "CHECK OUT" <date> <time>
-<guest> ::= "Guest:" <name> <surname>
-<room> ::= "Room:" <number> | "Room:" <number> <amenities>
+<check_in> ::= "CHECK IN " <date> <time>
+<check_out> ::= "CHECK OUT " <date> <time>
+<guest> ::= "Guest: " <name> <surname>
+<room> ::= "Room: " <number> | "Room:" <number> <amenities>
 <amenities> ::= <amenity> | <amenity> "," <amenities>
 <amenity> ::= "TV" | "Wi-Fi" | "Mini bar" | "Balcony" | "AC"
 
