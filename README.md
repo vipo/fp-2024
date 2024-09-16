@@ -11,22 +11,25 @@ This is a functional programming project designed to mimic a hotel management sy
 <add_room> ::= "ADD" <room>
 <remove_room> ::= "REMOVE" <room>
 
-<make_reservation> ::= "MAKE RESERVATION" <guest> <digit+> <check_in> <check_out>
-<cancel_reservation> ::= "CANCEL RESERVATION" <digit+>
-<add_additional_guest> ::= "ADD ADDITIONAL GUEST" <guest> <digit+>
+<make_reservation> ::= "MAKE RESERVATION" <guest> <number> <check_in> <check_out>
+<cancel_reservation> ::= "CANCEL RESERVATION" <number>
+<add_additional_guest> ::= "ADD ADDITIONAL GUEST" <guest> <number>
 
 <check_in> ::= "CHECK IN" <date> <time>
 <check_out> ::= "CHECK OUT" <date> <time>
 <guest> ::= "Guest:" <name> <surname>
-<room> ::= "Room:" <digit+> | "Room:" <digit+> <amenities>
+<room> ::= "Room:" <number> | "Room:" <number> <amenities>
 <amenities> ::= <amenity> | <amenity> "," <amenities>
 <amenity> ::= "TV" | "Wi-Fi" | "Mini bar" | "Balcony" | "AC"
 
-<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-<char> ::= "a" | "b" | ... | "z" | "A" | "B" | ... | "Z"
+<number> ::= [0-9]+
+<text> ::= ( [a-z] | [A-Z])+
+<digit> ::= [0-9]
+<char> ::= ( [a-z] | [A-Z])
 
-<name> ::= <char+>
-<surname> ::= <char+>
+
+<name> ::= <text>
+<surname> ::= <text>
 <date> ::= <digit> <digit> <digit> <digit> "-" <digit> <digit> "-" <digit> <digit>
 <time> ::= <digit> <digit> ":" <digit> <digit>
 

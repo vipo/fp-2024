@@ -6,10 +6,8 @@ module Lib1
 -- to be autocompleted in your program's repl.
 completions :: [String]
 completions = [
-    
     "room",
     "guest",
-
     -- commands
     "add_room",
     "remove_room",
@@ -27,9 +25,7 @@ completions = [
     "time",
 
     "digit",
-    "char"
-
-
-
-
-]
+    "char",
+    "text",
+    "number"
+    ]
