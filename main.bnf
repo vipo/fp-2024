@@ -1,0 +1,49 @@
+<command> ::= <borrow-command> 
+            | <return-command> 
+            | <add-book-command>
+            | <add-reader-command>
+            | <remove-book-command>
+            | <remove-reader-command>
+            | <list-books-command>
+            | <list-readers-command>
+            | <compound-command>
+
+<compound-command> ::= <command> <command>
+
+<borrow-command> ::= "borrow" <book-info> <reader-info>
+
+<return-command> ::= "return" <book-info> <reader-info>
+
+<add-book-command> ::= "add-book" <book-info>
+
+<add-reader-command> ::= "add-reader" <reader-info>
+
+<remove-book-command> ::= "remove-book" <book-info>
+
+<remove-reader-command> ::= "remove-reader" <reader-info>
+
+<list-books-command> ::= "list-books"
+
+<list-readers-command> ::= "list-readers"
+
+<book-info> ::= <title> <author> <isbn>
+
+<title> ::= <string>
+
+<author> ::= <string>
+
+<isbn> ::= <integer>
+
+<reader-info> ::= <name> <reader-id>
+
+<name> ::= <string>
+
+<reader-id> ::= <integer>
+
+<string> ::= <letter>+
+
+<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+
+<integer> ::= <digit>+
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
