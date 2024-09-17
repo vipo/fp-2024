@@ -6,24 +6,23 @@ module Lib1
 -- to be autocompleted in your program's repl.
 completions :: [String]
 completions = [
-    --reader
+    --command
     "borrow",
     "return",
     "add-reader",
     "remove-reader",
-    "reader info",
-    "reader-id",
-    "name",
-
-    --book
     "add-book",
     "remove-book",
-    "title",
-    "book-info",
-    "author",
-    "isbn",
+    "merge",
+    
+    --genre
+    "fantasy",
+    "detective",
+    "scientific",
+    "dictionary",
 
-    --general
-    "list-readers",
-    "list-books"
+    --audience
+    "children",
+    "teenager",
+    "adult"
     ]
