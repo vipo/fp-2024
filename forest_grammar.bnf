@@ -1,0 +1,7 @@
+<forest>    ::= <tree> | <tree> <forest>
+<tree>      ::= <name> <branches>
+<branches>  ::= <branch> | <branch> <branches>
+<branch>    ::= "branch" <leaves>
+<leaves>    ::= <leaf> | <leaf> <leaves>
+<leaf>      ::= "leaf"
+<name>      ::= "oak" | "pine" | "birch" | "maple"
