@@ -4,9 +4,8 @@
             | <add-reader-command>
             | <remove-book-command>
             | <remove-reader-command>
-            | <list-books-command>
-            | <list-readers-command>
             | <compound-command>
+            | <merge-command>
 
 <compound-command> ::= <command> <command>
 
@@ -22,11 +21,13 @@
 
 <remove-reader-command> ::= "remove-reader" <reader-info>
 
-<list-books-command> ::= "list-books"
-
-<list-readers-command> ::= "list-readers"
+<merge-command> ::= "merge" <book-info> <merge-command> | "merge" <book-info>
 
 <book-info> ::= <title> <author> <isbn>
+
+<book-genre> ::= "fantasy" | "detective" | "scientific" | "dictionary"
+
+<book-audience> ::= "children" | "teenager | "adult"
 
 <title> ::= <string>
 
