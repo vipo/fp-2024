@@ -5,3 +5,8 @@
 <leaves>    ::= <leaf> | <leaf> <leaves>
 <leaf>      ::= "leaf"
 <name>      ::= "oak" | "pine" | "birch" | "maple"
+
+<command> ::= <plant_command> | <cut_command> | <inspect_command>
+<plant_command> ::= "plant" <name>
+<cut_command> ::= "cut" <name>
+<inspect_command> ::= "inspect" <name> | "inspect forest"
