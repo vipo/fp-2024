@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lessons.Lesson01
+      Lessons.Lesson02
       Lib1
   other-modules:
       Paths_fp2024
