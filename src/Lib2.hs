@@ -13,6 +13,7 @@ module Lib2
 -- as many as needed.
 data Query
 
+-- | The instances are needed basically for tests
 instance Eq Query where
   (==) _ _= False
 
