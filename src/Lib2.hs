@@ -19,6 +19,8 @@ instance Eq Query where
 instance Show Query where
   show _ = ""
 
+-- | Parses user's input.
+-- The function must have tests.
 parseQuery :: String -> Either String Query
 parseQuery _ = Left "Not implemented 2"
 
