@@ -4,7 +4,8 @@ module Lessons.Lesson02 (Wheel(..)) where
 
 -- >>> sum' []
 -- 0
--- >>> sum' [1,2,3]
+-- >> sum' []
+-- >>> sum' [1,2,3,5]
 -- 6
 sum' :: [Integer] -> Integer
 sum' [] = 0
@@ -12,7 +13,7 @@ sum' (h:t) = h + (sum' t)
 
 -- >>> sum'' []
 -- 0
--- >>> sum' [1]
+-- >>> sum' [2, 5, 6]
 -- 1
 sum'' :: [Integer] -> Integer
 sum'' l = sumTail l 0
@@ -37,7 +38,7 @@ dup'' l =
     let
         empty = []
         dupTail [] acc = acc
-        dupTail (h:t) acc = dupTail t ([h, h] ++ acc)
+        dupTail (h:t) acc = dupTail t (acc ++ [h, h])
     in
         dupTail l empty
 
