@@ -14,7 +14,33 @@
 
 <product> ::= <boardgame> | <boardgame> <product>
 
-<boardgame> ::=  <name> <price>
+<boardgame> ::=  <name> <price> <components>
+
+<expansion> ::=  <name> <price> <components>
+
+
+<components> ::= <component> | <component> <components> 
+<component> ::= <tile> | <board> | <rules> | <card> | <marker> | <dice>
+
+<tile> ::= <name> <price>
+<board> ::= <name> <price>
+<rules> ::= <name> <price>
+<card> ::= <name> <price>
+<marker> ::= <name> <price>
+<dice> ::= <name> <price>
+
+
+
+<add_ons> ::= <add_on> | <add_on> <add_ons> 
+<add_on> ::= <card_sleeves> | <metal_resources> | <miniature> | <player_board> | <space_insert>
+
+<space_insert> ::= <name> <price>
+<miniature> ::= <name> <price>
+<metal_resources> ::= <name> <price>
+<card_sleeves> ::= <name> <price>
+<player_board> ::= <name> <price>
+
+
 
 <quantity> ::= <number>
 
@@ -28,9 +54,16 @@
 <digit> ::= [0-9]
 
 
-<name> ::= "catanBase" 
-            | "catanBase_GameOfThrones"
-            | "catanExp_5to6players"
-            | "catanExp_seafarers"
-            | "catanExp_citiesandknights"
-            | "catanWithAllExpBundle"
+<name> ::= "baseTM" 
+            | "venusTMexp"
+            | "turmoilTMexp"
+            | "preludeTMexp"
+            | "prelude2TMexp"
+            | "coloniesTMexp"
+            | "ellas&hellasTMexp"
+            | "automaTMexp"
+            | "baseTMAE"
+            | "discoveryTMAEexp"
+            | "foundationsTMAEexp"
+            | "crisisTMAEexp"
+
