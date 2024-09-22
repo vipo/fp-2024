@@ -4,6 +4,7 @@ module Lib1
 
 -- | This function returns a list of words
 -- to be autocompleted in your program's repl.
+
 completions :: [String]
 completions = [
      "boardgameShop"
@@ -12,7 +13,7 @@ completions = [
     , "add"
     , "checkShipping"
     , "buy"
-    , "giveDiscountForBundle"
+    , "giveDiscount"
     , "roundTo"
     , "catanBase"
     , "catanBase_GameOfThrones"

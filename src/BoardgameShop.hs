@@ -1,5 +1,5 @@
 module BoardgameShop (boardgameShop) where
-
+{-
 boardgameShop :: String
 boardgameShop = "Hello and welcome to the best boardgame shop!"
 
@@ -28,8 +28,8 @@ checkShipping a =
 -- | This function checks if the 
 -- shipping cost should be ignored
 
-buy :: Double -> Double
-buy a = roundTo 2 (checkShipping a )
+buy :: Double -> Double -> Double
+buy a b = a * (roundTo 2 (checkShipping b ))
 -- | This function buys the given product
 
 giveDiscountForBundle :: Double -> Double
@@ -79,7 +79,7 @@ catanWithAllExpBundle = giveDiscountForBundle (add catanBase (add catanExp_5to6p
 -- <<>>
 
 
-
+-}
 
 
 

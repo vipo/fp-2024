@@ -1,25 +1,22 @@
 # fp-2024
 
-This domain is trying to simulate a boardgames shop. 
-For now, only the Catan base game is sold with expansions. 
+<round_command> rounds up the number to two decimal spaces.
 
-If customer wants to buy a boardgame or it's expansios. He writes:
-    > buy "product name"
-     This function automaticlly check if free shipping will be applied by running:
-        > checkShipping "price" 
-     In addtion, rounds up to n decimal spaces by runnig:
-        > roundTo n "number"
+<check_shipping_command> checks if the product price is over 70. If yes, no shipping cost will be applied.
 
-The shop also offers special bundles, for instance, if customer wants to buy base Catan with all expansions. He writes:
-    > buy catanWithAllExpBundle
-     In addition to all the functions above, this function sums up all the prices of the wanted products by running (Here, recurssion is used): 
-        > add a b
-    Also, a discount is given by function:
-        > giveDiscountForBundle
+<add_command> add two product prices
+
+<discount_command> gives a discount to a product
+
+<buy_command> calculates the final price of the purchase
+
+<compare_command> compares two product prices
 
 
+Recursion:
 
-
+Board games can consist of other board games.
+Example: Boardgame Terraforming Mars Bog box, consists of Terraforming Mars, Terraforming Mars: Colonies, Terraforming Mars: Venus Next, Terraforming Mars: Turmoil, Terraforming Mars: Prelude.
 
 
 

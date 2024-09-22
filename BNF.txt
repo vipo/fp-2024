@@ -1,73 +1,36 @@
-<program> ::= <module_declaration> <rest>
+<round_command> ::= "roundTo " <product>
 
-<module_declaration> ::= "module" <identifier> "(" <identifier> ")" "where"
+<check_shipping_command> ::= "checkShipping " <product>
 
-<rest> ::= <statement> | <statement>
+<add_command> ::= "add " <product> " " <product>
 
-<statement> ::= <variable_declaration> | <function_definition> | <comment> 
+<discount_command> ::= "giveDiscount " <product> " " <discount>
 
+<buy_command> ::= "buy " <quantity> " " <product>
 
-
-<variable_declaration> ::= <identifier> "::" <data_type> "\n" <identifier> "=" <expression>
-
-<function_definition> ::= <identifier> "::" <data_type> "\n" <identifier> <console_input> "=" <expression>
-
-<console_input> ::= <identifier> | <identifier>
+<compare_command> ::= "compare " <product> " " <product>
 
 
 
-<comment> ::= "--" <comment_text>
+<product> ::= <boardgame> | <boardgame> <product>
 
-<comment_text> ::= <character> | <character> 
+<boardgame> ::=  <name> <price>
 
-<expression> ::= <identifier>
-               | <number>
-               | <String>
-               | <expression> "+" <expression>
-               | <expression> "*" <expression>
-               | <expression> "/" <expression>
-               | "if" <condition> "then" <expression> "else" <expression>
-               | <function_call>
+<quantity> ::= <number>
+
+<discount> ::= <number>
+
+<price> ::= <number> | <number> "." <number>
 
 
-<condition> ::= <expression> ">=" <expression> | <expression> "<" <expression>
-
-<function_call> ::= <identifier> <expression>
-
-
-
-
-<data_type> ::= "Double" | "Int" | "String"
-
-<identifier> ::= <lowercase_letter> | <identifier_rest>
-
-<identifier_rest> ::= <letter> | <digit> | "_"
-
-
-
-<Int> ::= <number> 
-
-<Double> ::= <number> | "." <number>
-
-<number> ::= <digit> | <digit>
-
-
-
-
-<String> ::= "\"" <characters> "\""
-
-<characters> ::= <character> | <character>
-
-<character> ::= <letter> | <digit> | <symbol>
-
-
-
-<letter> ::= <lowercase_letter> | <uppercase_letter>
-
-<uppercase_letter> ::= [A-Z]
-
-<lowercase_letter> ::= [a-z]
+<number> ::= <digit> | <digit> <number>
 
 <digit> ::= [0-9]
 
-<symbol> ::= "!" | "@" | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "_" | "=" | "+" | "[" | "]" | "{" | "}" | ";" | ":" | "'" | "\"" | "," | "." | "<" | ">" | "/" | "?" | "\\" | "|" | "`" | "~"
+
+<name> ::= "catanBase" 
+            | "catanBase_GameOfThrones"
+            | "catanExp_5to6players"
+            | "catanExp_seafarers"
+            | "catanExp_citiesandknights"
+            | "catanWithAllExpBundle"
