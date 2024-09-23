@@ -21,7 +21,7 @@ Board games can consist of other board games.
 * Terraforming Mars: all in edition
   1. Terraforming Mars Kickstarter edition: Corporate CEO
      1. Terraforming Mars
-        1. Rules booklet
+        1. Rules
         2. Game board
         3. 5 Player boards
         4. 17 Corporation Cards
@@ -48,7 +48,7 @@ Board games can consist of other board games.
         4. Award tile
         5. Venus Board
         6. Venus scale marker
-        7. Rules sheet
+        7. Rules
      4. Turmoil expansion
         * ...
      5. Prelude expanion

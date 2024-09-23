@@ -7,20 +7,12 @@ module Lib1
 
 completions :: [String]
 completions = [
-     "boardgameShop"
-    , "bundleDiscount"
-    , "shippingCost"
-    , "add"
-    , "checkShipping"
-    , "buy"
-    , "giveDiscount"
-    , "roundTo"
-    , "catanBase"
-    , "catanBase_GameOfThrones"
-    , "catanExp_5to6players"
-    , "catanExp_seafarers"
-    , "catanExp_citiesandknights"
-    , "catanWithAllExpBundle"
+     "round_function"
+    , "check_shipping_function"
+    , "add_function"
+    , "discount_function"
+    , "buy_function"
+    , "compare_function"
     ]
 
 
