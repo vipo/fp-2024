@@ -1,0 +1,9 @@
+<deck> ::= <card> | <card> <deck>
+<card> ::= <standard-card> | <joker-card>
+
+<standard-card> ::= <rank> "of" <suit>
+<joker-card> ::= "Joker"
+
+<rank> ::= <number> | "Jack" | "Queen" | "King" | "Ace"
+<number> ::= "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10"
+<suit> ::= "Hearts" | "Diamonds" | "Clubs" | "Spades"

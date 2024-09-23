@@ -23,7 +23,7 @@ instance Show Query where
 -- | Parses user's input.
 -- The function must have tests.
 parseQuery :: String -> Either String Query
-parseQuery _ = Left "Not implemented 2"
+parseQuery _ = Left "Some error message"
 
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
@@ -33,7 +33,7 @@ data State
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
 emptyState :: State
-emptyState = error "Not implemented 1"
+emptyState = error "Some error message"
 
 -- | Updates a state according to a query.
 -- This allows your program to share the state
@@ -41,4 +41,4 @@ emptyState = error "Not implemented 1"
 -- Right contains an optional message to print and
 -- an updated program's state.
 stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition _ _ = Left "Not implemented 3"
+stateTransition _ _ = Left "Some error message"
