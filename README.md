@@ -94,25 +94,25 @@ TMCorporateCEO 224 eur \
 
 
 
-### example provided by "https://bnfplayground.pauliankline.com/":
+### Random example provided by "https://bnfplayground.pauliankline.com/":
 
 ellas&hellasTMexp 8.1eur (contains: 0 rules)[includes: venusTMexp 31eur (contains: 32 card)[includes: crisisTMAEexp 7.1eur (contains: 79 rules), baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules)[includes: venusTMexp 93.68eur (contains: 5 tile)]], foundationsTMAEexp 67.9eur (contains: 64384 tile)]
 
 
-### upper command formated:
+### Upper command formated:
+<pre>
+ellas&hellasTMexp 8.1eur (contains: 0 rules) 
+   [includes: 
+   venusTMexp 31eur (contains: 32 card) 
+      [includes: 
+         crisisTMAEexp 7.1eur (contains: 79 rules), 
+         baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules) 
+            [includes: 
+               venusTMexp 93.68eur (contains: 5 tile) 
+            ] 
+      ], 
+      foundationsTMAEexp 67.9eur (contains: 64384 tile) 
+   ] 
 
-ellas&hellasTMexp 8.1eur (contains: 0 rules) \
-   [includes: \
-   venusTMexp 31eur (contains: 32 card) \
-      [includes: \
-         crisisTMAEexp 7.1eur (contains: 79 rules), \
-         baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules) \
-            [includes: \
-               venusTMexp 93.68eur (contains: 5 tile) \
-            ] \
-      ], \
-      foundationsTMAEexp 67.9eur (contains: 64384 tile) \
-   ] \
-
-
+</pre>
 
