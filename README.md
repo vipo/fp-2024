@@ -63,12 +63,12 @@
 
 ### To transfer this to my repl, the commad would look like this:
 
-TMCorporateCEO 224 eur [includes: baseTM 37 eur (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), bigBoxTM 114 eur (contains: 167 tile, 20 card), venusTMexp 26 eur (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), turmoilTMexp 26 eur (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), coloniesTMexp 26 eur (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), preludeTMexp 38 eur (contains: 1 rules)[includes: prelude1TMexp (contains: 1 rules, 30 card), prelude2TMexp (contains: 1 rules, 32 card)], hellasTMexp 19 eur (contains: 1 rules, 2 gameBoard)]
+* corporateCEOTM 224 eur [includes: baseTM 37 eur (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), bigBoxTM 114 eur (contains: 167 tile, 20 card), venusTMexp 26 eur (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), turmoilTMexp 26 eur (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), coloniesTMexp 26 eur (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), preludeTMexp 38 eur (contains: 1 rules)[includes: prelude1TMexp (contains: 1 rules, 30 card), prelude2TMexp (contains: 1 rules, 32 card)], hellasTMexp 19 eur (contains: 1 rules, 2 gameBoard)]
 
 
 ### Upper command formated:
 <pre>
-TMCorporateCEO 224 eur 
+corporateCEOTM 224 eur 
    [includes: 
       baseTM 37 eur 
          (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), 
@@ -96,7 +96,7 @@ TMCorporateCEO 224 eur
 
 ### Random example provided by "https://bnfplayground.pauliankline.com/":
 
-ellas&hellasTMexp 8.1eur (contains: 0 rules)[includes: venusTMexp 31eur (contains: 32 card)[includes: crisisTMAEexp 7.1eur (contains: 79 rules), baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules)[includes: venusTMexp 93.68eur (contains: 5 tile)]], foundationsTMAEexp 67.9eur (contains: 64384 tile)]
+* ellas&hellasTMexp 8.1eur (contains: 0 rules)[includes: venusTMexp 31eur (contains: 32 card)[includes: crisisTMAEexp 7.1eur (contains: 79 rules), baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules)[includes: venusTMexp 93.68eur (contains: 5 tile)]], foundationsTMAEexp 67.9eur (contains: 64384 tile)]
 
 
 ### Upper command formated:

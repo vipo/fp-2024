@@ -56,7 +56,7 @@
 <digit> ::= [0-9]
 
 
-<boardgame_name> ::= "TMCorporateCEO"
+<boardgame_name> ::= "corporateCEOTM"
             | "baseTM"
             | "bigBoxTM"
             | "venusTMexp"
