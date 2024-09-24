@@ -67,31 +67,31 @@ TMCorporateCEO 224 eur [includes: baseTM 37 eur (contains: 1 rules, 1 gameBoard,
 
 
 ### Upper command formated:
-
-TMCorporateCEO 224 eur \
-   [includes: \
-      baseTM 37 eur \
-         (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), \
-      bigBoxTM 114 eur \
-         (contains: 167 tile, 20 card), \
-      venusTMexp 26 eur \
-         (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), \
-      turmoilTMexp 26 eur \
-         (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), \
-      coloniesTMexp 26 eur \
-         (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), \
-      preludeTMexp 38 eur \
-         (contains: 1 rules) \
-            [includes: \
-               prelude1TMexp \
-                  (contains: 1 rules, 30 card), \
-               prelude2TMexp \
-                  (contains: 1 rules, 32 card) \
-            ], \
-      hellasTMexp 19 eur \
-         (contains: 1 rules, 2 gameBoard)  \
-   ] \
-
+<pre>
+TMCorporateCEO 224 eur 
+   [includes: 
+      baseTM 37 eur 
+         (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), 
+      bigBoxTM 114 eur 
+         (contains: 167 tile, 20 card), 
+      venusTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), 
+      turmoilTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), 
+      coloniesTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), 
+      preludeTMexp 38 eur 
+         (contains: 1 rules) 
+            [includes: 
+               prelude1TMexp 
+                  (contains: 1 rules, 30 card), 
+               prelude2TMexp 
+                  (contains: 1 rules, 32 card) 
+            ], 
+      hellasTMexp 19 eur 
+         (contains: 1 rules, 2 gameBoard)  
+   ] 
+</pre>
 
 
 ### Random example provided by "https://bnfplayground.pauliankline.com/":
@@ -113,6 +113,4 @@ ellas&hellasTMexp 8.1eur (contains: 0 rules)
       ], 
       foundationsTMAEexp 67.9eur (contains: 64384 tile) 
    ] 
-
 </pre>
-
