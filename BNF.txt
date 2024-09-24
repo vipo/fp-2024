@@ -12,33 +12,35 @@
 
 
 
-<product> ::= <boardgame> | <boardgame> <product>
+<product> ::= <boardgame> | <boardgame> "[includes: " <products> "]"
 
-<boardgame> ::=  <name> <price> <components>
+<products> ::= <product> |  <product> ", " <products>
 
-<expansion> ::=  <name> <price> <components>
+<boardgame> ::=  <boardgame_name> " " <price> "eur"  " (contains: " <components> ")"
+
+<expansion> ::=  <component_name> " " <price> "eur" " (contains: " <components> ")"
 
 
-<components> ::= <component> | <component> <components> 
+<components> ::=  <quantity> " " <component> |  <quantity> " " <component> ", " <components> 
 <component> ::= <tile> | <board> | <rules> | <card> | <marker> | <dice>
 
-<tile> ::= <name> <price>
-<board> ::= <name> <price>
-<rules> ::= <name> <price>
-<card> ::= <name> <price>
-<marker> ::= <name> <price>
-<dice> ::= <name> <price>
+<tile> ::= <component_name>
+<board> ::= <component_name>
+<rules> ::= <component_name>
+<card> ::= <component_name>
+<marker> ::= <component_name>
+<dice> ::= <component_name>
 
 
 
 <add_ons> ::= <add_on> | <add_on> <add_ons> 
 <add_on> ::= <card_sleeves> | <metal_resources> | <miniature> | <player_board> | <space_insert>
 
-<space_insert> ::= <name> <price>
-<miniature> ::= <name> <price>
-<metal_resources> ::= <name> <price>
-<card_sleeves> ::= <name> <price>
-<player_board> ::= <name> <price>
+<space_insert> ::= <add_on_name> <price> "eur"
+<miniature> ::= <add_on_name> <price> "eur"
+<metal_resources> ::= <add_on_name> <price> "eur"
+<card_sleeves> ::= <add_on_name> <price> "eur"
+<player_board> ::= <add_on_name> <price> "eur"
 
 
 
@@ -54,10 +56,13 @@
 <digit> ::= [0-9]
 
 
-<name> ::= "baseTM" 
+<boardgame_name> ::= "TMCorporateCEO"
+            | "baseTM"
+            | "bigBoxTM"
             | "venusTMexp"
             | "turmoilTMexp"
             | "preludeTMexp"
+            | "prelude1TMexp"
             | "prelude2TMexp"
             | "coloniesTMexp"
             | "ellas&hellasTMexp"
@@ -67,3 +72,17 @@
             | "foundationsTMAEexp"
             | "crisisTMAEexp"
 
+
+<component_name> ::= "tile" 
+            | "gameBoard"
+            | "playerBoard" 
+            | "card"
+            | "marker"
+            | "rules"
+            
+
+
+<add_on_name> ::= "playerBoard" 
+            | "miniature"
+            | "metalResource"
+            | "cardSleeve"

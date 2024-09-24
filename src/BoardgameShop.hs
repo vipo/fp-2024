@@ -1,8 +1,8 @@
 module BoardgameShop (boardgameShop) where
-{-
+
 boardgameShop :: String
 boardgameShop = "Hello and welcome to the best boardgame shop!"
-
+{-
 -- <<Information>>
 
 bundleDiscount :: Double
@@ -80,6 +80,8 @@ catanWithAllExpBundle = giveDiscountForBundle (add catanBase (add catanExp_5to6p
 
 
 -}
+
+
 
 
 

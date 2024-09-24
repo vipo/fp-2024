@@ -1,5 +1,7 @@
 # fp-2024
 
+# Board game shop
+
 <round_command> rounds up the number to two decimal spaces.
 
 <check_shipping_command> checks if the product price is over 70. If yes, no shipping cost will be applied.
@@ -12,14 +14,11 @@
 
 <compare_command> compares two product prices
 
+## Recursion
 
-Recursion:
+### Implementing real life example:
 
-Board games can consist of other board games.
-
-
-* Terraforming Mars: all in edition
-  1. Terraforming Mars Kickstarter edition: Corporate CEO
+  * Terraforming Mars Kickstarter edition: Corporate CEO
      1. Terraforming Mars
         1. Rules
         2. Game board
@@ -51,33 +50,69 @@ Board games can consist of other board games.
         7. Rules
      4. Turmoil expansion
         * ...
-     5. Prelude expanion
-        * ...
      6. Colonies expansion
         * ...
+     5. Prelude expanion
+        1. Prelude 1 expanion
+          * ...
+        2. Prelude 2 expanion
+          * ...
      7. Ellas & Hellium map expansion
         * ...
-   2. Prelude 2 expansion
-        * ...
-   3. Automa expansion
-        * ...
-   4. Player boards add-on
-      * 4 player boards
-   5. Rover miniature add-on
-      * 1 miniature
-   6. Metal resources add-on
-      * 200 metal resources
-   7. Card sleeves add-on
-      * ...
-  2. Terraforming Mars: Ares Expedition all in
-     1. Terraforming Mars: Ares Expedition
-        * ...
-     2. Terraforming Mars: Ares Expedition Discovery expansion
-        * ...
-     3. Terraforming Mars: Ares Expedition Foundations expansion
-        * ...
-     4. Terraforming Mars: Ares Expedition Crisis expansion
-        * ...
-  3. Terraforming Mars: The Dice Game
-     * ...
+
+
+### To transfer this to my repl, the commad would look like this:
+
+TMCorporateCEO 224 eur [includes: baseTM 37 eur (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles), bigBoxTM 114 eur (contains: 167 tile, 20 card), venusTMexp 26 eur (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), turmoilTMexp 26 eur (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), coloniesTMexp 26 eur (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), preludeTMexp 38 eur (contains: 1 rules)[includes: prelude1TMexp (contains: 1 rules, 30 card), prelude2TMexp (contains: 1 rules, 32 card)], hellasTMexp 19 eur (contains: 1 rules, 2 gameBoard)]
+
+
+### upper command formated:
+
+TMCorporateCEO 224 eur 
+   [includes: 
+      baseTM 37 eur 
+         (contains: 1 rules, 1 gameBoard, 5 playerBoard, 233 cards, 401 marker, 80 tiles),
+      bigBoxTM 114 eur 
+         (contains: 167 tile, 20 card),
+      venusTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 2 tile, 54 card), 
+      turmoilTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 3 tile, 60 card), 
+      coloniesTMexp 26 eur 
+         (contains: 1 rules, 1 gameBoard, 5 tile, 40 card), 
+      preludeTMexp 38 eur 
+         (contains: 1 rules)
+            [includes: 
+               prelude1TMexp
+                  (contains: 1 rules, 30 card), 
+               prelude2TMexp
+                  (contains: 1 rules, 32 card)
+            ],
+      hellasTMexp 19 eur 
+         (contains: 1 rules, 2 gameBoard)
+   ]
+
+
+
+### example provided by "https://bnfplayground.pauliankline.com/":
+
+ellas&hellasTMexp 8.1eur (contains: 0 rules)[includes: venusTMexp 31eur (contains: 32 card)[includes: crisisTMAEexp 7.1eur (contains: 79 rules), baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules)[includes: venusTMexp 93.68eur (contains: 5 tile)]], foundationsTMAEexp 67.9eur (contains: 64384 tile)]
+
+
+### upper command formated:
+
+ellas&hellasTMexp 8.1eur (contains: 0 rules)
+   [includes: 
+   venusTMexp 31eur (contains: 32 card)
+      [includes: 
+         crisisTMAEexp 7.1eur (contains: 79 rules), 
+         baseTMAE 4.3eur (contains: 7 card, 8 marker, 2 rules)
+            [includes: 
+               venusTMexp 93.68eur (contains: 5 tile)
+            ]
+      ], 
+      foundationsTMAEexp 67.9eur (contains: 64384 tile)
+   ]
+
+
 
