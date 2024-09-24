@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds -Wname-shadowing #-}
-module Lessons.Lesson02 () where
+module Lessons.Lesson02 (Wheel(..)) where
 
 
 -- >>> sum' []
@@ -56,13 +56,9 @@ safeDiv' _ 0 = MyNothing
 safeDiv' a b = MyJust (a `div` b)
 
 data Wheel = Wheel Integer
-    deriving Show
 data Pedals = One | Two
-    deriving Show
 data Seat = Wooden | Plastic
-    deriving Show
 data Unicycle = Unicycle Wheel Pedals Seat
-    deriving Show
 --- >>> isSeatWooden (Unicycle (Wheel 100) Two Plastic)
 -- False
 -- >>> isSeatWooden (Unicycle (Wheel 200) Two Wooden)
