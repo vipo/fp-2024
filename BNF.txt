@@ -1,8 +1,8 @@
+<Commands> ::= "Add" <Storage> <Item> | "Delete" <Storage> <Item> | "Restock" <Storage> <Item> | "Sell" <Item> | "Exit"
+
 <GroceryStore> ::= <Storage> <FoodItems> <Beverages> <HouseholdSupplies>
 
 <Item> ::= <FoodItems> | <Beverages> | <HouseholdSupplies>
-
-<Programme> ::= "Add" <Storage> <Item> | "Delete" <Storage> <Item> | "Restock" <Storage> <Item> | "Sell" <Item> | "Exit"
 
 <Storage> ::= <FoodItems> | <Storage> <Item>
 
