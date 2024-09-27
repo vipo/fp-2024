@@ -1,7 +1,11 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds -Wname-shadowing #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use guards" #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 module Lessons.Lesson03 () where
 
-import Lessons.Lesson02(Wheel(..))
+-- import Lessons.Lesson02(Wheel(..))
 import Control.Exception (catch)
 
 instance Show Wheel where
@@ -9,6 +13,18 @@ instance Show Wheel where
 
 -- >>> show (Wheel 5)
 -- "\8960\&5"
+data Wheel = Wheel Integer
+data Pedals = One | Two
+data Seat = Wooden | Plastic
+data Unicycle = Unicycle Wheel Pedals Seat
+--- >>> isSeatWooden (Unicycle (Wheel 100) Two Plastic)
+-- False
+-- >>> isSeatWooden (Unicycle (Wheel 200) Two Wooden)
+-- True
+isSeatWooden :: Unicycle -> Bool
+isSeatWooden (Unicycle (Wheel x) _ Wooden) = True
+isSeatWooden _ = False
+
 
 data Person = Person String String Integer
 data EmployeeId = EmployeId Integer deriving Show
