@@ -17,8 +17,10 @@ unitTests = testGroup "Lib1 tests"
       null Lib1.completions @?= False,
 
     testCase "Parsing empty command" $
-      Lib2.parseQuery "" @?= (Left "Expected 'ADD ' but got ''"),
+      Lib2.parseQuery "" @?= (Left "Expected some command but got ''"),
 
     testCase "Parsing invalid command" $
       Lib2.parseQuery "o" @?= (Left "Expected 'DELETE ' but got 'o'")
+      -- "Expected DELETE but ..." bc in parseQuery it first checks if command is ADD 
+      -- and if not, it give error msg with DELETE
   ]
