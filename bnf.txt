@@ -1,0 +1,10 @@
+<toy> ::= <simple_toy> | <composite_toy> | <decorated_toy>
+<simple_toy> ::= "ball" | "doll" | "car" | "robot" | "train"
+<composite_toy> ::= "combine(" <toy_list> ")"
+<toy_list> ::= <toy> | <toy> "," <toy_list>
+<decorated_toy> ::= "decorate(" <toy> "," <decoration> ")"
+<decoration> ::= <color> | <size> | <material>
+<color> ::= "red" | "blue" | "green" | "yellow"
+<size> ::= "small" | "medium" | "large"
+<material> ::= "plastic" | "wood" | "metal"
+
