@@ -4,17 +4,22 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
 module Lib2
-    ( Query(..), -- here are specified  functions, types, and constructors from this module 
+    ( Query(..), -- here are specified functions, types, and constructors from this module 
     parseQuery,  -- that are accessible to other modules when they import Lib2
-    State(..),   -- (...) -  holds export list
+    State(..),   -- (...) - holds export list
     emptyState,
-    stateTransition
+    stateTransition,
+    runREPL,      -- Expose the REPL function for testing via terminal
     ) where
 
-import Data.List (isPrefixOf) -- importing isPrefixOf function
+import qualified Data.Char as C
+import Data.List (isPrefixOf)
 
--- 1) | An entity which represets user input.
+type Parser a = String -> Either String (a, String)
+
+-- 1) | An entity which represents user input.
 -- It should match the grammar from Laboratory work #1.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
@@ -26,23 +31,18 @@ data Animal = Animal { species :: String, name :: String, age :: Int }
 
 -- Query ADT representing commands
 data Query
-    = Add Animal
-    | Delete Animal
+    = Add Animal         -- Command to add an animal
+    | Delete Animal      -- Command to delete an animal
+    | ListAnimals        -- Command to list all animals
+    deriving (Show, Eq)
 
 -- 2) | The instances are needed basically for tests
-instance Eq Query where --  any value of type Query can now be compared using ==
-    (Add a1) == (Add a2) = a1 == a2 -- if Add and Add, it checks if a1 == a2
-    (Delete a1) == (Delete a2) = a1 == a2
-    _ == _ = False -- if Query types are different it is automaticaly false
-
-instance Show Query where
-    show (Add animal) = "Add " ++ show animal
-    show (Delete animal) = "Delete " ++ show animal
 
 -- 3) | Parses user's input. The function must have tests.
 parseQuery :: String -> Either String Query
 parseQuery s 
-    | null s = Left "Expected some command but got ''"
+    | null s = Left "Expected some command but did not get anything"
+    | "LIST" `isPrefixOf` s = Right ListAnimals  -- Parse the LIST command
     | otherwise = parseAdd s `orElse` parseDelete s -- tries to use parseAdd, if fails, uses parseDelete
 
 parseAdd :: String -> Either String Query -- if success, right Query; if fail, left String
@@ -61,14 +61,14 @@ parseDelete s = do
 parseLiteral :: String -> String -> Either String String
 parseLiteral literal s -- (drop (length literal) s) - gives everything after the literal
     | literal `isPrefixOf` s = Right (drop (length literal) s) -- if literal is at the start of s, gives true
-    | otherwise = Left ("Expected '" ++ literal ++ "' but got '" ++ take (length literal) s ++ "'")
+    | otherwise = Left ("Expected some command but got '" ++ take (length literal) s ++ "'")
 
 -- Parse an animal (species, name, and age)
 parseAnimal :: String -> Either String Animal
 parseAnimal s = do
-    (species, rest1) <- string s
-    (name, rest2) <- string (dropWhile (== ' ') rest1)
-    (age, rest3) <- number (dropWhile (== ' ') rest2)
+    (species, rest1) <- parseString s
+    (name, rest2) <- parseString (dropWhile (== ' ') rest1)
+    (age, rest3) <- parseNumber (dropWhile (== ' ') rest2)
     return (Animal species name age)
 
 -- 4) | An entity which represents your program's state.
@@ -100,32 +100,54 @@ stateTransition (State animals) (Delete animal) =
     then Right (Just ("Deleted animal: " ++ show animal), State (filter (/= animal) animals))
     else Left ("Animal " ++ show animal ++ " not found.")
 
+stateTransition (State animals) ListAnimals =
+    if null animals
+    then Right (Just "No animals found.", State animals) -- Handle the case of no animals
+    else Right (Just ("Current animals: " ++ show animals), State animals)
+
 -- Helper to try one parser or another
 orElse :: Either String a -> Either String a -> Either String a
 orElse (Left _) y = y
 orElse x _ = x
 
 -- Parse a single character
-char :: Char -> String -> Either String (Char, String)
-char _ [] = Left "Unexpected end of input"
-char c (x:xs) = if c == x then Right (c, xs) else Left ("Expected '" ++ [c] ++ "', but got '" ++ [x] ++ "'")
+parseChar :: Char -> Parser Char
+parseChar c [] = Left ("Cannot find " ++ [c] ++ " in an empty input")
+parseChar c s@(h:t) = if c == h then Right (c, t) else Left ("Expected " ++ [c] ++ " but got " ++ [h])
 
 -- Parse a digit
-digit :: String -> Either String (Char, String)
-digit [] = Left "Unexpected end of input"
-digit (x:xs)
-    | x `elem` ['0'..'9'] = Right (x, xs)
-    | otherwise = Left ("Expected digit, but got '" ++ [x] ++ "'")
+parseDigit :: Parser Char
+parseDigit [] = Left "Cannot find any digits in an empty input"
+parseDigit (h:t) = if C.isDigit h then Right (h, t) else Left ("Expected digit but got " ++ [h])
 
 -- Parse a number (sequence of digits)
-number :: String -> Either String (Int, String)
-number s = case span (`elem` ['0'..'9']) s of
+parseNumber :: String -> Either String (Int, String)
+parseNumber s = case span C.isDigit s of
     ("", _) -> Left "Expected number, but got none"
     (numStr, rest) -> Right (read numStr, rest)
 
 -- Parse a string (sequence of letters)
-string :: String -> Either String (String, String)
-string [] = Left "Unexpected end of input"
-string s = case span (`elem` ['a'..'z'] ++ ['A'..'Z']) s of
+parseString :: String -> Either String (String, String)
+parseString [] = Left "Unexpected end of input"
+parseString s = case span C.isAlpha s of
     ("", _) -> Left "Expected string, but got none"
     (str, rest) -> Right (str, rest)
+
+-- REPL loop to handle user commands
+runREPL :: State -> IO ()
+runREPL state = do
+    putStr ">>> "
+    command <- getLine
+    case command of
+        "exit" -> putStrLn "Exiting the program."
+        _ -> do
+            -- Parse the input command (ADD, DELETE, etc.)
+            case parseQuery command of
+                Left err -> putStrLn ("Error: " ++ err)  -- Print parsing errors
+                Right query -> do
+                    -- Perform the state transition based on the parsed query (ADD, DELETE)
+                    case stateTransition state query of
+                        Left err -> putStrLn ("Error: " ++ err)  -- Print state transition errors
+                        Right (msg, newState) -> do
+                            putStrLn (maybe "" id msg)  -- Print success message (e.g., Added animal, Deleted animal)
+                            runREPL newState  -- Continue the loop with the updated state
