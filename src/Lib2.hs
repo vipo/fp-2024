@@ -1,17 +1,17 @@
--- Lib2.hs
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Lib2
-    ( Query(..), -- here are specified functions, types, and constructors from this module 
-    parseQuery,  -- that are accessible to other modules when they import Lib2
-    State(..),   -- (...) - holds export list
+    ( Animal(..), 
+    Query(..),
+    parseQuery, 
+    parseAdd,         -- Add this line to export parseAdd
+    parseDelete,      -- Add this line to export parseDelete
+    State(..),
     emptyState,
     stateTransition,
-    runREPL,      -- Expose the REPL function for testing via terminal
+    runREPL, -- for testing via terminal
     ) where
 
 import qualified Data.Char as C
@@ -19,13 +19,7 @@ import Data.List (isPrefixOf)
 
 type Parser a = String -> Either String (a, String)
 
--- 1) | An entity which represents user input.
--- It should match the grammar from Laboratory work #1.
--- Currently it has no constructors but you can introduce
--- as many as needed.
-
--- new data type - Animal
--- "Animal { species :: String, name :: String, age :: Int }" - constructor
+-- 1) An entity which represents user input.
 data Animal = Animal { species :: String, name :: String, age :: Int }
     deriving (Show, Eq)
 
@@ -36,20 +30,18 @@ data Query
     | ListAnimals        -- Command to list all animals
     deriving (Show, Eq)
 
--- 2) | The instances are needed basically for tests
-
--- 3) | Parses user's input. The function must have tests.
+-- 3) Parses user's input - have tests
 parseQuery :: String -> Either String Query
 parseQuery s 
     | null s = Left "Expected some command but did not get anything"
     | "LIST" `isPrefixOf` s = Right ListAnimals  -- Parse the LIST command
     | otherwise = parseAdd s `orElse` parseDelete s -- tries to use parseAdd, if fails, uses parseDelete
 
-parseAdd :: String -> Either String Query -- if success, right Query; if fail, left String
+parseAdd :: String -> Either String Query
 parseAdd s = do
     rest1 <- parseLiteral "ADD " s -- if s starts w 'ADD', it removes 'ADD' and what is left stores in rest1
     animal <- parseAnimal (dropWhile (== ' ') rest1) -- removes white spaces
-    return (Add animal) -- from parseAnimal returns (Animal species name age)
+    return (Add animal)
 
 parseDelete :: String -> Either String Query
 parseDelete s = do
@@ -61,9 +53,8 @@ parseDelete s = do
 parseLiteral :: String -> String -> Either String String
 parseLiteral literal s -- (drop (length literal) s) - gives everything after the literal
     | literal `isPrefixOf` s = Right (drop (length literal) s) -- if literal is at the start of s, gives true
-    | otherwise = Left ("Expected some command but got '" ++ take (length literal) s ++ "'")
+    | otherwise = Left ("Expected command '" ++ literal ++ "' but got '" ++ take (length literal) s ++ "'")
 
--- Parse an animal (species, name, and age)
 parseAnimal :: String -> Either String Animal
 parseAnimal s = do
     (species, rest1) <- parseString s
@@ -71,24 +62,15 @@ parseAnimal s = do
     (age, rest3) <- parseNumber (dropWhile (== ' ') rest2)
     return (Animal species name age)
 
--- 4) | An entity which represents your program's state.
--- Currently it has no constructors but you can introduce
--- as many as needed.
--- State holds the list of animals
-data State = State [Animal]
+-- 4) An entity which represents your program's state.
+data State = State [Animal] -- Holds the list of animals
     deriving (Show)
 
--- 5) | Creates an initial program's state.
--- It is called once when the program starts.
--- Initial empty state
+-- 5) Creates an initial program's state.
 emptyState :: State
 emptyState = State []
 
--- 6) | Updates a state according to a query.
--- This allows your program to share the state
--- between repl iterations.
--- Right contains an optional message to print and
--- an updated program's state.
+-- 6) Updates a state according to a query.
 stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition (State animals) (Add animal) =
     if animal `elem` animals
@@ -133,7 +115,7 @@ parseString s = case span C.isAlpha s of
     ("", _) -> Left "Expected string, but got none"
     (str, rest) -> Right (str, rest)
 
--- REPL loop to handle user commands
+-- For manual testing
 runREPL :: State -> IO ()
 runREPL state = do
     putStr ">>> "
@@ -149,5 +131,5 @@ runREPL state = do
                     case stateTransition state query of
                         Left err -> putStrLn ("Error: " ++ err)  -- Print state transition errors
                         Right (msg, newState) -> do
-                            putStrLn (maybe "" id msg)  -- Print success message (e.g., Added animal, Deleted animal)
+                            putStrLn (maybe "" id msg)  -- Print success message
                             runREPL newState  -- Continue the loop with the updated state
