@@ -1,0 +1,32 @@
+Welcome! Press [TAB] for auto completion.
+>>> add make honda
+Added make: honda
+>>> add model cbf125
+Added model: cbf125
+>>> add makes hondas
+PARSE ERROR:Bad input
+>>> add motorcycle ducati multistrada
+Added motorcycle:
+make: ducati
+model: multistrada
+>>> list
+Current Motorcycles:
+Makes: ducati honda
+Models: multistrada cbf125
+>>> add madels 125
+PARSE ERROR:Bad input
+>>> adds makes
+PARSE ERROR:Bad input
+>>> add make suzuki
+Added make: suzuki
+>>> add model dl650
+Added model: dl650
+>>> add motorcycle Honda NC750X
+Added motorcycle:
+make: Honda
+model: NC750X
+>>> list
+Current Motorcycles:
+Makes: Honda suzuki ducati honda
+Models: NC750X dl650 multistrada cbf125
+>>> 
