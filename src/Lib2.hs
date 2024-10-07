@@ -11,7 +11,87 @@ module Lib2
 -- It should match the grammar from Laboratory work #1.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
-data Query
+data Query =
+  QueryAddHotelRoom AddHotelRoom |
+  QueryRemoveHotelRoom RemoveHotelRoom |
+  QueryMakeReservation MakeReservation |
+  QueryCancelReservation CancelReservation |
+  QueryAddAdditionalGuest AddAdditionalGuest
+
+data Guest = Guest{
+  guestName :: String,
+  guestSurname :: String 
+} deriving (Show, Eq)
+
+data Hotel = Hotel {
+  hotelName :: String,
+  hotelChain :: Maybe String, -- possible that the hotel may not have a chain
+  floors :: [Floor]
+} deriving (Show, Eq)
+
+data Floor = Floor {
+  floorNumber :: Int,
+  rooms :: [Room] -- floor can have many rooms attached to it
+} deriving (Show, Eq)
+
+data Room = Room {
+  roomNumber :: Int,
+  roomSections :: Maybe [Room],
+  amenities :: [Amenity]
+} deriving (Show, Eq)
+
+data Amenity = TV | WiFi | Minibar | Balcony | AC 
+  deriving (Show, Eq)
+
+data Date = Date { year :: Int, month :: Int, day :: Int} deriving (Show, Eq)
+
+data Time = Time {
+  hour :: Int,
+  minute :: Int
+} deriving (Show, Eq)
+
+data CheckIn = CheckIn {
+  checkInDate :: Date,
+  checkOuttime :: Time
+} deriving (Show, Eq)
+
+data CheckOut = CheckOut {
+  checkOutDate :: Date,
+  checkOutTime :: Time
+} deriving (Show, Eq)
+
+data Price = Price Int
+  deriving (Show, Eq)
+
+-- commands
+
+data AddHotelRoom = AddHotelRoom {
+  addHotel :: Hotel
+} deriving (Show, Eq)
+
+data RemoveHotelRoom = RemoveHotelRoom {
+  removeHotel :: Hotel
+} deriving (Show, Eq)
+
+
+data MakeReservation = MakeReservation {
+  reservationGuest :: Guest,
+  reservationHotel :: Hotel,
+  checkIn :: CheckIn,
+  checkOut :: CheckOut,
+  reservationPrice :: Price
+} deriving (Show, Eq)
+
+data CancelReservation = CancelReservation {
+  cancelHotel :: Hotel
+} deriving (Show, Eq)
+
+data AddAdditionalGuest = AddAdditionalGuest {
+  additionalGuest :: Guest,
+  additionalHotel :: Hotel
+} deriving (Show, Eq)
+
+
 
 -- | The instances are needed basically for tests
 instance Eq Query where

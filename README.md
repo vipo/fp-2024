@@ -19,8 +19,10 @@ This is a functional programming project designed to mimic a hotel management sy
 <check_out> ::= "CHECK OUT: " <date> " " <time> "\n"
 <guest> ::= "GUEST: " <name> " " <surname> "\n"
 
-<hotel> ::= "HOTEL: " <text> "\n" |  <hotel> "CHAIN OF " <hotel> | <hotel> <floor>
-<floor> ::= "FLOOR: " <number> "\n" <room>
+<hotel> ::= "HOTEL: " <text> "\n" |  <hotel> "CHAIN OF " <hotel> | <hotel> <floors>
+<floors> ::= <floor> | <floor> <floors>
+<floor> ::= "FLOOR: " <number> "\n" <rooms>
+<rooms> :: <room> | <room> <rooms>
 <room> ::= "ROOM: " <number> "\n" | <room> "ROOM SECTION " <room> | <room> <amenities> "\n"
 
 <price> ::= "PRICE: " <number> "\n"
