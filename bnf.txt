@@ -1,7 +1,10 @@
+<command> ::= <add_animal> | <delete_animal> | <list_animals> | <compound_query>
+<compound_query> ::= <command> ';' <command>
+
 <add_animal> ::= 'ADD' <animal>
 <delete_animal> ::= 'DELETE' <species> <name> <age>
+<list_animals> ::= 'list_animals'
 
-<animal_list> ::= <animal> <animal_list> | <animal> -- do I really need this?
 <animal> ::= <species> <name> <age>
 <species> ::= <string>
 <name> ::= <string>

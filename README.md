@@ -9,3 +9,6 @@
 ### To Build & Test the Project, run the following commands
 1. `stack build`
 2. `stack test`
+
+
+Note: Changes in bnf. Added '<compound_query>' to fulfill recursion requirement. 

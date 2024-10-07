@@ -1,15 +1,16 @@
 module Lib2
     ( Animal(..), 
       Query(..),
+      parseAnimal,
+      parseString,
+      parseNumber,
       parseQuery, 
+      parseCompoundQuery,
       parseAdd,
       parseDelete,
-      parseAnimal,
       State(..),
       emptyState,
       stateTransition,
-      parseString,
-      parseNumber,
       runREPL,
     ) where
 
@@ -31,10 +32,10 @@ data Query
 -- <animal> ::= <species> <name> <age>
 parseAnimal :: String -> Either String Animal
 parseAnimal s = 
-    parseString s >>= \(species, rest1) ->
-    parseString (dropWhile (== ' ') rest1) >>= \(name, rest2) ->
-    parseNumber (dropWhile (== ' ') rest2) >>= \(age, _) ->
-    Right (Animal species name age)
+    parseString s >>= \(speciesV, rest1) ->
+    parseString (dropWhile (== ' ') rest1) >>= \(nameV, rest2) ->
+    parseNumber (dropWhile (== ' ') rest2) >>= \(ageV, _) ->
+    Right (Animal speciesV nameV ageV)
 
 -- <species> ::= <string>
 -- <name> ::= <string>
@@ -85,7 +86,7 @@ parseDelete s = do
 parseLiteral :: String -> String -> Either String String
 parseLiteral literal s 
     | literal `isPrefixOf` s = Right (drop (length literal) s)
-    | otherwise = Left ("Expected command '" ++ literal ++ "' but got '" ++ take (length literal) s ++ "'")
+    | otherwise = Left ("Did not get a valid command")
 
 -- 4) An entity which represents your program's state.
 data State = State [Animal]

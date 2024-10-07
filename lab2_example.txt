@@ -1,0 +1,66 @@
+Running and manual testing example:
+
+1) Testing one by one:
+    1. navigate to needed folder
+    2. ghci
+    3. :l Lib2.hs
+    4. Write commands with arguments
+
+    Examples with expected output:
+    ghci> parseAnimal "cat Tom 3"
+    Right (Animal {species = "cat", name = "Tom", age = 3})
+    ghci> parseAdd "ADD fish jojo 1"
+    Right (Add (Animal {species = "fish", name = "jojo", age = 1}))
+
+------------
+
+2) Testing with a list (starts with an emptyState - no animals in a list):
+    1. navigate to needed folder
+    2. ghci
+    3. :l Lib2.hs
+    4. runREPL emptyState
+    5. run commands, for example:
+        ADD cat Tom 5
+        ADD fish Jem 1
+        ADD dog Max 3
+        DELETE fish Jem 1
+        DELETE cat Tom 5
+        LIST
+        exit
+
+------------
+
+3) Testing with a list (starts not with an emptyState - initial state is presented at the start):
+    1. navigate to needed folder
+    2. ghci
+    3. :l Lib2.hs
+    4. runREPL emptyState
+    5. define initial state, for example:
+        let initialState = State [Animal "dog" "Max" 5, Animal "cat" "Tom" 3]
+    6. runREPL initialState
+    7. run commands, for example just like in 1) example
+
+------------
+
+Example command line session for 2) and 3 testing cases:
+
+ghci> runREPL emptyState
+>>> ADD cat Tom 5
+Added animal: Animal {species = "cat", name = "Tom", age = 5}
+>>> ADD fish Jem 1
+Added animal: Animal {species = "fish", name = "Jem", age = 1}
+>>> LIST
+Current animals: [Animal {species = "fish", name = "Jem", age = 1},Animal {species = "cat", name = "Tom", age = 5}]
+>>> ADD dog Max 3
+Added animal: Animal {species = "dog", name = "Max", age = 3}
+>>> DELETE fish Jem 1
+Deleted animal: Animal {species = "fish", name = "Jem", age = 1}
+>>> LIST
+Current animals: [Animal {species = "dog", name = "Max", age = 3},Animal {species = "cat", name = "Tom", age = 5}]
+>>> 
+
+
+
+
+Is it stateful enough? Or should I get the previous state after
+running renREPL, exiting it, and running it again?
