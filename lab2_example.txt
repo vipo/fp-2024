@@ -1,0 +1,176 @@
+>>> add_vehicle("Car", "Mini", 2009, 241000)
+Added Car Mini (2009)
+>>> add_vehicle("Car", "Audi", 2008, 330000)
+Added Car Audi (2008)
+>>> inventory("Car")
+Inventory for Car:
+Mini (2009)
+Audi (2008)
+
+>>> perform_maintenance("Car", "EngineTuneUp", "8 hours")
+Performed EngineTuneUp on Car for Hours 8
+>>> perform_maintenance("Car", "EngineTuneUp", "1 days")
+Performed EngineTuneUp on Car for Days 1
+>>> perform_maintenance("Car", "OilChange", "2 hours")
+Performed OilChange on Car for Hours 2
+
+>>> sell_vehicle("Car", "Audi", 2008, 5000)
+Sold Car Audi (2008) for $5000.0
+>>> sell_vehicle("Car", "BMW", 2008, 7500)
+Vehicle not found in inventory
+
+>>> inventory("Car")
+Inventory for Car:
+Mini (2009)
+
+>>> add_vehicle("Car", "Mini", 2009, 241000)
+Added Car Mini (2009)
+>>> inventory("Car")
+Inventory for Car:
+Mini (2009)
+Mini (2009)
+
+ghci> parseVehicleType "Car"
+Just Car
+ghci> parseVehicleType "Truck"
+Just Truck
+ghci> parseVehicleType "Motorcycle"
+Just Motorcycle
+ghci> parseVehicleType "SUV"
+Just SUV
+ghci> parseVehicleType ""
+Nothing
+ghci> parseVehicleType "abc"
+Nothing
+
+ghci> parseMaintenanceType "OilChange"
+Just OilChange
+ghci> parseMaintenanceType "TireRotation"
+Just TireRotation
+ghci> parseMaintenanceType "BrakeInspection"
+Just BrakeInspection
+ghci> parseMaintenanceType "EngineTuneUp"
+Just EngineTuneUp
+ghci> parseMaintenanceType ""
+Nothing
+ghci> parseMaintenanceType "abc"
+Nothing
+
+ghci> parseQuery "add_vehicle (Car, ModelX, 2020, 15000)"
+Right (AddVehicle Car "ModelX" 2020 15000)
+ghci> parseQuery "add_vehicle (Truck, ModelY, 2018, 30000)"
+Right (AddVehicle Truck "ModelY" 2018 30000)
+ghci> parseQuery "add_vehicle (Motorcycle, ModelZ, 2021, 5000)"
+Right (AddVehicle Motorcycle "ModelZ" 2021 5000)
+ghci> parseQuery "add_vehicle (Car, ModelX, twenty, 15000)"
+Left "Failed to parse add_vehicle"
+ghci> parseQuery "add_vehicle (Car, ModelX, 2020, fifteen thousand)"
+Left "Failed to parse add_vehicle"
+
+ghci> parseQuery "perform_maintenance (Car, OilChange, 2, hours)"
+Right (PerformMaintenance Car OilChange (Hours 2))
+ghci> parseQuery "perform_maintenance (Truck, TireRotation, 30, minutes)"
+Left "Failed to parse perform_maintenance"
+ghci> parseQuery "perform_maintenance (Motorcycle, BrakeInspection, 1, days)"
+Right (PerformMaintenance Motorcycle BrakeInspection (Days 1))
+ghci> parseQuery "perform_maintenance (Car, OilChange, two, hours)"
+Left "Failed to parse perform_maintenance"
+ghci> parseQuery "perform_maintenance (Car, OilChange, 2, hrs)"
+Left "Failed to parse perform_maintenance"
+
+ghci> parseQuery "sell_vehicle (Car, ModelX, 2020, 15000.50)"
+Right (SellVehicle Car "ModelX" 2020 15000.5)
+ghci> parseQuery "sell_vehicle (Truck, ModelY, 2015, 12000)"
+Right (SellVehicle Truck "ModelY" 2015 12000.0)
+ghci> parseQuery "sell_vehicle (Motorcycle, ModelZ, 2018, 7500.75)"
+Right (SellVehicle Motorcycle "ModelZ" 2018 7500.75)
+ghci> parseQuery "sell_vehicle (Car, ModelX, twenty, 15000.50)"
+Left "Failed to parse sell_vehicle"
+ghci> parseQuery "sell_vehicle (Car, ModelX, 2020, fifteen thousand)"
+Left "Failed to parse sell_vehicle"
+
+ghci> parseQuery "inventory (Car)"
+Right (Inventory Car)
+ghci> parseQuery "inventory (Truck)"
+Right (Inventory Truck)
+ghci> parseQuery "inventory (Motorcycle)"
+Right (Inventory Motorcycle)
+ghci> parseQuery "inventory (Bicycle)"
+Left "Failed to parse inventory"
+ghci> parseQuery "unknown command"
+Left "Unknown command"
+
+ghci> import Data.Maybe (fromJust)
+
+<interactive>:1:1: warning: [-Wmissing-export-lists]
+    The export item ‘module Ghci45’ is missing an export list
+ghci> fromJust (parseDurationUnit "days") 1
+Days 1
+ghci> fromJust (parseDurationUnit "hours") 2
+Hours 2
+ghci> fromJust (parseDurationUnit "minutes") 3
+*** Exception: Maybe.fromJust: Nothing
+CallStack (from HasCallStack):
+  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
+  fromJust, called at <interactive>:70:1 in interactive:Ghci48
+ghci> fromJust (parseDurationUnit "weeks") 4
+*** Exception: Maybe.fromJust: Nothing
+CallStack (from HasCallStack):
+  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
+  fromJust, called at <interactive>:71:1 in interactive:Ghci48
+ghci> fromJust (parseDurationUnit "") 5
+*** Exception: Maybe.fromJust: Nothing
+CallStack (from HasCallStack):
+  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
+  fromJust, called at <interactive>:72:1 in interactive:Ghci48
+ghci> fromJust (parseDurationUnit "Days") 6
+*** Exception: Maybe.fromJust: Nothing
+CallStack (from HasCallStack):
+  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
+  fromJust, called at <interactive>:73:2 in interactive:Ghci48
+ghci> fromJust (parseDurationUnit "HOURS") 7
+*** Exception: Maybe.fromJust: Nothing
+CallStack (from HasCallStack):
+  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
+  fromJust, called at <interactive>:74:1 in interactive:Ghci48
+
+ghci> let initialState = emptyState
+ghci> let parsedQuery = parseQuery "add_vehicle Car Audi 2009 330000"
+ghci> let result1 = either Left (stateTransition initialState) parsedQuery
+ghci> result1
+Right (Just "Added Car Audi (2009)",State {vehicles = [(Car,"Audi",2009,330000)], inventory = [(Car,1)]})
+
+ghci> let (Right (_, state1)) = result1
+ghci> let query2 = parseQuery "perform_maintenance Car OilChange 3 hours"
+ghci> let result2 = either Left (stateTransition state1) query2
+ghci> result2
+Right (Just "Performed OilChange on Car for Hours 3",State {vehicles = [(Car,"Audi",2009,330000)], inventory = [(Car,1)]})
+
+ghci> let (Right (_, state2)) = result2
+ghci> let query3 = parseQuery "sell_vehicle Car Audi 2009 3300"
+ghci> let result3 = either Left (stateTransition state2) query3
+ghci> result3
+Right (Just "Sold Car Audi (2009) for $3300.0",State {vehicles = [], inventory = []})
+
+ghci> let (Right (_, state3)) = result3
+ghci> let query4 = parseQuery "inventory Car"
+ghci> let result4 = either Left (stateTransition state3) query4
+ghci> result4
+Right (Just "Inventory for Car:\n",State {vehicles = [], inventory = []})
+
+ghci> addToInventory "Car" 1 []
+[("Car",1)]
+ghci> addToInventory "Car" 1 [("Truck", 2)]
+[("Truck",2),("Car",1)]
+ghci> addToInventory "Car" 1 [("Car", 2)]
+[("Car",3)]
+ghci> removeFromInventory "Car" 1 []
+[]
+ghci> removeFromInventory "Car" 1 [("Truck", 2)]
+[("Truck",2)]
+ghci> removeFromInventory "Car" 1 [("Car", 2)]
+[("Car",1)]
+ghci> removeFromInventory "Car" 2 [("Car", 2)]
+[]
+ghci> removeFromInventory "Car" 3 [("Car", 2)]
+[]
