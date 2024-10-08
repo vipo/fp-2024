@@ -1,8 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds -Wname-shadowing #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant lambda" #-}
-module Lessons.Lesson04 () where
+module Lessons.Lesson04 (Parser, parseNumber, and2', or2, parseChar) where
 
 import qualified Data.Char as C
 import qualified Data.List as L
