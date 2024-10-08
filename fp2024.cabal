@@ -27,6 +27,8 @@ library
   exposed-modules:
       Lessons.Lesson01
       Lessons.Lesson02
+      Lessons.Lesson03
+      Lessons.Lesson04
       Lib1
       Lib2
   other-modules:
