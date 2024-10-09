@@ -12,6 +12,12 @@ tests = testGroup "Tests" [unitTests]
 unitTests :: TestTree
 unitTests = testGroup "Lib2 tests"
   [
+
+    -- No need for 'Animal' tests bc it is just data type
+
+    -- No need for 'Query' tests bc it is just data type
+
+
     -- for parseAnimal
     testCase "parseAnimal valid input" $
       Lib2.parseAnimal "monkey Ben 6" @?=
@@ -79,6 +85,14 @@ unitTests = testGroup "Lib2 tests"
     --         (Lib2.Delete (Lib2.Animal "dog" "Max" 5))),
 
 
+    -- for parseAdd
+    testCase "ADD valid" $
+      Lib2.parseAdd "ADD cat Luna 3" @?= 
+        Right (Lib2.Add (Lib2.Animal "cat" "Luna" 3)),
+
+    testCase "ADD invalid" $
+      Lib2.parseAdd "ADD Juppy 15" @?= 
+        Left "Expected string, but got none",
 
 
     -- for parseDelete
@@ -88,5 +102,57 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "DELETE invalid" $
       Lib2.parseDelete "DELETE dog 5" @?= 
-        Left "Expected string, but got none"
+        Left "Expected string, but got none",
+
+
+    -- No need for 'State' test bc it is just data type
+
+
+    -- for emptyState and stateTransition
+    testCase "StateTransition: starts with emptyState, add animal" $
+      case Lib2.stateTransition Lib2.emptyState (Lib2.Add (Lib2.Animal "dog" "Max" 5)) of
+        Right (msg, Lib2.State animals) -> do
+          msg @?= Just "Added animal: Animal {species = \"dog\", name = \"Max\", age = 5}"
+          animals @?= [Lib2.Animal "dog" "Max" 5]
+        _ -> error "Test failed: adding an animal did not work as expected",
+
+    testCase "StateTransition: starts with not an emptyState, add animal" $
+      let initialState = Lib2.State [Lib2.Animal "cat" "Tom" 3]
+      in case Lib2.stateTransition initialState (Lib2.Add (Lib2.Animal "dog" "Max" 5)) of
+        Right (msg, Lib2.State animals) -> do
+          msg @?= Just "Added animal: Animal {species = \"dog\", name = \"Max\", age = 5}"
+          animals @?= [Lib2.Animal "dog" "Max" 5, Lib2.Animal "cat" "Tom" 3]
+        _ -> error "Test failed: adding an animal to a non-empty state did not work as expected",
+
+    testCase "StateTransition: add animal that already exists" $
+      let initialState = Lib2.State [Lib2.Animal "dog" "Max" 5]
+      in case Lib2.stateTransition initialState (Lib2.Add (Lib2.Animal "dog" "Max" 5)) of
+        Left err -> err @?= "Animal Animal {species = \"dog\", name = \"Max\", age = 5} already exists."
+        _ -> error "Test failed: should not add an animal that already exists",
+
+    testCase "StateTransition: delete animal from non-empty state" $
+      let initialState = Lib2.State [Lib2.Animal "dog" "Max" 5]
+      in case Lib2.stateTransition initialState (Lib2.Delete (Lib2.Animal "dog" "Max" 5)) of
+        Right (msg, Lib2.State animals) -> do
+          msg @?= Just "Deleted animal: Animal {species = \"dog\", name = \"Max\", age = 5}"
+          animals @?= []
+        _ -> error "Test failed: deleting an animal did not work as expected",
+
+    testCase "StateTransition: delete animal that does not exist" $
+      let initialState = Lib2.State [Lib2.Animal "cat" "Tom" 3]
+      in case Lib2.stateTransition initialState (Lib2.Delete (Lib2.Animal "dog" "Max" 5)) of
+        Left err -> err @?= "Animal Animal {species = \"dog\", name = \"Max\", age = 5} not found."
+        _ -> error "Test failed: should not delete an animal that does not exist",
+
+    testCase "StateTransition: list animals in empty state" $
+      case Lib2.stateTransition Lib2.emptyState Lib2.ListAnimals of
+        Right (msg, _) -> msg @?= Just "No animals found."
+        _ -> error "Test failed: listing animals in empty state did not work as expected",
+
+    testCase "StateTransition: list animals in non-empty state" $
+      let stateWithAnimals = Lib2.State [Lib2.Animal "dog" "Max" 5, Lib2.Animal "cat" "Tom" 3]
+      in case Lib2.stateTransition stateWithAnimals Lib2.ListAnimals of
+        Right (msg, _) -> msg @?= Just "Current animals: [Animal {species = \"dog\", name = \"Max\", age = 5},Animal {species = \"cat\", name = \"Tom\", age = 3}]"
+        _ -> error "Test failed: listing animals did not work as expected"
+
   ]
