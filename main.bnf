@@ -7,7 +7,6 @@
             | <compound-command>
             | <merge-command>
 
-<compound-command> ::= <command> <command>
 
 <borrow-command> ::= "borrow" <book-info> <reader-info>
 
@@ -23,17 +22,15 @@
 
 <merge-command> ::= "merge" <book-info> <merge-command> | "merge" <book-info>
 
-<book-info> ::= <title> <author> <isbn>
+<book-info> ::= <title> <author> <book-genre> <book-audience>
 
 <book-genre> ::= "fantasy" | "detective" | "scientific" | "dictionary"
 
-<book-audience> ::= "children" | "teenager | "adult"
+<book-audience> ::= "children" | "teenager" | "adult"
 
 <title> ::= <string>
 
 <author> ::= <string>
-
-<isbn> ::= <integer>
 
 <reader-info> ::= <name> <reader-id>
 
