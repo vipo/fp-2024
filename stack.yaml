@@ -1,4 +1,6 @@
 resolver: lts-21.25
 system-ghc: true
+allow-different-user: true
 packages:
 - .
+ 
