@@ -26,7 +26,7 @@ data Query
     = Add Animal
     | Delete Animal
     | ListAnimals
-    | CompoundQuery Query Query  -- Recursive constructor
+    | CompoundQuery Query Query  -- recursive constructor
     deriving (Show, Eq)
 
 -- <animal> ::= <species> <name> <age>
@@ -142,3 +142,13 @@ runREPL state = do
                         Right (msg, newState) -> do
                             putStrLn (maybe "" id msg)
                             runREPL newState  -- continue the loop with the updated state
+
+-- main :: IO ()
+-- main = do
+--   print (parseAnimal "giraffe Lin 10") -- output: Right (Animal {species = "giraffe", name = "Lin", age = 10})
+--   print (parseString "HereLives5Animals") -- output: Right ("HereLives","5Animals")
+--   print (parseNumber "30Dogs") -- output: Right (30,"Dogs")
+--   print (parseQuery "ADD cat Mino 4") -- output: Right (Add (Animal {species = "cat", name = "Mino", age = 4}))
+--   print (parseCompoundQuery "ADD hamster Lili 1; DELETE hamster Lili 1") -- output: Right (CompoundQuery (Add (Animal {species = "hamster", name = "Lili", age = 1})) (Delete (Animal {species = "hamster", name = "Lili", age = 1})))
+--   print (parseAdd "ADD fish Jojo 1") -- output: Right (Add (Animal {species = "fish", name = "Jojo", age = 1}))
+--   print (parseDelete "DELETE cat Mo 4") -- output: Right (Delete (Animal {species = "cat", name = "Mo", age = 4}))
