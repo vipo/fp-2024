@@ -35,6 +35,7 @@ parseRoundCommand = and2 RoundTo (parseString "roundTo ") parseProduct
 
 -- <price> ::= <number> | <number> "." <number>
 parsePrice :: Parser Double
+parsePrice [] = Left "Price is empty"
 parsePrice = fmap read (some parseDigit `or2` (some parseDigit <* parseChar '.' <*> some parseDigit))
 
 
@@ -103,25 +104,28 @@ parseString str input = if L.isPrefixOf str input
 
 -- <boardgame_name> ::= "corporateCEOTM" | "baseTM" | ...
 parseBoardGameName :: Parser String
-parseBoardGameName = parseString "corporateCEOTM"
-                `or2` parseString "baseTM"
-                `or2` parseString "bigBoxTM"
-                `or2` parseString "venusTMexp"
-                `or2` parseString "turmoilTMexp"
-                `or2` parseString "preludeTMexp"
-                `or2` parseString "prelude1TMexp"
-                `or2` parseString "prelude2TMexp"
-                `or2` parseString "coloniesTMexp"
-                `or2` parseString "ellas&hellasTMexp"
-                `or2` parseString "automaTMexp"
-                `or2` parseString "baseTMAE"
-                `or2` parseString "discoveryTMAEexp"
-                `or2` parseString "foundationsTMAEexp"
-                `or2` parseString "crisisTMAEexp"
+parseBoardGameName [] = Left "Board game name is empty"
+parseBoardGameName input = ( parseString "corporateCEOTM"
+                or2 parseString "baseTM"
+                or2 parseString "bigBoxTM"
+                or2 parseString "venusTMexp"
+                or2 parseString "turmoilTMexp"
+                or2 parseString "preludeTMexp"
+                or2 parseString "prelude1TMexp"
+                or2 parseString "prelude2TMexp"
+                or2 parseString "coloniesTMexp"
+                or2 parseString "ellas&hellasTMexp"
+                or2 parseString "automaTMexp"
+                or2 parseString "baseTMAE"
+                or2 parseString "discoveryTMAEexp"
+                or2 parseString "foundationsTMAEexp"
+                or2 parseString "crisisTMAEexp"
+) input
 
 -- <boardgame> ::=  <boardgame_name> " " <price> "eur" " (contains: " <components> ")"
 parseBoardGame :: Parser Product
-parseBoardGame input = 
+parseBoardGame [] = Left "Board game is empty"
+parseBoardGame input = (
     and6 (\name price _ _ components _ -> BoardGame name price components) 
          parseBoardGameName 
          (parseChar ' ') 
@@ -130,39 +134,34 @@ parseBoardGame input =
          (parseString " (contains: ") 
          parseComponents 
          (parseChar ')') 
-         input
+) input
 
 
 -- <product> ::= <boardgame> | <boardgame> "[includes: " <products> "]"
 parseProduct :: Parser Product
-parseProduct input = 
+parseProduct [] = Left "Product is empty"
+parseProduct input = (
     parseBoardGame input `or2` 
     and4 (\boardGame _ products _ -> BoardGame' boardGame [] products) 
          parseBoardGame 
          (parseString " [includes: ") 
          parseProducts 
          (parseChar ']') 
-         input
+) input
 
 
 -- <component_name> ::= "tile" | "gameBoard" | ...
 parseComponentName :: Parser String
-parseComponentName = parseString "tile"
-                `or2` parseString "gameBoard"
-                `or2` parseString "playerBoard"
-                `or2` parseString "card"
-                `or2` parseString "marker"
-                `or2` parseString "rules"    
+parseComponentName [] = Left "Component name is empty"
+parseComponentName input = ( parseString "tile"
+                or2 parseString "gameBoard"
+                or2 parseString "playerBoard"
+                or2 parseString "card"
+                or2 parseString "marker"
+                or2 parseString "rules"   
+) input 
 
-{-
-<tile> ::= <component_name>
-<board> ::= <component_name>
-<rules> ::= <component_name>
-<card> ::= <component_name>
-<marker> ::= <component_name>
-<dice> ::= <component_name>
--}
-
+-- <component> ::= <component_name>
 parseComponent :: Parser Component
 parseComponent [] = Left "Component is empty"
 parseComponent input = parseComponentName input
@@ -171,24 +170,22 @@ parseComponent input = parseComponentName input
 -- <add_on_name> ::= "playerBoard" | "miniature" | ...
 parseAddOnName :: Parser String
 parseAddOnName [] = Left "Add on name is empty"
-parseAddOnName = parseString "playerBoard"
-             `or2` parseString "miniature"
-             `or2` parseString "metalResource"
-             `or2` parseString "cardSleeve"
-             `or2` parseString "spaceInsert"
+parseAddOnName input = ( parseString "playerBoard" 
+             or2 parseString "miniature"
+             or2 parseString "metalResource"
+             or2 parseString "cardSleeve"
+             or2 parseString "spaceInsert"
+) input
 
-{-    
-<space_insert> ::= <add_on_name> <price> "eur"
-<miniature> ::= <add_on_name> <price> "eur"
-<metal_resources> ::= <add_on_name> <price> "eur"
-<card_sleeves> ::= <add_on_name> <price> "eur"
-<player_board> ::= <add_on_name> <price> "eur"
--}
+
+ 
+-- <add_on> ::= <add_on_name> " " <price> "eur"
 parseAddOn :: Parser AddOn      
 parseAddOn [] = Left "Add on is empty"
 parseAddOn input = 
-    and3 (\name price _ -> AddOn name price) 
+    and4 (\name _ price _ -> AddOn name price) 
          parseAddOnName 
+         (parseChar ' ')
          parsePrice 
          (parseString "eur") 
          input

@@ -11,7 +11,6 @@
 <compare_command> ::= "compare " <product> " " <product>
 
 
-
 <product> ::= <boardgame> | <add_ons> | <boardgame> "[includes: " <products> "]"
 
 <products> ::= <product> | <product> ", " <products>
@@ -19,26 +18,11 @@
 <boardgame> ::=  <boardgame_name> " " <price> "eur"  " (contains: " <components> ")"
 
 <components> ::=  <quantity> " " <component> |  <quantity> " " <component> ", " <components> 
-<component> ::= <tile> | <board> | <rules> | <card> | <marker> | <dice>
-
-<tile> ::= <component_name>
-<board> ::= <component_name>
-<rules> ::= <component_name>
-<card> ::= <component_name>
-<marker> ::= <component_name>
-<dice> ::= <component_name>
-
+<component> ::= <component_name>
 
 
 <add_ons> ::= <add_on> | <add_on> ", " <add_ons> 
-<add_on> ::= <card_sleeves> | <metal_resources> | <miniature> | <player_board> | <space_insert>
-
-<space_insert> ::= <add_on_name> " " <price> "eur"
-<miniature> ::= <add_on_name> " " <price> "eur"
-<metal_resources> ::= <add_on_name> " " <price> "eur"
-<card_sleeves> ::= <add_on_name> " " <price> "eur"
-<player_board> ::= <add_on_name> " " <price> "eur"
-
+<add_on> ::= <add_on_name> " " <price> "eur"
 
 
 <quantity> ::= <number>
@@ -77,7 +61,6 @@
             | "marker"
             | "rules"
             
-
 
 <add_on_name> ::= "playerBoard" 
             | "miniature"
