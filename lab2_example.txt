@@ -1,0 +1,80 @@
+Running and manual testing example:
+
+1) Testing one by one:
+    1. navigate to needed folder (/workspaces/fp-2024/src)
+    2. ghci
+    3. :l Lib2.hs
+    4. Write commands with arguments
+
+    Examples with expected output:
+    ghci> Animal "Cat" "Tom" 5
+    Animal {species = "Cat", name = "Tom", age = 5}
+    ghci> parseAdd "ADD fish Jojo 1"
+    Right (Add (Animal {species = "fish", name = "Jojo", age = 1}))
+
+    ghci> let state = emptyState
+    ghci> let query = parseQuery "list_animals"
+    ghci> print query
+    Right ListAnimals
+
+------------
+
+---Parts 2) and 3) are for testing with runREPL---
+
+2) Testing with a list (starts with an emptyState - no animals in a list):
+    1. navigate to needed folder (/workspaces/fp-2024/src)
+    2. ghci
+    3. :l Lib2.hs
+    4. runREPL emptyState
+    5. run commands, for example:
+        ADD cat Tom 5
+        ADD fish Jem 1
+        ADD dog Max 3
+        DELETE fish Jem 1
+        DELETE cat Tom 5
+        LIST
+        exit
+
+------------
+
+3) Testing with a list (starts not with an emptyState - initial state is presented at the start):
+    1. navigate to needed folder (/workspaces/fp-2024/src)
+    2. ghci
+    3. :l Lib2.hs
+    4. runREPL emptyState
+    5. define initial state, for example:
+        let initialState = State [Animal "dog" "Max" 5, Animal "cat" "Tom" 3]
+    6. runREPL initialState
+    7. run commands, for example just like in 1) example
+
+------------
+
+Example command line session for 2) and 3 testing cases:
+
+ghci> runREPL emptyState
+>>> ADD cat Tom 5
+Added animal: Animal {species = "cat", name = "Tom", age = 5}
+>>> ADD fish Jem 1
+Added animal: Animal {species = "fish", name = "Jem", age = 1}
+>>> LIST
+Current animals: [Animal {species = "fish", name = "Jem", age = 1},Animal {species = "cat", name = "Tom", age = 5}]
+>>> ADD dog Max 3
+Added animal: Animal {species = "dog", name = "Max", age = 3}
+>>> DELETE fish Jem 1
+Deleted animal: Animal {species = "fish", name = "Jem", age = 1}
+>>> LIST
+Current animals: [Animal {species = "dog", name = "Max", age = 3},Animal {species = "cat", name = "Tom", age = 5}]
+>>> 
+
+------------
+
+---Part 4) is for testing with main---
+
+    1. navigate to needed folder (/workspaces/fp-2024/src)
+    2. Write "ghci Lib2.hs"
+    3. Write "main"
+
+------------
+
+---Part 5) for making sure that tests from Spec.hs pass---
+    1. Just write "stack test"
