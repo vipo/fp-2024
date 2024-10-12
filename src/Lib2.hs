@@ -24,32 +24,14 @@ data Product = BoardGame String Double Components
 data Components = Components [Component] deriving Show
 data Component = Component String Integer deriving Show
 
+data AddOns = AddOns [AddOn] deriving Show
+data AddOn = AddOn String Double deriving Show
+
 -- <round_command> ::= "roundTo " <product>
 parseRoundCommand :: Parser Command
 parseRoundCommand = and2 RoundTo (parseString "roundTo ") parseProduct
 
--- <product> ::= <boardgame> | <boardgame> "[includes: " <products> "]"
-parseProduct :: Parser Product
-parseProduct input = (
-    parseBoardGame input `or2` 
-    (and4 (\boardGame _ products _ -> BoardGame' boardGame [] products) 
-        parseBoardGame 
-        (parseString " [includes: ") 
-        parseProducts 
-        (parseString "]")))
-    input
 
--- <boardgame> ::=  <boardgame_name> " " <price> "eur"  " (contains: " <components> ")"
-parseBoardGame :: Parser Product
-parseBoardGame input = (
-    and6 (\name price components -> BoardGame name price components) 
-        parseBoardGameName 
-        (parseChar ' ') 
-        parsePrice 
-        (parseString "eur" *> parseString " (contains: ") 
-        parseComponents
-        (parseString ")"))
-    input
 
 -- <price> ::= <number> | <number> "." <number>
 parsePrice :: Parser Double
@@ -137,16 +119,31 @@ parseBoardGameName = parseString "corporateCEOTM"
                 `or2` parseString "foundationsTMAEexp"
                 `or2` parseString "crisisTMAEexp"
 
+-- <boardgame> ::=  <boardgame_name> " " <price> "eur" " (contains: " <components> ")"
+parseBoardGame :: Parser Product
+parseBoardGame input = 
+    and6 (\name price _ _ components _ -> BoardGame name price components) 
+         parseBoardGameName 
+         (parseChar ' ') 
+         parsePrice 
+         (parseString "eur") 
+         (parseString " (contains: ") 
+         parseComponents 
+         (parseChar ')') 
+         input
 
--- <component> ::= <tile> | <board> | ...
-parseComponent :: Parser String
-parseComponent = parseString "tile"
-            `or2` parseString "gameBoard"
-            `or2` parseString "playerBoard"
-            `or2` parseString "card"
-            `or2` parseString "marker"
-            `or2` parseString "rules"
-            `or2` parseString "dice"
+
+-- <product> ::= <boardgame> | <boardgame> "[includes: " <products> "]"
+parseProduct :: Parser Product
+parseProduct input = 
+    parseBoardGame input `or2` 
+    and4 (\boardGame _ products _ -> BoardGame' boardGame [] products) 
+         parseBoardGame 
+         (parseString " [includes: ") 
+         parseProducts 
+         (parseChar ']') 
+         input
+
 
 -- <component_name> ::= "tile" | "gameBoard" | ...
 parseComponentName :: Parser String
@@ -155,14 +152,49 @@ parseComponentName = parseString "tile"
                 `or2` parseString "playerBoard"
                 `or2` parseString "card"
                 `or2` parseString "marker"
-                `or2` parseString "rules"                
+                `or2` parseString "rules"    
+
+{-
+<tile> ::= <component_name>
+<board> ::= <component_name>
+<rules> ::= <component_name>
+<card> ::= <component_name>
+<marker> ::= <component_name>
+<dice> ::= <component_name>
+-}
+
+parseComponent :: Parser Component
+parseComponent [] = Left "Component is empty"
+parseComponent input = parseComponentName input
+
 
 -- <add_on_name> ::= "playerBoard" | "miniature" | ...
 parseAddOnName :: Parser String
+parseAddOnName [] = Left "Add on name is empty"
 parseAddOnName = parseString "playerBoard"
              `or2` parseString "miniature"
              `or2` parseString "metalResource"
              `or2` parseString "cardSleeve"
+             `or2` parseString "spaceInsert"
+
+{-    
+<space_insert> ::= <add_on_name> <price> "eur"
+<miniature> ::= <add_on_name> <price> "eur"
+<metal_resources> ::= <add_on_name> <price> "eur"
+<card_sleeves> ::= <add_on_name> <price> "eur"
+<player_board> ::= <add_on_name> <price> "eur"
+-}
+parseAddOn :: Parser AddOn      
+parseAddOn [] = Left "Add on is empty"
+parseAddOn input = 
+    and3 (\name price _ -> AddOn name price) 
+         parseAddOnName 
+         parsePrice 
+         (parseString "eur") 
+         input
+
+
+
 
 -- | An entity which represets user input.
 -- It should match the grammar from Laboratory work #1.
