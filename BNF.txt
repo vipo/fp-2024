@@ -27,7 +27,7 @@
 
 <quantity> ::= <number>
 
-<discount> ::= <number>
+<discount> ::= <number> "%"
 
 <price> ::= <number> | <number> "." <number>
 

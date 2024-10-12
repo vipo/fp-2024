@@ -31,14 +31,6 @@ data AddOn = AddOn String Double deriving Show
 parseRoundCommand :: Parser Command
 parseRoundCommand = and2 RoundTo (parseString "roundTo ") parseProduct
 
-
-
--- <price> ::= <number> | <number> "." <number>
-parsePrice :: Parser Double
-parsePrice [] = Left "Price is empty"
-parsePrice = fmap read (some parseDigit `or2` (some parseDigit <* parseChar '.' <*> some parseDigit))
-
-
 and2 :: Parser a -> Parser b -> Parser (a, b)
 and2 a b = \input ->
     case a input of
@@ -100,6 +92,12 @@ parseString [] = Left "Input is empty"
 parseString str input = if L.isPrefixOf str input 
                         then Right (str, drop (length str) input)
                         else Left (str ++ " is not found in " ++ input)
+
+
+-- <price> ::= <number> | <number> "." <number>
+parsePrice :: Parser Double
+parsePrice [] = Left "Price is empty"
+parsePrice = fmap read (some parseDigit `or2` (some parseDigit <* parseChar '.' <*> some parseDigit))
 
 
 -- <boardgame_name> ::= "corporateCEOTM" | "baseTM" | ...
@@ -189,8 +187,6 @@ parseAddOn input =
          parsePrice 
          (parseString "eur") 
          input
-
-
 
 
 -- | An entity which represets user input.
