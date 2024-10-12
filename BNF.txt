@@ -86,3 +86,4 @@
             | "miniature"
             | "metalResource"
             | "cardSleeve"
+            | "spaceInsert"
