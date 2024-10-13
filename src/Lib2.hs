@@ -1,44 +1,246 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
+
 module Lib2
-    ( Query(..),
+  ( Query(..),
     parseQuery,
     State(..),
     emptyState,
-    stateTransition
-    ) where
+    stateTransition,
+    parseBorrowQuery,
+    parseReturnQuery,
+    parseAddBookQuery,
+    parseAddReaderQuery,
+    parseRemoveBookQuery,
+    parseRemoveReaderQuery,
+    parseMergeQuery,
+    parseBookInfo,
+    parseReaderInfo,
+    parseBookGenre,
+    parseBookAudience
+  ) where
 
--- | An entity which represets user input.
--- It should match the grammar from Laboratory work #1.
--- Currently it has no constructors but you can introduce
--- as many as needed.
+import qualified Data.Char as C
+
+type Parser a = String -> Either String (a, String)
+
+-- Basic Parsers
+
+parseChar :: Char -> Parser Char
+parseChar _ [] = Left "Cannot find character in an empty input"
+parseChar c s@(h : t) = if c == h then Right (c, t) else Left ("Expected '" ++ [c] ++ "' but found '" ++ [h] ++ "' in " ++ s)
+
+parseLetter :: Parser Char
+parseLetter [] = Left "Cannot find any letter in an empty input"
+parseLetter s@(h : t) = if C.isLetter h then Right (h, t) else Left (s ++ " does not start with a letter")
+
+parseSpace :: Parser Char
+parseSpace = parseChar ' '
+
+parseDigit :: Parser Char
+parseDigit [] = Left "Cannot find any digits in an empty input"
+parseDigit s@(h : t) = if C.isDigit h then Right (h, t) else Left (s ++ " does not start with a digit")
+
+parseString :: String -> Parser String
+parseString [] s = Right ([], s)
+parseString (c:cs) s = case parseChar c s of
+    Left err -> Left err
+    Right (_, rest) -> case parseString cs rest of
+        Left err -> Left err
+        Right (v2, r2) -> Right (c:v2, r2)
+
+-- Helpers
+
+and2 :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+and2 f p1 p2 s = case p1 s of
+  Left err -> Left err
+  Right (v1, r1) -> case p2 r1 of
+    Left err -> Left err
+    Right (v2, r2) -> Right (f v1 v2, r2)
+
+and3 :: (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+and3 f p1 p2 p3 s = case p1 s of
+  Left err -> Left err
+  Right (v1, r1) -> case p2 r1 of
+    Left err -> Left err
+    Right (v2, r2) -> case p3 r2 of
+      Left err -> Left err
+      Right (v3, r3) -> Right (f v1 v2 v3, r3)
+
+and4 :: (a -> b -> c -> d -> e) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e
+and4 f p1 p2 p3 p4 s = case p1 s of
+  Left err -> Left err
+  Right (v1, r1) -> case p2 r1 of
+    Left err -> Left err
+    Right (v2, r2) -> case p3 r2 of
+      Left err -> Left err
+      Right (v3, r3) -> case p4 r3 of
+        Left err -> Left err
+        Right (v4, r4) -> Right (f v1 v2 v3 v4, r4)
+
+orX :: [Parser a] -> Parser a
+orX [] _ = Left "No parser matched"
+orX (p : ps) s = case p s of
+  Left _ -> orX ps s
+  Right res -> Right res
+
+many1 :: Parser a -> Parser [a]
+many1 p s = case p s of
+  Left err -> Left err
+  Right (v1, r1) -> case many1' r1 of
+    (v2, r2) -> Right (v1:v2, r2)
+  where
+    many1' s2 = case p s2 of
+      Left _ -> ([], s2)
+      Right (v2, r2) -> let (vs, r3) = many1' r2 in (v2 : vs, r3)
+
+parseN :: Int -> Parser a -> Parser [a]
+parseN 0 _ s = Right ([], s)
+parseN n p s = case p s of
+  Left err -> Left err
+  Right (v1, r1) -> case parseN (n - 1) p r1 of
+    Left err -> Left err
+    Right (v2, r2) -> Right (v1:v2, r2)
+
+-- Data Types
+
 data Query
+    = BorrowQuery BookInfo ReaderInfo
+    | ReturnQuery BookInfo ReaderInfo
+    | AddBookQuery BookInfo
+    | AddReaderQuery ReaderInfo
+    | RemoveBookQuery BookInfo
+    | RemoveReaderQuery ReaderInfo
+    | MergeQuery BookInfo (Maybe Query)
+    deriving (Eq, Show)
 
--- | The instances are needed basically for tests
-instance Eq Query where
-  (==) _ _= False
+-- Book and Reader Data Types
 
-instance Show Query where
-  show _ = ""
+data BookInfo = BookInfo Title Author BookGenre BookAudience
+    deriving (Eq, Show)
 
--- | Parses user's input.
--- The function must have tests.
-parseQuery :: String -> Either String Query
-parseQuery _ = Left "Not implemented 2"
+type Title = String
+type Author = String
 
--- | An entity which represents your program's state.
--- Currently it has no constructors but you can introduce
--- as many as needed.
-data State
+data BookGenre = Fantasy | Detective | Scientific | Dictionary
+    deriving (Show, Read, Eq)
 
--- | Creates an initial program's state.
--- It is called once when the program starts.
+data BookAudience = Children | Teenager | Adult
+    deriving (Show, Read, Eq)
+
+data ReaderInfo = ReaderInfo Name ReaderID
+    deriving (Eq, Show)
+
+type Name = String
+type ReaderID = Int
+
+parseQuery :: Parser Query
+parseQuery =
+    orX
+        [ parseBorrowQuery
+        , parseReturnQuery
+        , parseAddBookQuery
+        , parseAddReaderQuery
+        , parseRemoveBookQuery
+        , parseRemoveReaderQuery
+        , parseMergeQuery
+        ]
+
+-- <borrow-command> ::= "borrow" <book-info> <reader-info>
+parseBorrowQuery :: Parser Query
+parseBorrowQuery =
+    and3 (\_ b r -> BorrowQuery b r) (parseString "borrow") parseBookInfo parseReaderInfo
+
+-- <return-command> ::= "return" <book-info> <reader-info>
+parseReturnQuery :: Parser Query
+parseReturnQuery =
+    and3 (\_ b r -> ReturnQuery b r) (parseString "return") parseBookInfo parseReaderInfo
+
+-- <add-book-command> ::= "add-book" <book-info>
+parseAddBookQuery :: Parser Query
+parseAddBookQuery =
+    and2 (\_ b -> AddBookQuery b) (parseString "add-book") parseBookInfo
+
+-- <add-reader-command> ::= "add-reader" <reader-info>
+parseAddReaderQuery :: Parser Query
+parseAddReaderQuery =
+    and2 (\_ r -> AddReaderQuery r) (parseString "add-reader") parseReaderInfo
+
+-- <remove-book-command> ::= "remove-book" <book-info>
+parseRemoveBookQuery :: Parser Query
+parseRemoveBookQuery =
+    and2 (\_ b -> RemoveBookQuery b) (parseString "remove-book") parseBookInfo
+
+-- <remove-reader-command> ::= "remove-reader" <reader-info>
+parseRemoveReaderQuery :: Parser Query
+parseRemoveReaderQuery =
+    and2 (\_ r -> RemoveReaderQuery r) (parseString "remove-reader") parseReaderInfo
+
+-- <merge-command> ::= "merge" <book-info> <merge-command> | "merge" <book-info>
+parseMergeQuery :: Parser Query
+parseMergeQuery s =
+    case parseString "merge" s of
+        Left err -> Left err
+        Right (_, rest) -> case parseBookInfo rest of
+            Left err -> Left err
+            Right (bookInfo, remaining) -> case parseMergeQuery remaining of
+                Left _ -> Right (MergeQuery bookInfo Nothing, remaining)
+                Right (nextQuery, finalRemaining) -> Right (MergeQuery bookInfo (Just nextQuery), finalRemaining)
+
+-- <book-info> ::= <title> <author> <book-genre> <book-audience>
+parseBookInfo :: Parser BookInfo
+parseBookInfo =
+    and4 BookInfo parseTitle parseAuthor parseBookGenre parseBookAudience
+
+-- <title> ::= <string>
+parseTitle :: Parser Title
+parseTitle = many1 parseLetter
+
+-- <author> ::= <string>
+parseAuthor :: Parser [Char]
+parseAuthor = many1 parseLetter
+
+-- <book-genre> ::= "fantasy" | "detective" | "scientific" | "dictionary"
+parseBookGenre :: Parser BookGenre
+parseBookGenre s =
+    case parseData [Fantasy, Detective, Scientific, Dictionary] s of
+        Left e -> Left ("Could not parse Book Genre: " ++ e)
+        Right (g, r) -> Right (read g, r)
+
+-- <book-audience> ::= "children" | "teenager" | "adult"
+parseBookAudience :: Parser BookAudience
+parseBookAudience s =
+    case parseData [Children, Teenager, Adult] s of
+        Left e -> Left ("Could not parse Book Audience: " ++ e)
+        Right (a, r) -> Right (read a, r)
+
+-- <reader-info> ::= <name> <reader-id>
+parseReaderInfo :: Parser ReaderInfo
+parseReaderInfo = and2 ReaderInfo parseName parseReaderID
+
+-- <name> ::= <string>
+parseName :: Parser Name
+parseName = many1 parseLetter
+
+-- <reader-id> ::= <int>
+parseReaderID :: Parser ReaderID
+parseReaderID input =
+  case many1 parseDigit input of
+    Left err -> Left err
+    Right (digits, rest) -> Right (read digits, rest)
+
+
+parseData :: (Show a, Read a) => [a] -> Parser String
+parseData options s = orX (map parseString (map show options)) s
+
+-- State and State Transitions
+data State = State
+    { books :: [BookInfo],
+      readers :: [ReaderInfo]
+    }
+
 emptyState :: State
-emptyState = error "Not implemented 1"
+emptyState = State {books = [], readers = []}
 
--- | Updates a state according to a query.
--- This allows your program to share the state
--- between repl iterations.
--- Right contains an optional message to print and
--- an updated program's state.
-stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition _ _ = Left "Not implemented 3"
+stateTransition :: Query -> State -> Either String State
+stateTransition = undefined
