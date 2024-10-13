@@ -30,147 +30,218 @@ Inventory for Car:
 Mini (2009)
 Mini (2009)
 
+ghci> parseVehicleGarage "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
+Right ([AddVehicle Car "ModelX" 2020 15000,PerformMaintenance Car OilChange (Hours 2)],"")
+ghci> parseVehicleGarage "add_vehicle (Truck, ModelY, 2018, 30000 km)"
+Right ([AddVehicle Truck "ModelY" 2018 30000],"")
+ghci> parseVehicleGarage ""
+Left "Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input"
+
+ghci> parseTaskList "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
+Right ([AddVehicle Car "ModelX" 2020 15000,PerformMaintenance Car OilChange (Hours 2)],"")
+ghci> parseTaskList "add_vehicle (Truck, ModelY, 2018, 30000 km)"
+Right ([AddVehicle Truck "ModelY" 2018 30000],"")
+ghci> parseTaskList ""
+Left "Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input"
+
+ghci> parseTask "add_vehicle (Car, ModelX, 2020, 15000 km)"
+Right (AddVehicle Car "ModelX" 2020 15000, "")
+ghci> parseTask "perform_maintenance (Car, OilChange, 2 hours)"
+Right (PerformMaintenance Car OilChange (Hours 2), "")
+ghci> parseTask "sell_vehicle (Car, ModelX, 2020, 15000.50)"
+Right (SellVehicle Car "ModelX" 2020 15000.5, "")
+ghci> parseTask "inventory (Car)"
+Right (Inventory Car, "")
+ghci> parseTask "view ()"
+Right (View, "")
+ghci> parseTask ""
+Left "Failed to parse task"
+
+ghci> parseAddVehicle "add_vehicle (Car, ModelX, 2020, 15000 km)"
+Right (AddVehicle Car "ModelX" 2020 15000, "")
+ghci> parseAddVehicle "add_vehicle (Truck, ModelY, 2018, 30000 km)"
+Right (AddVehicle Truck "ModelY" 2018 30000, "")
+ghci> parseAddVehicle "add_vehicle (Car, ModelX, twenty, 15000 km)"
+Left "Expected an integer"
+
+ghci> parsePerformMaintenance "perform_maintenance (Car, OilChange, 2 hours)"
+Right (PerformMaintenance Car OilChange (Hours 2), "")
+ghci> parsePerformMaintenance "perform_maintenance (Truck, TireRotation, 30 minutes)"
+Left "Failed to parse duration unit"
+
+ghci> parseSellVehicle "sell_vehicle (Car, ModelX, 2020, 15000.50)"
+Right (SellVehicle Car "ModelX" 2020 15000.5, "")
+ghci> parseSellVehicle "sell_vehicle (Truck, ModelY, 2015, 12000)"
+Left "Expected '.' for price"
+ghci> parseSellVehicle "sell_vehicle (Car, ModelX, twenty, 15000.50)"
+Left "Expected an integer"
+
+ghci> parseInventory "inventory (Car)"
+Right (Inventory Car, "")
+ghci> parseInventory "inventory (Truck)"
+Right (Inventory Truck, "")
+ghci> parseInventory "inventory (Bicycle)"
+Left "Failed to parse vehicle type"
+
+ghci> parseView "view ()"
+Right (View, "")
+ghci> parseView "view ("
+Left "Unexpected end of input"
+
 ghci> parseVehicleType "Car"
-Just Car
+Right (Car, "")
 ghci> parseVehicleType "Truck"
-Just Truck
+Right (Truck, "")
 ghci> parseVehicleType "Motorcycle"
-Just Motorcycle
+Right (Motorcycle, "")
 ghci> parseVehicleType "SUV"
-Just SUV
+Right (SUV, "")
 ghci> parseVehicleType ""
-Nothing
+Left "Failed to parse vehicle type"
 ghci> parseVehicleType "abc"
-Nothing
+Left "Failed to parse vehicle type"
+
+ghci> parseString "\"Hello\""
+Right ("Hello", "")
+ghci> parseString "\"World\""
+Right ("World", "")
+ghci> parseString ""
+Right ("", "")
+ghci> parseString "Hello"
+Right ("Hello", "")
+
+ghci> parseInt "123"
+Right (123, "")
+ghci> parseInt "456"
+Right (456, "")
+ghci> parseInt ""
+Left "Expected an integer"
+
+ghci> parseMileage "15000km"
+Right (15000, "")
+ghci> parseMileage "30000 km"
+Right (30000, "")
+ghci> parseMileage ""
+Left "Expected an integer"
 
 ghci> parseMaintenanceType "OilChange"
-Just OilChange
+Right (OilChange, "")
 ghci> parseMaintenanceType "TireRotation"
-Just TireRotation
+Right (TireRotation, "")
 ghci> parseMaintenanceType "BrakeInspection"
-Just BrakeInspection
+Right (BrakeInspection, "")
 ghci> parseMaintenanceType "EngineTuneUp"
-Just EngineTuneUp
+Right (EngineTuneUp, "")
 ghci> parseMaintenanceType ""
-Nothing
+Left "Failed to parse maintenance type"
 ghci> parseMaintenanceType "abc"
-Nothing
+Left "Failed to parse maintenance type"
 
-ghci> parseQuery "add_vehicle (Car, ModelX, 2020, 15000)"
-Right (AddVehicle Car "ModelX" 2020 15000)
-ghci> parseQuery "add_vehicle (Truck, ModelY, 2018, 30000)"
-Right (AddVehicle Truck "ModelY" 2018 30000)
-ghci> parseQuery "add_vehicle (Motorcycle, ModelZ, 2021, 5000)"
-Right (AddVehicle Motorcycle "ModelZ" 2021 5000)
-ghci> parseQuery "add_vehicle (Car, ModelX, twenty, 15000)"
-Left "Failed to parse add_vehicle"
-ghci> parseQuery "add_vehicle (Car, ModelX, 2020, fifteen thousand)"
-Left "Failed to parse add_vehicle"
+ghci> parseDuration "2 hours"
+Right (Hours 2, "")
+ghci> parseDuration "3 days"
+Right (Days 3, "")
+ghci> parseDuration ""
+Left "Expected an integer"
 
-ghci> parseQuery "perform_maintenance (Car, OilChange, 2, hours)"
-Right (PerformMaintenance Car OilChange (Hours 2))
-ghci> parseQuery "perform_maintenance (Truck, TireRotation, 30, minutes)"
-Left "Failed to parse perform_maintenance"
-ghci> parseQuery "perform_maintenance (Motorcycle, BrakeInspection, 1, days)"
-Right (PerformMaintenance Motorcycle BrakeInspection (Days 1))
-ghci> parseQuery "perform_maintenance (Car, OilChange, two, hours)"
-Left "Failed to parse perform_maintenance"
-ghci> parseQuery "perform_maintenance (Car, OilChange, 2, hrs)"
-Left "Failed to parse perform_maintenance"
+ghci> parsePrice "15000.50"
+Right (15000.5, "")
+ghci> parsePrice "12000.75"
+Right (12000.75, "")
+ghci> parsePrice ""
+Left "Expected a number"
 
+ghci> and3' (\a b c -> (a, b, c)) (parseChar 'a') (parseChar 'b') (parseChar 'c') "abc"
+Right (('a', 'b', 'c'), "")
+ghci> and3' (\a b c -> (a, b, c)) (parseChar 'a') (parseChar 'b') (parseChar 'c') "ab"
+Left "Unexpected end of input"
+
+ghci> and4' (\a b c d -> (a, b, c, d)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') "abcd"
+Right (('a', 'b', 'c', 'd'), "")
+ghci> and4' (\a b c d -> (a, b, c, d)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') "abc"
+Left "Unexpected end of input"
+
+ghci> and8' (\a b c d e f g h -> (a, b, c, d, e, f, g, h)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') (parseChar 'g') (parseChar 'h') "abcdefgh"
+Right (('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'), "")
+ghci> and8' (\a b c d e f g h -> (a, b, c, d, e, f, g, h)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') (parseChar 'g') (parseChar 'h') "abcdefg"
+Left "Unexpected end of input"
+
+ghci> and10' (\a b c d e f g h i j -> (a, b, c, d, e, f, g, h, i, j)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') (parseChar 'g') (parseChar 'h') (parseChar 'i') (parseChar 'j') "abcdefghij"
+Right (('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'), "")
+ghci> and10' (\a b c d e f g h i j -> (a, b, c, d, e, f, g, h, i, j)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') (parseChar 'g') (parseChar 'h') (parseChar 'i') (parseChar 'j') "abcdefghi"
+Left "Unexpected end of input"
+
+ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "a"
+Right ('a', "")
+ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "b"
+Right ('b', "")
+ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "f"
+Left "Expected 'a'; Expected 'b'; Expected 'c'; Expected 'd'; Expected 'e'"
+
+ghci> emptyState
+State {vehicles = [], inventory = []}
+
+ghci> skipSpaces "   Hello"
+"Hello"
+ghci> skipSpaces "World"
+"World"
+
+ghci> parseLiteral "Hello" "HelloWorld"
+Right ("Hello", "World")
+ghci> parseLiteral "Hello" "World"
+Left "Expected \"Hello\", but found \"World\""
+
+ghci> parseChar 'H' "Hello"
+Right ('H', "ello")
+ghci> parseChar 'H' "World"
+Left "Expected 'H', but found 'W'"
+ghci> parseChar 'H' "World"
+Left "Expected 'H', but found 'W'"
+
+ghci> parseQuery "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
+Right [AddVehicle Car "ModelX" 2020 15000, PerformMaintenance Car OilChange (Hours 2)]
 ghci> parseQuery "sell_vehicle (Car, ModelX, 2020, 15000.50)"
-Right (SellVehicle Car "ModelX" 2020 15000.5)
-ghci> parseQuery "sell_vehicle (Truck, ModelY, 2015, 12000)"
-Right (SellVehicle Truck "ModelY" 2015 12000.0)
-ghci> parseQuery "sell_vehicle (Motorcycle, ModelZ, 2018, 7500.75)"
-Right (SellVehicle Motorcycle "ModelZ" 2018 7500.75)
-ghci> parseQuery "sell_vehicle (Car, ModelX, twenty, 15000.50)"
-Left "Failed to parse sell_vehicle"
-ghci> parseQuery "sell_vehicle (Car, ModelX, 2020, fifteen thousand)"
-Left "Failed to parse sell_vehicle"
-
+Right [SellVehicle Car "ModelX" 2020 15000.5]
 ghci> parseQuery "inventory (Car)"
-Right (Inventory Car)
-ghci> parseQuery "inventory (Truck)"
-Right (Inventory Truck)
-ghci> parseQuery "inventory (Motorcycle)"
-Right (Inventory Motorcycle)
-ghci> parseQuery "inventory (Bicycle)"
-Left "Failed to parse inventory"
-ghci> parseQuery "unknown command"
-Left "Unknown command"
-
-ghci> import Data.Maybe (fromJust)
-
-<interactive>:1:1: warning: [-Wmissing-export-lists]
-    The export item ‘module Ghci45’ is missing an export list
-ghci> fromJust (parseDurationUnit "days") 1
-Days 1
-ghci> fromJust (parseDurationUnit "hours") 2
-Hours 2
-ghci> fromJust (parseDurationUnit "minutes") 3
-*** Exception: Maybe.fromJust: Nothing
-CallStack (from HasCallStack):
-  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
-  fromJust, called at <interactive>:70:1 in interactive:Ghci48
-ghci> fromJust (parseDurationUnit "weeks") 4
-*** Exception: Maybe.fromJust: Nothing
-CallStack (from HasCallStack):
-  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
-  fromJust, called at <interactive>:71:1 in interactive:Ghci48
-ghci> fromJust (parseDurationUnit "") 5
-*** Exception: Maybe.fromJust: Nothing
-CallStack (from HasCallStack):
-  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
-  fromJust, called at <interactive>:72:1 in interactive:Ghci48
-ghci> fromJust (parseDurationUnit "Days") 6
-*** Exception: Maybe.fromJust: Nothing
-CallStack (from HasCallStack):
-  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
-  fromJust, called at <interactive>:73:2 in interactive:Ghci48
-ghci> fromJust (parseDurationUnit "HOURS") 7
-*** Exception: Maybe.fromJust: Nothing
-CallStack (from HasCallStack):
-  error, called at libraries/base/Data/Maybe.hs:150:21 in base:Data.Maybe
-  fromJust, called at <interactive>:74:1 in interactive:Ghci48
+Right [Inventory Car]
+ghci> parseQuery "view ()"
+Right [View]
 
 ghci> let initialState = emptyState
-ghci> let parsedQuery = parseQuery "add_vehicle Car Audi 2009 330000"
+ghci> let parsedQuery = parseQuery "add_vehicle (Car, ModelX, 2020, 15000 km)"
 ghci> let result1 = either Left (stateTransition initialState) parsedQuery
 ghci> result1
-Right (Just "Added Car Audi (2009)",State {vehicles = [(Car,"Audi",2009,330000)], inventory = [(Car,1)]})
+Right (Just "Added Car ModelX (2020)",State {vehicles = [(Car,"ModelX",2020,15000)], inventory = [(Car,1)]})
 
 ghci> let (Right (_, state1)) = result1
-ghci> let query2 = parseQuery "perform_maintenance Car OilChange 3 hours"
+ghci> let query2 = parseQuery "perform_maintenance (Car, OilChange, 3 hours)"
 ghci> let result2 = either Left (stateTransition state1) query2
 ghci> result2
-Right (Just "Performed OilChange on Car for Hours 3",State {vehicles = [(Car,"Audi",2009,330000)], inventory = [(Car,1)]})
+Right (Just "Performed OilChange on Car for Hours 3",State {vehicles = [(Car,"ModelX",2020,15000)], inventory = [(Car,1)]})
 
-ghci> let (Right (_, state2)) = result2
-ghci> let query3 = parseQuery "sell_vehicle Car Audi 2009 3300"
-ghci> let result3 = either Left (stateTransition state2) query3
-ghci> result3
-Right (Just "Sold Car Audi (2009) for $3300.0",State {vehicles = [], inventory = []})
+ghci> combineMessages (Just "Message1") (Just "Message2")
+Just "Message1\nMessage2"
+ghci> combineMessages (Just "Message1") Nothing
+Just "Message1"
+ghci> combineMessages Nothing (Just "Message2")
+Just "Message2"
+ghci> combineMessages Nothing Nothing
+Nothing
 
-ghci> let (Right (_, state3)) = result3
-ghci> let query4 = parseQuery "inventory Car"
-ghci> let result4 = either Left (stateTransition state3) query4
-ghci> result4
-Right (Just "Inventory for Car:\n",State {vehicles = [], inventory = []})
+ghci> addToInventory Car 1 []
+[(Car,1)]
+ghci> addToInventory Car 1 [(Truck, 2)]
+[(Truck,2),(Car,1)]
+ghci> addToInventory Car 1 [(Car, 2)]
+[(Car,3)]
 
-ghci> addToInventory "Car" 1 []
-[("Car",1)]
-ghci> addToInventory "Car" 1 [("Truck", 2)]
-[("Truck",2),("Car",1)]
-ghci> addToInventory "Car" 1 [("Car", 2)]
-[("Car",3)]
-ghci> removeFromInventory "Car" 1 []
+ghci> removeFromInventory Car 1 []
 []
-ghci> removeFromInventory "Car" 1 [("Truck", 2)]
-[("Truck",2)]
-ghci> removeFromInventory "Car" 1 [("Car", 2)]
-[("Car",1)]
-ghci> removeFromInventory "Car" 2 [("Car", 2)]
+ghci> removeFromInventory Car 1 [(Truck, 2)]
+[(Truck,2)]
+ghci> removeFromInventory Car 1 [(Car, 2)]
+[(Car,1)]
+ghci> removeFromInventory Car 2 [(Car, 2)]
 []
-ghci> removeFromInventory "Car" 3 [("Car", 2)]
+ghci> removeFromInventory Car 3 [(Car, 2)]
 []

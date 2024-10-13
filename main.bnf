@@ -2,7 +2,7 @@
 
 <task_list> ::= <task> | <task> ";" <task_list>
 
-<task> ::= <add_vehicle> | <perform_maintenance> | <sell_vehicle> | <inventory>
+<task> ::= <add_vehicle> | <perform_maintenance> | <sell_vehicle> | <inventory> | <view>
 
 <add_vehicle> ::= "add_vehicle" "(" <vehicle_type> "," <model> "," <year> "," <mileage> ")"
 
@@ -11,6 +11,8 @@
 <sell_vehicle> ::= "sell_vehicle" "(" <vehicle_type> "," <model> "," <year> "," <price> ")"
 
 <inventory> ::= "inventory" "(" <vehicle_type> ")"
+
+<view> ::= "view"
 
 <vehicle_type> ::= "Car" | "Truck" | "Motorcycle" | "SUV"
 
@@ -30,4 +32,6 @@
 
 <letter> ::= "a" | "b" | "c" | ... | "z" | "A" | "B" | ... | "Z"
 
-<number> ::= "0" | "1" | "2" | ... | "9"
+<number> ::= <digit> | <digit> <number>
+
+<digit> ::= "0" | "1" | "2" | ... | "9"

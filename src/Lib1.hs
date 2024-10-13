@@ -12,6 +12,7 @@ completions =
     "perform_maintenance",
     "sell_vehicle",
     "inventory",
+    "view",
     -- Vehicle Types
     "Car",
     "Truck",
