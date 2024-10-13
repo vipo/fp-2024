@@ -31,18 +31,18 @@ Mini (2009)
 Mini (2009)
 
 ghci> parseVehicleGarage "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
-Right ([AddVehicle Car "ModelX" 2020 15000,PerformMaintenance Car OilChange (Hours 2)],"")
+Right (Sequence [AddVehicle Car "ModelX" 2020 15000, PerformMaintenance Car OilChange (Hours 2)])
 ghci> parseVehicleGarage "add_vehicle (Truck, ModelY, 2018, 30000 km)"
-Right ([AddVehicle Truck "ModelY" 2018 30000],"")
+Right (Sequence [AddVehicle Truck "ModelY" 2018 30000])
 ghci> parseVehicleGarage ""
-Left "Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input"
+Left "Unrecognized command"
 
 ghci> parseTaskList "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
-Right ([AddVehicle Car "ModelX" 2020 15000,PerformMaintenance Car OilChange (Hours 2)],"")
+Right ([AddVehicle Car "ModelX" 2020 15000, PerformMaintenance Car OilChange (Hours 2)], "")
 ghci> parseTaskList "add_vehicle (Truck, ModelY, 2018, 30000 km)"
-Right ([AddVehicle Truck "ModelY" 2018 30000],"")
+Right ([AddVehicle Truck "ModelY" 2018 30000], "")
 ghci> parseTaskList ""
-Left "Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input; Unexpected end of input"
+Left "Unrecognized command"
 
 ghci> parseTask "add_vehicle (Car, ModelX, 2020, 15000 km)"
 Right (AddVehicle Car "ModelX" 2020 15000, "")
@@ -171,12 +171,14 @@ Right (('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'), "")
 ghci> and10' (\a b c d e f g h i j -> (a, b, c, d, e, f, g, h, i, j)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') (parseChar 'g') (parseChar 'h') (parseChar 'i') (parseChar 'j') "abcdefghi"
 Left "Unexpected end of input"
 
-ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "a"
+ghci> or6' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') "a"
 Right ('a', "")
-ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "b"
+ghci> or6' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') "b"
 Right ('b', "")
-ghci> or5' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') "f"
-Left "Expected 'a'; Expected 'b'; Expected 'c'; Expected 'd'; Expected 'e'"
+ghci> or6' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') "f"
+Right ('f', "")
+ghci> or6' (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') (parseChar 'e') (parseChar 'f') "g"
+Left "Expected 'a'; Expected 'b'; Expected 'c'; Expected 'd'; Expected 'e'; Expected 'f'"
 
 ghci> emptyState
 State {vehicles = [], inventory = []}
@@ -199,13 +201,13 @@ ghci> parseChar 'H' "World"
 Left "Expected 'H', but found 'W'"
 
 ghci> parseQuery "add_vehicle (Car, ModelX, 2020, 15000 km); perform_maintenance (Car, OilChange, 2 hours)"
-Right [AddVehicle Car "ModelX" 2020 15000, PerformMaintenance Car OilChange (Hours 2)]
+Right (Sequence [AddVehicle Car "ModelX" 2020 15000, PerformMaintenance Car OilChange (Hours 2)])
 ghci> parseQuery "sell_vehicle (Car, ModelX, 2020, 15000.50)"
-Right [SellVehicle Car "ModelX" 2020 15000.5]
+Right (Sequence [SellVehicle Car "ModelX" 2020 15000.5])
 ghci> parseQuery "inventory (Car)"
-Right [Inventory Car]
+Right (Sequence [Inventory Car])
 ghci> parseQuery "view ()"
-Right [View]
+Right (Sequence [View])
 
 ghci> let initialState = emptyState
 ghci> let parsedQuery = parseQuery "add_vehicle (Car, ModelX, 2020, 15000 km)"

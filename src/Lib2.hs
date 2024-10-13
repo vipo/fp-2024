@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# HLINT ignore "Redundant lambda" #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Lib2
   ( Query (..),
     VehicleType (..),
@@ -22,6 +23,7 @@ data Query
   | SellVehicle VehicleType String Int Double -- VehicleType, Model, Year, Price
   | Inventory VehicleType -- VehicleType
   | View
+  | Sequence [Query] -- Sequence of queries
   deriving (Eq, Show)
 
 data VehicleType = Car | Truck | Motorcycle | SUV
@@ -39,26 +41,30 @@ data State = State
   }
   deriving (Eq, Show)
 
--- <vehicle_garage> ::= <task_list>
-parseVehicleGarage :: Parser [Query]
-parseVehicleGarage = parseTaskList
-
 -- <task_list> ::= <task> | <task> ";" <task_list>
 parseTaskList :: Parser [Query]
-parseTaskList input =
-  case parseTask input of
-    Right (task, rest) ->
-      case parseChar ';' rest of
-        Right (_, rest') ->
-          case parseTaskList rest' of
-            Right (tasks, rest'') -> Right (task : tasks, rest'')
-            Left _ -> Right ([task], rest)
-        Left _ -> Right ([task], rest)
-    Left err -> Left err
+parseTaskList input = case parseTask input of
+  Right (firstQuery, rest) ->
+    case parseChar ';' rest of
+      Right (_, afterSemicolon) -> case parseTaskList afterSemicolon of
+        Right (otherQueries, finalRest) -> Right (firstQuery : otherQueries, finalRest)
+        Left err -> Left err
+      Left _ -> Right ([firstQuery], rest)
+  Left _ -> Left "Unrecognized command"
 
 -- <task> ::= <add_vehicle> | <perform_maintenance> | <sell_vehicle> | <inventory> | <view>
 parseTask :: Parser Query
-parseTask = or5' parseAddVehicle parsePerformMaintenance parseSellVehicle parseInventory parseView
+parseTask = or6' parseAddVehicle parsePerformMaintenance parseSellVehicle parseInventory parseView parseVehicleGarage
+
+-- <vehicle_garage> ::= <task_list>
+parseVehicleGarage :: Parser Query
+parseVehicleGarage =
+  and4'
+    (\_ _ queryList _ -> Sequence queryList)
+    (parseLiteral "vehicle_garage")
+    (parseChar '(')
+    parseTaskList
+    (parseChar ')')
 
 -- <add_vehicle> ::= "add_vehicle" "(" <vehicle_type> "," <model> "," <year> "," <mileage> ")"
 parseAddVehicle :: Parser Query
@@ -295,8 +301,8 @@ and10' f a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 = \input ->
         Left e2 -> Left e2
     Left e1 -> Left e1
 
-or5' :: Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
-or5' p1 p2 p3 p4 p5 = \input ->
+or6' :: Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+or6' p1 p2 p3 p4 p5 p6 = \input ->
   case p1 input of
     Right r1 -> Right r1
     Left e1 -> case p2 input of
@@ -307,7 +313,9 @@ or5' p1 p2 p3 p4 p5 = \input ->
           Right r4 -> Right r4
           Left e4 -> case p5 input of
             Right r5 -> Right r5
-            Left e5 -> Left (e1 ++ "; " ++ e2 ++ "; " ++ e3 ++ "; " ++ e4 ++ "; " ++ e5)
+            Left e5 -> case p6 input of
+              Right r6 -> Right r6
+              Left e6 -> Left (e1 ++ "; " ++ e2 ++ "; " ++ e3 ++ "; " ++ e4 ++ "; " ++ e5 ++ "; " ++ e6)
 
 -- | Initial program state.
 emptyState :: State
@@ -343,26 +351,14 @@ parseChar c input =
             then Right (c, tail input')
             else Left $ "Expected '" ++ [c] ++ "', but found '" ++ [head input'] ++ "'"
 
-parseQuery :: String -> Either String [Query]
-parseQuery input =
-  case parseVehicleGarage input of
-    Right (queries, _) -> Right queries
-    Left err -> Left $ "Failed to parse vehicle garage: " ++ err
+parseQuery :: String -> Either String Query
+parseQuery input = case parseTaskList input of
+  Right (queries, _) -> Right (Sequence queries)
+  Left err -> Left err
 
--- | Transition the state with a list of queries.
-stateTransition :: State -> [Query] -> Either String (Maybe String, State)
-stateTransition st [] = Right (Nothing, st)
-stateTransition st (q : qs) =
-  case singleStateTransition st q of
-    Right (msg, newState) ->
-      case stateTransition newState qs of
-        Right (msgs, finalState) -> Right (combineMessages msg msgs, finalState)
-        Left err -> Left err
-    Left err -> Left err
-
--- | Helper function to transition the state with a single query.
-singleStateTransition :: State -> Query -> Either String (Maybe String, State)
-singleStateTransition st query = case query of
+-- | Transition the state with a single query.
+stateTransition :: State -> Query -> Either String (Maybe String, State)
+stateTransition st query = case query of
   AddVehicle vehicleType model year mileage ->
     let updatedVehicles = (vehicleType, model, year, mileage) : vehicles st
         updatedInventory = addToInventory vehicleType 1 (inventory st)
@@ -386,8 +382,19 @@ singleStateTransition st query = case query of
     let vehiclesStr = unlines $ map (\(v, m, y, _) -> show v ++ " " ++ m ++ " (" ++ show y ++ ")") (vehicles st)
         inventoryStr = unlines $ map (\(v, q) -> show q ++ " " ++ show v) (inventory st)
      in Right (Just ("Vehicles:\n" ++ vehiclesStr ++ "\nInventory:\n" ++ inventoryStr), st)
+  Sequence queryList ->
+    foldl processQuery (Right (Just "", st)) queryList
+    where
+      processQuery :: Either String (Maybe String, State) -> Query -> Either String (Maybe String, State)
+      processQuery (Left err) _ = Left err
+      processQuery (Right (accMsg, currentState)) nextQuery =
+        case stateTransition currentState nextQuery of
+          Left err -> Left err
+          Right (Just result, newState) ->
+            Right (combineMessages accMsg (Just result), newState)
+          Right (Nothing, newState) -> Right (accMsg, newState)
 
--- | Helper function to combine messages
+-- Helper function to combine messages
 combineMessages :: Maybe String -> Maybe String -> Maybe String
 combineMessages Nothing Nothing = Nothing
 combineMessages (Just msg) Nothing = Just msg
