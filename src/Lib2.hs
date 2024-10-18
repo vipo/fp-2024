@@ -191,7 +191,7 @@ parseProduct =
     and4' (\boardGame _ products _ -> 
                 case boardGame of
                     BoardGame name price components -> BoardGame' name price components products
-                    _ -> err ("Unexpected parse failure")
+                    _ -> error ("Unexpected parse failure")
           )
           parseBoardGame 
           (parseString " [includes: ") 
@@ -355,13 +355,16 @@ parseQuery input = case or2' [ parseRoundCommand
                       Right (_, rest) -> Left ("Unparsed input: " ++ rest)
                       Left err -> Left ("Failed to parse command:\n" ++ err)
 
+type PurchaseHistory = [(Product, Integer)]
 
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
+-- Update your State data type to include purchase history
 data State = State
     { products :: [Product]
-    , discounts :: [(Product, Integer)]  -- List of products with discounts
+    , discounts :: [(Product, Integer)]
+    , purchaseHistory :: PurchaseHistory
     } deriving (Eq, Show)
 
 -- | Creates an initial program's state.
@@ -383,3 +386,77 @@ emptyState = State { products = [], discounts = [] }
 stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition _ _ = Left "Not implemented 3"
 
+
+
+roundProductPrice :: Product -> Product
+roundProductPrice (BoardGame name price components) =
+    BoardGame name (fromIntegral (round price)) components
+
+roundProductPrice (AddOn name price) =
+    AddOn name (fromIntegral (round price))
+
+roundProductPrice (AddOns products) =
+    AddOns (roundProductsInProducts products)
+
+roundProductPrice (BoardGame' name price components products) =
+    BoardGame' name (fromIntegral (round price)) components (roundProductsInProducts products)
+
+
+roundProductsInProducts :: Products -> Products
+roundProductsInProducts (Products ps) = Products (roundProducts ps)
+  where
+    roundProducts :: [Product] -> [Product]
+    roundProducts [] = []
+    roundProducts (p:ps) = roundProductPrice p : roundProducts ps
+
+-- Adding a new product or updating product in the state
+addOrUpdateProduct :: Product -> [Product] -> [Product]
+addOrUpdateProduct product [] = [product]
+addOrUpdateProduct product (p:ps)
+    | product == p = product : ps  -- Replaces the existing product
+    | otherwise = p : addOrUpdateProduct product ps
+
+
+calculateShippingCost :: Product -> Double
+calculateShippingCost (BoardGame _ price _) = price * 0.2
+calculateShippingCost (AddOn _ price) = price * 0.1
+calculateShippingCost (AddOns (Products ps)) = sumShippingCosts ps
+calculateShippingCost (BoardGame' _ price _ (Products ps)) =
+    price * 0.2 + sumShippingCosts ps
+
+sumShippingCosts :: [Product] -> Double
+sumShippingCosts [] = 0
+sumShippingCosts (p:ps) = calculateShippingCost p + sumShippingCosts ps
+
+
+applyDiscountToPrice :: Double -> Integer -> Double
+applyDiscountToPrice price discount =
+    price * (1 - fromIntegral discount / 100)
+
+applyDiscount :: Product -> Integer -> Product
+applyDiscount (BoardGame name price components) discount =
+    BoardGame name (applyDiscountToPrice price discount) components
+applyDiscount (AddOn name price) discount =
+    AddOn name (applyDiscountToPrice price discount)
+applyDiscount (AddOns products) discount =
+    AddOns (applyDiscountsToProducts products discount)
+applyDiscount (BoardGame' name price components products) discount =
+    BoardGame' name (applyDiscountToPrice price discount) components (applyDiscountsToProducts products discount)
+
+
+applyDiscountsToProducts :: Products -> Integer -> Products
+applyDiscountsToProducts (Products ps) discount = Products (applyDiscounts ps discount)
+
+applyDiscounts :: [Product] -> Integer -> [Product]
+applyDiscounts [] _ = []
+applyDiscounts (p:ps) discount = applyDiscount p discount : applyDiscounts ps discount
+
+getProductPrice :: Product -> Double
+getProductPrice (BoardGame _ price _) = price
+getProductPrice (AddOn _ price) = price
+getProductPrice (AddOns (Products ps)) = sumProductPrices ps
+getProductPrice (BoardGame' _ price _ (Products ps)) = price + sumProductPrices ps
+
+sumProductPrices :: [Product] -> Double
+sumProductPrices [] = 0
+sumProductPrices (p:ps) = getProductPrice p + sumProductPrices ps
