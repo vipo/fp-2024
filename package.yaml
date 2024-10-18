@@ -35,6 +35,10 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+  - random
+  - stm
+  - async
 
 executables:
   fp2024-one:

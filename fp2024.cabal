@@ -30,6 +30,7 @@ library
       Lessons.Lesson03
       Lessons.Lesson04
       Lessons.Lesson05
+      Lessons.Lesson06
       Lib1
       Lib2
   other-modules:
@@ -40,7 +41,10 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
+    , random
+    , stm
   default-language: Haskell2010
 
 executable fp2024-one
