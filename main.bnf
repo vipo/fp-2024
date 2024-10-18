@@ -4,9 +4,7 @@
             | <add-reader-command>
             | <remove-book-command>
             | <remove-reader-command>
-            | <compound-command>
             | <merge-command>
-
 
 <borrow-command> ::= "borrow" <book-info> <reader-info>
 

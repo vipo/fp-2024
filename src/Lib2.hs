@@ -3,10 +3,14 @@
 
 module Lib2
   ( Query(..),
-    parseQuery,
+    BookInfo(..),
+    ReaderInfo(..),
+    BookGenre(..),
+    BookAudience(..),
     State(..),
     emptyState,
     stateTransition,
+    parseQuery,
     parseBorrowQuery,
     parseReturnQuery,
     parseAddBookQuery,
@@ -42,7 +46,7 @@ parseDigit [] = Left "Cannot find any digits in an empty input"
 parseDigit s@(h : t) = if C.isDigit h then Right (h, t) else Left (s ++ " does not start with a digit")
 
 parseString :: String -> Parser String
-parseString [] s = Right ([], s)
+parseString [] s = Right ([], s)  
 parseString (c:cs) s = case parseChar c s of
     Left err -> Left err
     Right (_, rest) -> case parseString cs rest of
@@ -94,13 +98,6 @@ many1 p s = case p s of
       Left _ -> ([], s2)
       Right (v2, r2) -> let (vs, r3) = many1' r2 in (v2 : vs, r3)
 
-parseN :: Int -> Parser a -> Parser [a]
-parseN 0 _ s = Right ([], s)
-parseN n p s = case p s of
-  Left err -> Left err
-  Right (v1, r1) -> case parseN (n - 1) p r1 of
-    Left err -> Left err
-    Right (v2, r2) -> Right (v1:v2, r2)
 
 -- Data Types
 
@@ -112,7 +109,7 @@ data Query
     | RemoveBookQuery BookInfo
     | RemoveReaderQuery ReaderInfo
     | MergeQuery BookInfo (Maybe Query)
-    deriving (Eq, Show)
+   -- deriving (Eq, Show)
 
 -- Book and Reader Data Types
 
@@ -134,9 +131,9 @@ data ReaderInfo = ReaderInfo Name ReaderID
 type Name = String
 type ReaderID = Int
 
-parseQuery :: Parser Query
-parseQuery =
-    orX
+parseQuery :: String -> Either String Query
+parseQuery s =
+    case orX
         [ parseBorrowQuery
         , parseReturnQuery
         , parseAddBookQuery
@@ -144,37 +141,39 @@ parseQuery =
         , parseRemoveBookQuery
         , parseRemoveReaderQuery
         , parseMergeQuery
-        ]
+        ] s of
+            Left e -> Left e
+            Right (q, _) -> Right q
 
 -- <borrow-command> ::= "borrow" <book-info> <reader-info>
 parseBorrowQuery :: Parser Query
 parseBorrowQuery =
-    and3 (\_ b r -> BorrowQuery b r) (parseString "borrow") parseBookInfo parseReaderInfo
+    and3 (\_ b r -> BorrowQuery b r) (parseString "borrow ") parseBookInfo parseReaderInfo
 
 -- <return-command> ::= "return" <book-info> <reader-info>
 parseReturnQuery :: Parser Query
 parseReturnQuery =
-    and3 (\_ b r -> ReturnQuery b r) (parseString "return") parseBookInfo parseReaderInfo
+    and3 (\_ b r -> ReturnQuery b r) (parseString "return ") parseBookInfo parseReaderInfo
 
 -- <add-book-command> ::= "add-book" <book-info>
 parseAddBookQuery :: Parser Query
 parseAddBookQuery =
-    and2 (\_ b -> AddBookQuery b) (parseString "add-book") parseBookInfo
+    and2 (\_ b -> AddBookQuery b) (parseString "add-book ") parseBookInfo
 
 -- <add-reader-command> ::= "add-reader" <reader-info>
 parseAddReaderQuery :: Parser Query
 parseAddReaderQuery =
-    and2 (\_ r -> AddReaderQuery r) (parseString "add-reader") parseReaderInfo
+    and2 (\_ r -> AddReaderQuery r) (parseString "add-reader ") parseReaderInfo
 
 -- <remove-book-command> ::= "remove-book" <book-info>
 parseRemoveBookQuery :: Parser Query
 parseRemoveBookQuery =
-    and2 (\_ b -> RemoveBookQuery b) (parseString "remove-book") parseBookInfo
+    and2 (\_ b -> RemoveBookQuery b) (parseString "remove-book ") parseBookInfo
 
 -- <remove-reader-command> ::= "remove-reader" <reader-info>
 parseRemoveReaderQuery :: Parser Query
 parseRemoveReaderQuery =
-    and2 (\_ r -> RemoveReaderQuery r) (parseString "remove-reader") parseReaderInfo
+    and2 (\_ r -> RemoveReaderQuery r) (parseString "remove-reader ") parseReaderInfo
 
 -- <merge-command> ::= "merge" <book-info> <merge-command> | "merge" <book-info>
 parseMergeQuery :: Parser Query
@@ -189,15 +188,36 @@ parseMergeQuery s =
 
 -- <book-info> ::= <title> <author> <book-genre> <book-audience>
 parseBookInfo :: Parser BookInfo
-parseBookInfo =
-    and4 BookInfo parseTitle parseAuthor parseBookGenre parseBookAudience
+parseBookInfo input = 
+  case parseTitle input of
+    Left err -> Left err
+    Right (title, rest1) -> 
+      case parseSpace rest1 of
+        Left err -> Left err
+        Right (_, rest2) -> 
+          case parseAuthor rest2 of
+            Left err -> Left err
+            Right (author, rest3) -> 
+              case parseSpace rest3 of
+                Left err -> Left err
+                Right (_, rest4) -> 
+                  case parseBookGenre rest4 of
+                    Left err -> Left err
+                    Right (genre, rest5) -> 
+                      case parseSpace rest5 of
+                        Left err -> Left err
+                        Right (_, rest6) -> 
+                          case parseBookAudience rest6 of
+                            Left err -> Left err
+                            Right (audience, rest7) -> 
+                              Right (BookInfo title author genre audience, rest7)
 
 -- <title> ::= <string>
 parseTitle :: Parser Title
 parseTitle = many1 parseLetter
 
 -- <author> ::= <string>
-parseAuthor :: Parser [Char]
+parseAuthor :: Parser Author
 parseAuthor = many1 parseLetter
 
 -- <book-genre> ::= "fantasy" | "detective" | "scientific" | "dictionary"
@@ -214,9 +234,19 @@ parseBookAudience s =
         Left e -> Left ("Could not parse Book Audience: " ++ e)
         Right (a, r) -> Right (read a, r)
 
+parseData :: (Show a) => [a] -> Parser String
+parseData options s = orX (map parseString (map show options)) s
+
 -- <reader-info> ::= <name> <reader-id>
 parseReaderInfo :: Parser ReaderInfo
-parseReaderInfo = and2 ReaderInfo parseName parseReaderID
+parseReaderInfo input = 
+  case parseName input of
+    Left err -> Left err
+    Right (name, rest1) -> case parseSpace rest1 of
+      Left err -> Left err
+      Right (_, rest2) -> case parseReaderID rest2 of
+        Left err -> Left err
+        Right (readerID, rest3) -> Right (ReaderInfo name readerID, rest3)
 
 -- <name> ::= <string>
 parseName :: Parser Name
@@ -230,9 +260,6 @@ parseReaderID input =
     Right (digits, rest) -> Right (read digits, rest)
 
 
-parseData :: (Show a, Read a) => [a] -> Parser String
-parseData options s = orX (map parseString (map show options)) s
-
 -- State and State Transitions
 data State = State
     { books :: [BookInfo],
@@ -242,5 +269,8 @@ data State = State
 emptyState :: State
 emptyState = State {books = [], readers = []}
 
-stateTransition :: Query -> State -> Either String State
+
+stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition = undefined
+
+
