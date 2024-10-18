@@ -2,7 +2,7 @@
 
 <check_shipping_command> ::= "checkShipping " <product>
 
-<add_command> ::= "add " <product> " " <product>
+<add_command> ::= "add " <product> | "add " <products>
 
 <discount_command> ::= "giveDiscount " <product> " " <discount>
 
