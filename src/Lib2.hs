@@ -191,7 +191,7 @@ parseProduct =
     and4' (\boardGame _ products _ -> 
                 case boardGame of
                     BoardGame name price components -> BoardGame' name price components products
-                    _ -> error ("Unexpected parse failure")
+                    _ -> err ("Unexpected parse failure")
           )
           parseBoardGame 
           (parseString " [includes: ") 
@@ -353,7 +353,7 @@ parseQuery input = case or2' [ parseRoundCommand
                             ] input of
                       Right (query, "") -> Right query
                       Right (_, rest) -> Left ("Unparsed input: " ++ rest)
-                      Left err -> Left err
+                      Left err -> Left ("Failed to parse command:\n" ++ err)
 
 
 -- | An entity which represents your program's state.
