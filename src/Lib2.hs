@@ -49,7 +49,7 @@ parseString :: String -> Parser String
 parseString [] s = Right ([], s)  
 parseString (c:cs) s = case parseChar c s of
     Left err -> Left err
-    Right (_, rest) -> case parseString cs rest of
+    Right (_, r1) -> case parseString cs r1 of
         Left err -> Left err
         Right (v2, r2) -> Right (c:v2, r2)
 
@@ -110,8 +110,6 @@ data Query
     | RemoveReaderQuery ReaderInfo
     | MergeQuery BookInfo (Maybe Query)
     deriving (Eq, Show)
-
--- Book and Reader Data Types
 
 data BookInfo = BookInfo Title Author BookGenre BookAudience
     deriving (Eq, Show)
@@ -237,18 +235,11 @@ parseBookAudience s =
         Right (a, r) -> Right (read a, r)
 
 parseData :: (Show a) => [a] -> Parser String
-parseData options s = orX (map parseString (map show options)) s
+parseData options = orX (map parseString (map show options))
 
 -- <reader-info> ::= <name> <reader-id>
 parseReaderInfo :: Parser ReaderInfo
-parseReaderInfo input = 
-  case parseName input of
-    Left err -> Left err
-    Right (name, rest1) -> case parseSpace rest1 of
-      Left err -> Left err
-      Right (_, rest2) -> case parseReaderID rest2 of
-        Left err -> Left err
-        Right (readerID, rest3) -> Right (ReaderInfo name readerID, rest3)
+parseReaderInfo = and3 (\n _ r -> ReaderInfo n r) parseName parseSpace parseReaderID
 
 -- <name> ::= <string>
 parseName :: Parser Name
@@ -262,23 +253,54 @@ parseReaderID input =
     Right (digits, rest) -> Right (read digits, rest)
 
 
--- State and State Transitions
-data State = State
-    { books :: [BookInfo],
-      readers :: [ReaderInfo]
-    }
+-- States and State Transitions
+
+
+data State = State { books :: [BookInfo], readers :: [ReaderInfo] }
 
 emptyState :: State
-emptyState = State {books = [], readers = []}
+emptyState = State [] []
+
+stateTransition :: State -> Query -> Either String (Maybe String, State)
+stateTransition s (AddBookQuery book) =
+    if bookExists book s
+        then Left "Book already exists"
+        else Right (Just (show book ++ " added."), addBook book s)
+
+stateTransition s (AddReaderQuery reader) =
+    if readerExists reader s
+        then Left "Reader already exists"
+        else Right (Just (show reader ++ " added."), addReader reader s)
+
+stateTransition s (RemoveBookQuery book) =
+    if not (bookExists book s)
+        then Left "Book not found."
+        else Right (Just (show book ++ " removed."), removeBook book s)
+
+stateTransition s (RemoveReaderQuery reader) =
+    if not (readerExists reader s)
+        then Left "Reader not found."
+        else Right (Just (show reader ++ " removed."), removeReader reader s)
+
+stateTransition s (BorrowQuery book reader) =
+    case borrowBook book reader s of
+        Left err -> Left err
+        Right newState -> Right (Just (show reader ++ " borrowed " ++ show book ++ "."), newState)
+
+stateTransition s (ReturnQuery book reader) =
+    case returnBook book reader s of
+        Left err -> Left err
+        Right newState -> Right (Just (show reader ++ " returned " ++ show book ++ "."), newState)
+
+stateTransition s (MergeQuery book maybeNextQuery) =
+    mergeBooks book maybeNextQuery s
 
 
 bookExists :: BookInfo -> State -> Bool
 bookExists book s = book `elem` books s
 
-
 readerExists :: ReaderInfo -> State -> Bool
 readerExists reader s = reader `elem` readers s
-
 
 addBook :: BookInfo -> State -> State
 addBook book s = s { books = book : books s }
@@ -286,69 +308,28 @@ addBook book s = s { books = book : books s }
 addReader :: ReaderInfo -> State -> State
 addReader reader s = s { readers = reader : readers s }
 
-
 removeBook :: BookInfo -> State -> State
 removeBook book s = s { books = filter (/= book) (books s) }
 
-
 removeReader :: ReaderInfo -> State -> State
 removeReader reader s = s { readers = filter (/= reader) (readers s) }
-
 
 borrowBook :: BookInfo -> ReaderInfo -> State -> Either String State
 borrowBook book reader s
     | not (bookExists book s) = Left "Book not found"
     | not (readerExists reader s) = Left "Reader not found"
-    | otherwise = Right s
-
+    | otherwise = Right s 
 
 returnBook :: BookInfo -> ReaderInfo -> State -> Either String State
 returnBook book reader s
     | not (bookExists book s) = Left "Book not found"
     | not (readerExists reader s) = Left "Reader not found"
-    | otherwise = Right s
-
+    | otherwise = Right s 
 
 mergeBooks :: BookInfo -> Maybe Query -> State -> Either String (Maybe String, State)
 mergeBooks book Nothing s = Right (Just "Book merged", addBook book s)
-mergeBooks book (Just query) s = 
+mergeBooks book (Just query) s =
     case stateTransition (addBook book s) query of
         Left err -> Left err
         Right (_, newState) -> Right (Just "Book merged and additional query processed", newState)
-
-
-stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition s (AddBookQuery book) =
-    if bookExists book s
-        then Left "Book already exists"
-        else Right (Just "Book added", addBook book s)
-
-stateTransition s (AddReaderQuery reader) =
-    if readerExists reader s
-        then Left "Reader already exists"
-        else Right (Just "Reader added", addReader reader s)
-
-stateTransition s (RemoveBookQuery book) =
-    if not (bookExists book s)
-        then Left "Book not found"
-        else Right (Just "Book removed", removeBook book s)
-
-stateTransition s (RemoveReaderQuery reader) =
-    if not (readerExists reader s)
-        then Left "Reader not found"
-        else Right (Just "Reader removed", removeReader reader s)
-
-stateTransition s (BorrowQuery book reader) =
-    case borrowBook book reader s of
-        Left err -> Left err
-        Right newState -> Right (Just "Book borrowed", newState)
-
-stateTransition s (ReturnQuery book reader) =
-    case returnBook book reader s of
-        Left err -> Left err
-        Right newState -> Right (Just "Book returned", newState)
-
-stateTransition s (MergeQuery book maybeNextQuery) =
-    mergeBooks book maybeNextQuery s
-
 

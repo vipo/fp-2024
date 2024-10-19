@@ -1,0 +1,100 @@
+remove-reader John 123
+add-reader John 123
+remove-book HarryPotter Rowling Fantasy Children
+add-book HarryPotter Rowling Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+add-book HarryPotter Rowling Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+return Hobbit Tolkien Fantasy Children John 123
+borrow Hobbit Tolkien Fantasy Children John 123
+add-book Hobbit Tolkien Fantasy Children
+borrow Hobbit Tolkien Fantasy Children John 123
+add-reader John 123
+borrow Hobbit Tolkien Fantasy Children John 123
+add-reader John 123
+remove-reader John 123
+borrow Hobbit Tolkien Fantasy Children John 123
+borrow LordOfTheRings Tolkien Fantasy Teenager John 123
+add-book Hobbit Tolkien Fantasy Children
+borrow LordOfTheRings Tolkien Fantasy Teenager John 123
+return Hobbit Tolkien Fantasy Children John 123
+remove-reader John 123
+add-reader John 123
+remove-reader John 123
+remove-reader John 123
+add-reader John 123
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+merge EnglishDictionary Tom Dictionary Adult
+return Hobbit Tolkien Fantasy Children John 123
+borrow Hobbit Tolkien Fantasy Children John 123
+borrow LordOfTheRings Tolkien Fantasy Teenager John 123
+remove-reader John 111
+add-book Hobbit Tolkien Fantasy Children
+add-book Hobbit Tolkien Fantasy Children
+add-reader John 123
+add-book f
+add-reader John 123
+merge EnglishDictionary Tom Dictionary Adult
+merge EnglishDictionary Tom Dictionary Adult
+add-reader John 123
+merge EnglishDictionary Tom Dictionary Adult
+return LordOfTheRings Tolkien Fantasy Teenager John 123
+remove-book LordOfTheRings Tolkien Fantasy Teenager
+remove-book LordOfTheRings Tolkien Fantasy Children
+borrow LordOfTheRings Tolkien Fantasy Teenager John 123
+add-reader John 123
+remove-book Hobbit Tolkien Fantasy Children
+remove-book Hobbit Tolkien Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+add-book LordOfTheRings Tolkien Fantasy Teenager
+remove-book HarryPotter Rowling Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+remove-book HarryPotter Rowling Fantasy Children
+merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+add-book HarryPotter Rowling Fantasy Children
+remove-book Rowling HarryPotter Fantasy Children
+add-book Rowling HarryPotter Fantasy Children
+remove-reader John 123
+remove-reader John 111
+add-book Hobbit Tolkien Fantasy Children
+add-book Hobbit Tolkien Fantasy Children 
+add-book Hobbit Tolkien fantasy children
+add-book f
+add-reader John 123
+f
+d
+s
+add-reader
+borrow
+s
+s
+add-reader John 123
+add-reader John 123
+add-reader John 123
+a
+d
+s
+add-reader "John 123"
+add-reader John 123
+add-reader Johnny 1
+borrow
+show
+"add-reader John 123"

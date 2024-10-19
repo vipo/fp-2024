@@ -16,13 +16,13 @@ completions = [
     "merge",
     
     --genre
-    "fantasy",
-    "detective",
-    "scientific",
-    "dictionary",
+    "Fantasy",
+    "Detective",
+    "Scientific",
+    "Dictionary",
 
     --audience
-    "children",
-    "teenager",
-    "adult"
+    "Children",
+    "Teenager",
+    "Adult"
     ]

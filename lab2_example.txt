@@ -1,0 +1,25 @@
+Welcome! Press [TAB] for auto completion.
+>>> add-reader John 123
+ReaderInfo "John" 123 added.
+>>> add-book f
+PARSE ERROR:No parser matched
+>>> add-reader John 123
+ERROR:Reader already exists
+>>> add-book Hobbit Tolkien Fantasy Children
+BookInfo "Hobbit" "Tolkien" Fantasy Children added.
+>>> add-book Hobbit Tolkien Fantasy Children
+ERROR:Book already exists
+>>> remove-reader John 111
+ERROR:Reader not found.
+>>> borrow LordOfTheRings Tolkien Fantasy Teenager John 123
+ERROR:Book not found
+>>> borrow Hobbit Tolkien Fantasy Children John 123
+ReaderInfo "John" 123 borrowed BookInfo "Hobbit" "Tolkien" Fantasy Children.
+>>> return Hobbit Tolkien Fantasy Children John 123
+ReaderInfo "John" 123 returned BookInfo "Hobbit" "Tolkien" Fantasy Children.
+>>> merge EnglishDictionary Tom Dictionary Adult
+Book merged
+>>> merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
+Book merged and additional query processed
+>>> merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling
+PARSE ERROR:No parser matched
