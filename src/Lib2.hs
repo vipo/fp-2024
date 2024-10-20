@@ -1,10 +1,11 @@
-{-# LANGUAGE InstanceSigs #-}
+
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# HLINT ignore "Redundant lambda" #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 
 module Lib2
-    (Query(..),    
+    (Query(..),
     parseQuery,
     State(..),
     emptyState,
@@ -13,7 +14,9 @@ module Lib2
     Card(..),
     Rank(..),
     Suit(..),
-    Number(..)
+    Number(..),
+    parseCard,
+    parseDeck
     )
 where
 
@@ -52,6 +55,51 @@ instance Show Deck where
 
 type Parser a = String -> Either String (a, String)
 
+and2 :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+and2 f p1 p2 = \input ->
+    case p1 input of
+        Left e -> Left e
+        Right (v1, r1) ->
+            case p2 r1 of
+                Left e -> Left e
+                Right (v2, r2) -> Right (f v1 v2, r2)
+
+and2s :: (a -> b -> c) -> Parser a -> Parser String -> Parser b -> Parser c
+and2s c a strParser b = \input ->
+    case a input of
+        Right (v1, r1) ->
+            case strParser r1 of
+                Right (_, r2) ->
+                    case b r2 of
+                        Right (v2, r3) -> Right (c v1 v2, r3)
+                        Left e2 -> Left e2
+                Left eStr -> Left eStr
+        Left e1 -> Left e1
+
+orX :: [Parser a] -> Parser a
+orX parsers = orX' parsers []
+  where
+    orX' :: [Parser a] -> [String] -> Parser a
+    orX' [] errors _  = Left (L.intercalate ", " errors)
+    orX' (p:ps) errors input=
+        case p input of
+            Right result -> Right result
+            Left errMsg -> orX' ps  (errors ++ [errMsg]) input
+
+many :: Parser a -> Parser [a]
+many p = many' p []
+    where
+        many' p' acc = \input ->
+            case p' input of
+                Left _ -> Right (acc, input)
+                Right (v, r) -> many' p' (acc ++ [v]) r
+
+parseString :: String -> Parser String
+parseString value input =
+    if take (length value) input == value
+    then Right (value, drop (length value) input)
+    else Left "Invalid input"
+
 parseWord :: String -> [(String, a)] -> Parser a
 parseWord typeName wordList input =
     let letters = L.takeWhile C.isLetter input
@@ -85,114 +133,80 @@ parseNumber = parseWord "Number" [
     ("Ten", Ten)
   ]
 
-or2 :: (a -> b) -> Parser a -> Parser b -> Parser b
-or2 wrap p1 p2 input =
-    case p1 input of
-        Right (v1, r1) -> Right (wrap v1, r1)
-        Left err1      -> 
-            case p2 input of
-                Right (v2, r2) -> Right (v2, r2)
-                Left err2      -> Left (err1 ++ ", " ++ err2)
-
-
 -- <rank> ::= <number> | "Jack" | "Queen" | "King" | "Ace"
 parseRank :: Parser Rank
-parseRank = or2 RankNumber parseNumber parseFaceCard
+parseRank = orX [parseNumberAsRank, parseFaceCard]
   where
     parseFaceCard :: Parser Rank
-    parseFaceCard = parseWord "Face"[
+    parseFaceCard = parseWord "Face" [
         ("Jack", Jack),
         ("Queen", Queen),
         ("King", King),
         ("Ace", Ace)
       ]
-
-and2 :: (a -> b -> c) -> Parser a -> String -> Parser b -> Parser c
-and2 c a str b = \input ->
-    case a input of
-        Right (v1, r1) ->
-            if take (length str) r1 == str then
-                case b (drop (length str) r1) of
-                    Right (v2, r2) -> Right (c v1 v2, r2)
-                    Left e2 -> Left e2
-            else
-                Left $"'"++str++"' not found"
-        Left e1 -> Left e1
+    parseNumberAsRank :: Parser Rank
+    parseNumberAsRank input =
+        case parseNumber input of
+            Right (number, rest) -> Right (RankNumber number, rest)
+            Left err -> Left err
 
 -- <card> ::= <rank> "of" <suit> | "Joker"
 parseCard :: Parser Card
-parseCard = or2 id (and2 Card parseRank " of " parseSuit) parseJoker
+parseCard = orX [and2s Card parseRank (parseString " of ") parseSuit, parseJoker]
   where
     parseJoker :: Parser Card
     parseJoker = parseWord "Joker" [("Joker", Joker)]
 
 -- <deck> ::= <card> | <card> "," <deck>
 parseDeck :: Parser Deck
-parseDeck input = parseDeck' input
+parseDeck = and2 buildDeck parseCard (many (and2 (\_ b -> b) (parseString ", ") parseCard))
   where
-    parseDeck' :: Parser Deck
-    parseDeck' input =
-        case parseCard input of
-            Right (card, r1) ->
-                case L.stripPrefix ", " r1 of
-                    Just r2 ->
-                        case parseDeck' r2 of
-                            Right (deck, r3) -> Right (Deck card deck, r3)
-                            Left _ -> Right (SingleCard card, r1)
-                    Nothing -> Right (SingleCard card, r1)
-            Left e -> Left e
-
+    buildDeck :: Card -> [Card] -> Deck
+    buildDeck card rest =
+        if null rest then
+            SingleCard card
+        else
+            Deck card (buildDeck (head rest) (tail rest))
 
 data Query = ViewDeck | AddDeck Deck | DeleteDeck
   deriving(Show,Eq)
 
-parseString :: String -> Parser String
-parseString value input =
-    if take (length value) input == value  
-    then Right (value, drop (length value) input)
-    else Left $ value ++ " is not found in "++input
-
 -- <viewDeck> ::= "view"
 parseView :: Parser Query
-parseView input = 
+parseView input =
   case parseString "view" input of
-        Right ("view", rest) | all C.isSpace rest -> Right(ViewDeck, "")
-        _ -> Left "Expected 'view'"  
+      Right ("view", rest) -> 
+          if all C.isSpace rest 
+          then Right (ViewDeck, "")
+          else Left "Expected only whitespace after 'view'"
+      _ -> Left "Expected 'view'"
 
 -- <deleteDeck> ::= "delete"
 parseDeleteDeck :: Parser Query
-parseDeleteDeck input = case parseString "delete" input of
-    Right ("delete", rest) | all C.isSpace rest -> Right (DeleteDeck, "") 
+parseDeleteDeck input =
+  case parseString "delete" input of
+    Right ("delete", rest) ->
+        if all C.isSpace rest 
+        then Right (DeleteDeck, "")
+        else Left "Expected only whitespace after 'delete'"
     _ -> Left "Expected 'delete'"
 
 -- <addDeck> ::= "add" <deck>
 parseAddDeck :: Parser Query
-parseAddDeck input = 
-    case parseString "add " input of
-        Right (_, rest) ->
-            case parseDeck rest of
-                Right (deck, r) -> Right (AddDeck deck,r) 
-                Left err -> Left $ "Failed to parse deck: " ++ err
-        Left _ -> Left "Invalid command"
+parseAddDeck = and2 (\_ deck -> AddDeck deck) (parseString "add ") parseAdd
+  where 
+    parseAdd :: Parser Deck
+    parseAdd input =
+        case parseDeck input of
+            Right (deck, r) -> Right (deck, r)
+            Left err -> Left $ "Failed to parse deck: " ++ err
 
-or3' :: Parser a -> Parser a -> Parser a -> Parser a
-or3' a b c= \input ->
-    case a input of
-        Right r1 -> Right r1
-        Left e1 ->
-            case b input of
-                Right r2 -> Right r2
-                Left e2 -> 
-                  case c input of
-                    Right r3 -> Right r3
-                    Left e3 -> Left  e3
-                
 -- <command> ::= <viewDeck> | <addDeck> | <deleteDeck>
 parseQuery :: String -> Either String Query
-parseQuery input = 
-    case or3' parseView parseDeleteDeck parseAddDeck input of
+parseQuery input =
+    case orX [parseView,parseDeleteDeck,parseAddDeck] input of
         Right (query, _) -> Right query
-        Left e -> Left e
+        Left e-> Left e
 
 data State = State (Maybe Deck)
   deriving(Eq,Show)
@@ -202,20 +216,20 @@ emptyState = State Nothing
 
 stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition (State maybeDeck) query = case query of
-    ViewDeck -> 
+    ViewDeck ->
         case maybeDeck of
-            Just deck -> Right (Just (show deck), State maybeDeck)  
-            Nothing -> Right (Just "The deck is empty.", State maybeDeck) 
-    AddDeck newDeck -> 
+            Just deck -> Right (Just (show deck), State maybeDeck)
+            Nothing -> Right (Just "The deck is empty.", State maybeDeck)
+    AddDeck newDeck ->
         let updatedDeck = case maybeDeck of
-                Just existingDeck -> mergeDecks newDeck existingDeck  
-                Nothing -> newDeck  
+                Just existingDeck -> mergeDecks newDeck existingDeck
+                Nothing -> newDeck
             message = case newDeck of
-                SingleCard _ -> "Card added." 
-                Deck _ _ -> "Deck added."  
-        in Right (Just message, State (Just updatedDeck)) 
+                SingleCard _ -> "Card added."
+                Deck _ _ -> "Deck added."
+        in Right (Just message, State (Just updatedDeck))
     DeleteDeck ->
-        Right (Just "Deck deleted.", State Nothing)  
+        Right (Just "Deck deleted.", State Nothing)
 
 mergeDecks :: Deck -> Deck -> Deck
 mergeDecks (SingleCard card) existingDeck = Deck card existingDeck
