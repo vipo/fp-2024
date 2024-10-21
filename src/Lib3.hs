@@ -56,7 +56,7 @@ marshallState _ = error "Not implemented 4"
 renderStatements :: Statements -> String
 renderStatements _ = error "Not implemented 5"
 
--- | Updates a state according to a query.
+-- | Updates a state according to a command.
 -- Performs file IO via ioChan if needed.
 -- This allows your program to share the state
 -- between repl iterations, save the state to a file,
@@ -66,5 +66,5 @@ renderStatements _ = error "Not implemented 5"
 -- Right contains an optional message to print and
 -- an updated program's state (potentially loaded from a file)
 stateTransition :: Lib2.State -> Command -> Chan StorageOp ->
-                   Either String (Maybe String, IO Lib2.State)
+                   Either String (IO (Maybe String, Lib2.State))
 stateTransition _ _ ioChan = Left "Not implemented 6"

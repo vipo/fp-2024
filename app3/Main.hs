@@ -42,9 +42,9 @@ cmd str = do
       (st, chan) <- lift get
       case Lib3.stateTransition st c chan of
         Left e2 -> liftIO $ putStrLn $ "ERROR:" ++ e2
-        Right (m, ns) -> do
-          newState <- liftIO ns
-          lift (put (newState, chan))
+        Right r -> do
+          (m, ns) <- liftIO r
+          lift (put (ns, chan))
           mapM_ (liftIO . putStrLn) m
     Right (_, r) -> liftIO $ putStrLn $ "PARSE ERROR: string is not fully consumed - " ++ r
 
