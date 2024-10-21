@@ -8,6 +8,8 @@ module Lib2
     stateTransition
     ) where
 
+import Data.Char (isSpace)
+
 
 -- | An entity which represets user input.
 -- It should match the grammar from Laboratory work #1.
@@ -65,7 +67,9 @@ data CheckOut = CheckOut {
 data Price = Price Int
   deriving (Show, Eq)
 
--- commands
+
+-- | Parser type
+type Parser a = String -> Either String (a, String)
 
 
 -- | The instances are needed basically for tests
@@ -75,15 +79,17 @@ instance Eq Query where
 instance Show Query where
   show _ = ""
 
+
+
 -- | Parses user's input.
 -- The function must have tests.
 parseQuery :: String -> Either String Query
 parseQuery input = case lines input of
-  ("ADD\n":rest) -> parseAdd rest
-  ("REMOVE\n":rest) -> parseRemoveHotelRoom rest
-  ("MAKE RESERVATION\n":rest) -> parseMakeReservation rest
-  ("CANCEL RESERVATION\n":rest) -> parseCancelReservation rest
-  ("ADD ADDITIONAL GUEST\n":rest) -> parseAddAdditionalGuest rest
+  ("ADD":rest) -> parseAdd rest
+  ("REMOVE":rest) -> parseRemove rest
+  ("MAKE RESERVATION":rest) -> parseMakeReservation rest
+  ("CANCEL RESERVATION":rest) -> parseCancelReservation rest
+  ("ADD ADDITIONAL GUEST":rest) -> parseAddAdditionalGuest rest
   _ -> Left "Invalid command"
 
 -- | Parses <hotel>
@@ -92,13 +98,13 @@ parseQuery input = case lines input of
 -- parseHotel str =
 
 -- <hotel> ::= "HOTEL: " <text> "\n" |  <hotel> "CHAIN OF " <hotel> | <hotel> <floor>
-parseHotel :: [String] -> Either String Hotel
+parseHotel :: [String] -> Either String (Hotel, [String])
 parseHotel input =
   case input of
-    ("HOTEL: ":hotelName:rest) ->
+    ("HOTEL:":name:rest) ->
       let (chain, remaining) = parseHotelChain rest
-          (floors, finalRest) = parseFloors remaining
-      in Right (Hotel hotelName chain floors, finalRest)
+          (hotelFloors, finalRest) = parseFloors remaining
+      in Right (Hotel name chain hotelFloors, finalRest)
     _ -> Left "Invalid hotel format. Usage: <hotel> ::= \"HOTEL: \" <text> \"\n\" |  <hotel> \"CHAIN OF \" <hotel> | <hotel> <floor>"
 
 -- parsing the hotel chain if such is present
@@ -152,9 +158,11 @@ parseRoomSections [] = ([], [])
 parseRoomSections input =
   case input of
     ("ROOM SECTION ":rest) ->
-      let (roomSection, remaining) = parseRoom rest
-          (sections, finalRest) = parseRoomSections remaining
-      in (roomSection:sections, finalRest)
+      case parseRoom rest of
+        Left _ -> ([], input) -- handle parse error
+        Right (roomSection, remaining) ->
+          let (sections, finalRest) = parseRoomSections remaining
+          in (roomSection:sections, finalRest)
     _ -> ([], input) -- no more sections
 
 parseAmenities :: [String] -> [Amenity]
@@ -187,6 +195,15 @@ parseAmenitiesList (amenity:rest) =
     then parsedAmenity : parseAmenitiesList rest
     else parseAmenitiesList rest
 
+parseAmenity :: String -> Amenity
+parseAmenity str = case str of
+  "TV" -> TV
+  "WiFi" -> WiFi
+  "Minibar" -> Minibar
+  "Balcony" -> Balcony
+  "AC" -> AC
+  _ -> error "Unknown amenity"
+
 
 splitOnComma :: String -> [String]
 splitOnComma [] = []
@@ -197,39 +214,51 @@ splitOnComma str =
 
 
 -- | main data types
-parseGuest :: [String] -> Either String Guest
+parseGuest :: [String] -> Either String (Guest, [String])
 parseGuest input = 
   case input of
-    ("GUEST: ":name:surname:[]) -> Right $ Guest name surname
+    ("GUEST: ":name:surname:rest) -> Right (Guest name surname, rest)
     _ -> Left "Invalid guest format. GUEST: <name> <surname>"
 
 
-parseCheckIn :: [String] -> Either String CheckIn
+parseCheckIn :: [String] -> Either String (CheckIn, [String])
 parseCheckIn input =
   case input of
-    ("CHECK IN: ":dateStr:timeStr:[]) ->
+    ("CHECK IN: ":dateStr:timeStr:rest) ->
        let date = parseDate dateStr
            time = parseTime timeStr
-       in Right $ CheckIn date time
+       in Right $ (CheckIn date time, rest)
     _ -> Left "Invalid check-in format. CHECK IN: <date> <time>"
 
 
-parseCheckOut :: [String] -> Either String CheckOut
+parseCheckOut :: [String] -> Either String (CheckOut, [String])
 parseCheckOut input =
   case input of
-    ("CHECK OUT: ":dateStr:timeStr:[]) ->
+    ("CHECK OUT: ":dateStr:timeStr:rest) ->
       let date = parseDate dateStr
           time = parseTime timeStr
-      in Right $ CheckOut date time
+      in Right $ (CheckOut date time, rest)
     _ -> Left "Invalid check-out format. CHECK OUT: <date> <time>"
 
 parseDate :: String -> Date
 parseDate dateStr =
-  let [yearStr, monthStr, dayStr] = splitOnSpace dataStr
-      year = read yearStr :: Int
-      month = read monthStr :: Int
-      day = read dayStr :: Int
-  in Date year month day
+  case splitOnSpace dateStr of
+    [yearStr, monthStr, dayStr] ->
+      let yearParsed = read yearStr :: Int
+          monthParsed = read monthStr :: Int
+          dayParsed = read dayStr :: Int
+      in Date yearParsed monthParsed dayParsed
+    _ -> error "Invalid date format"
+
+splitOnSpace :: String -> [String]
+splitOnSpace str = splitOn isSpace str
+
+splitOn :: (Char -> Bool) -> String -> [String]
+splitOn _ [] = []
+splitOn p s =
+  let (before, remainder) = break p s
+      after = dropWhile p remainder
+  in before : splitOn p after
 
 
 parseTime :: String -> Time
@@ -239,10 +268,10 @@ parseTime timeStr =
       minute = read minuteStr :: Int
   in Time hour minute
 
-parsePrice :: [String] -> Either String Price
+parsePrice :: [String] -> Either String (Price, [String])
 parsePrice input =
   case input of
-    ("PRICE: ":priceStr:[]) -> Right $ Price (read priceStr :: Int)
+    ("PRICE: ":priceStr:rest) -> Right $ (Price (read priceStr :: Int), rest)
     _ -> Left "Invalid price format. PRICE: <number>"
 
 -- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
@@ -262,7 +291,11 @@ parseMakeReservation input =
                 Right (checkOut, rest4) ->
                   case parsePrice rest4 of
                     Left err -> Left err
-                    Right (price, _) -> Right (MakeReservation guest hotel checkIn checkOut price)
+                    Right (price, finalRest) ->
+                      if null finalRest then
+                        Right (MakeReservation guest hotel checkIn checkOut price)
+                      else
+                        Left "Unexpected input after reservation details."
 
 
 -- <add_hotel_room> ::= "ADD\n" <hotel> 
@@ -270,34 +303,40 @@ parseAdd :: [String] -> Either String Query
 parseAdd input =
   case parseHotel input of
     Left err -> Left err
-    Right hotel -> Right $ Add hotel
+    Right (hotel, _) -> Right $ Add hotel
+
+parseRemove :: [String] -> Either String Query
+parseRemove input =
+  case parseHotel input of
+    Left err -> Left err
+    Right (hotel, _) -> Right $ Remove hotel
 
 
 parseCancelReservation :: [String] -> Either String Query
 parseCancelReservation input =
   case parseHotel input of
-    Left err -> err
+    Left err -> Left err
     Right (hotel, rest) ->
       case parseFloor rest of
-        Left err -> err
+        Left err -> Left err
         Right (floor, rest2) ->
           case parseRoom rest2 of
-            Left err -> err
+            Left err -> Left err
             Right (room, _) ->
-              Right (CancelReservation hotel floor room)
+              Right (CancelReservation hotel)
 
-parseRemoveHotelRoom :: [String] -> Either String Query
-parseRemoveHotelRoom input =
-  case parseHotel input of
-    Left err -> err
-    Right (hotel, rest) ->
-      case parseFloor rest of
-        Left err -> err
-        Right (floor, rest2) ->
-          case parseRoom rest2 of
-            Left err -> err
-            Right (room, _) ->
-              Right (RemoveHotelRoom hotel floor room)
+-- <add_additional_guest> ::= "ADD ADDITIONAL GUEST\n" <guest> <hotel>
+
+parseAddAdditionalGuest :: [String] -> Either String Query
+parseAddAdditionalGuest input =
+  case parseGuest input of
+    Left err -> Left err
+    Right (guest, rest) -> 
+      case parseHotel rest of
+        Left err -> Left err
+        Right (hotel, _) -> Right $ AddAdditionalGuest guest hotel
+
+
 
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
