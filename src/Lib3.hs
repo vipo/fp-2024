@@ -63,6 +63,7 @@ renderStatements _ = error "Not implemented 5"
 -- load the state from the file so the state is preserved
 -- between program restarts.
 -- Keep IO as small as possible.
+-- Batches must be executed atomically (STM).
 -- Right contains an optional message to print and
 -- an updated program's state (potentially loaded from a file)
 stateTransition :: Lib2.State -> Command -> Chan StorageOp ->
