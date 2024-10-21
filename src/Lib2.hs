@@ -21,6 +21,8 @@ data Query =
   MakeReservation Guest Hotel CheckIn CheckOut Price  |
   CancelReservation Hotel |
   AddAdditionalGuest Guest Hotel
+  deriving (Show)
+
 
 data Guest = Guest{
   guestName :: String,
@@ -29,7 +31,7 @@ data Guest = Guest{
 
 data Hotel = Hotel {
   hotelName :: String,
-  hotelChain :: String, -- possible that the hotel may not have a chain (empty)
+  hotelChain :: [Hotel], -- possible that the hotel may not have a chain (empty)
   floors :: [Floor]
 } deriving (Show, Eq)
 
@@ -76,8 +78,9 @@ type Parser a = String -> Either String (a, String)
 instance Eq Query where
   (==) _ _= False
 
-instance Show Query where
-  show _ = ""
+--instance Show Query where
+  --show _ = ""
+  
 
 
 
@@ -101,17 +104,32 @@ parseQuery input = case lines input of
 parseHotel :: [String] -> Either String (Hotel, [String])
 parseHotel input =
   case input of
-    ("HOTEL:":name:rest) ->
-      let (chain, remaining) = parseHotelChain rest
-          (hotelFloors, finalRest) = parseFloors remaining
-      in Right (Hotel name chain hotelFloors, finalRest)
-    _ -> Left "Invalid hotel format. Usage: <hotel> ::= \"HOTEL: \" <text> \"\n\" |  <hotel> \"CHAIN OF \" <hotel> | <hotel> <floor>"
+    (line:rest) ->
+      let properties = words line
+      in case properties of
+        ("HOTEL:":fullName) ->
+          let name = unwords fullName -- joins multiple words if a hotel has a longer name than a word
+              (chain, remaining) = parseHotelChain rest -- parsing hotel chain
+              (hotelFloors, finalRest) = parseFloors remaining -- parse the floors
+          in Right (Hotel name chain hotelFloors, finalRest)
+        _ -> Left "Invalid hotel format."
+    _ -> Left "Invalid hotel format."
 
 -- parsing the hotel chain if such is present
-parseHotelChain :: [String] -> (String, [String])
-parseHotelChain [] = ("", [])
-parseHotelChain ("CHAIN OF: ":chainName:rest) = (chainName, rest)
-parseHotelChain rest = ("", rest)
+parseHotelChain :: [String] -> ([Hotel], [String])
+parseHotelChain input =
+  case input of
+    (line:rest) ->
+      let properties = words line
+      in case properties of
+        ("CHAIN":"OF": _) ->
+          case parseHotel rest of
+            Right (nextHotel, remaining) ->
+              let (moreHotels, finalRest) = parseHotelChain remaining
+              in (nextHotel : moreHotels, finalRest)
+            Left _ -> ([], input)
+        _ -> ([], input)
+    _ -> ([], input)
 
 -- parses floors
 parseFloors :: [String] -> ([Floor], [String])
@@ -127,10 +145,14 @@ parseFloors input =
 parseFloor :: [String] -> Either String (Floor, [String])
 parseFloor input =
   case input of
-    ("FLOOR: ":numberStr:rest) ->
-      let floorNumber = read numberStr :: Int
-          (rooms, finalRest) = parseRooms rest
-      in Right (Floor floorNumber rooms, finalRest)
+    (line:rest) ->
+      let properties = words line
+      in case properties of
+        ("FLOOR:":numberStr:_) ->
+          let floorNumber = read numberStr :: Int
+              (rooms, finalRest) = parseRooms rest
+          in Right (Floor floorNumber rooms, finalRest)
+        _ -> Left "Invalid floor format."
     _ -> Left "Invalid floor format."
 
 parseRooms :: [String] -> ([Room], [String])
@@ -300,16 +322,18 @@ parseMakeReservation input =
 
 -- <add_hotel_room> ::= "ADD\n" <hotel> 
 parseAdd :: [String] -> Either String Query
-parseAdd input =
+parseAdd input = 
   case parseHotel input of
+    Right (hotel, []) -> Right (Add hotel)
+    Right (_, remaining) -> Left $ "Unparsed input remaining: " ++ unwords remaining
     Left err -> Left err
-    Right (hotel, _) -> Right $ Add hotel
 
 parseRemove :: [String] -> Either String Query
 parseRemove input =
   case parseHotel input of
+    Right (hotel, []) -> Right (Remove hotel)
+    Right (_, remaining) -> Left $ "Unparsed input remaining: " ++ unwords remaining
     Left err -> Left err
-    Right (hotel, _) -> Right $ Remove hotel
 
 
 parseCancelReservation :: [String] -> Either String Query

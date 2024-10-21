@@ -11,8 +11,8 @@ completions = [
     "room",
     "guest",
     -- commands
-    "add_hotel_room",
-    "remove_hotel_room",
+    "add",
+    "remove",
     "make_reservation",
     "cancel_reservation",
     "add_additional_guest",
