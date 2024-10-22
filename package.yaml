@@ -62,6 +62,17 @@ executables:
     - fp2024
     - repline
     - mtl
+  fp2024-three:
+    main:                Main.hs
+    source-dirs:         app3
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - fp2024
+    - repline
+    - mtl
 
 tests:
   fp2024-test:
