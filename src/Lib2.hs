@@ -157,16 +157,27 @@ parseCard = orX [and2s Card parseRank (parseString " of ") parseSuit, parseJoker
     parseJoker :: Parser Card
     parseJoker = parseWord "Joker" [("Joker", Joker)]
 
--- <deck> ::= <card> | <card> "," <deck>
+
+and3 :: (a -> b) -> (b->b->b)-> Parser a -> Parser String -> Parser b -> Parser b
+and3 w mrg a strParser b = \input ->
+    case a input of
+        Right (v1, r1) ->
+            case strParser r1 of
+                Right (_, r2) ->
+                    case b r2 of
+                        Right (v2, r3) -> Right (mrg (w v1) v2, r3)
+                        Left e2 -> Left e2
+                Left eStr -> Left eStr
+        Left e1 -> Left e1
+
+-- <deck> ::= <card> "," <deck> | <card> 
 parseDeck :: Parser Deck
-parseDeck = and2 buildDeck parseCard (many (and2 (\_ b -> b) (parseString ", ") parseCard))
-  where
-    buildDeck :: Card -> [Card] -> Deck
-    buildDeck card rest =
-        if null rest then
-            SingleCard card
-        else
-            Deck card (buildDeck (head rest) (tail rest))
+parseDeck = orX[and3 SingleCard mergeDecks parseCard (parseString ", ") parseDeck,parseSingleDeck]
+  where 
+    parseSingleDeck :: Parser Deck
+    parseSingleDeck input= case parseCard input of
+      Left e -> Left e
+      Right (v,r)->Right(SingleCard v,r)   
 
 data Query = ViewDeck | AddDeck Deck | DeleteDeck
   deriving(Show,Eq)
@@ -175,8 +186,8 @@ data Query = ViewDeck | AddDeck Deck | DeleteDeck
 parseView :: Parser Query
 parseView input =
   case parseString "view" input of
-      Right ("view", rest) -> 
-          if all C.isSpace rest 
+      Right ("view", rest) ->
+          if all C.isSpace rest
           then Right (ViewDeck, "")
           else Left "Expected only whitespace after 'view'"
       _ -> Left "Expected 'view'"
@@ -186,7 +197,7 @@ parseDeleteDeck :: Parser Query
 parseDeleteDeck input =
   case parseString "delete" input of
     Right ("delete", rest) ->
-        if all C.isSpace rest 
+        if all C.isSpace rest
         then Right (DeleteDeck, "")
         else Left "Expected only whitespace after 'delete'"
     _ -> Left "Expected 'delete'"
@@ -194,7 +205,7 @@ parseDeleteDeck input =
 -- <addDeck> ::= "add" <deck>
 parseAddDeck :: Parser Query
 parseAddDeck = and2 (\_ deck -> AddDeck deck) (parseString "add ") parseAdd
-  where 
+  where
     parseAdd :: Parser Deck
     parseAdd input =
         case parseDeck input of
