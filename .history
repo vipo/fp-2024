@@ -1,3 +1,15 @@
+add-book HP Rowling Fantasy Children
+add-book LOTR Tolkien Fantasy Teenager
+add-book Hob Tolkien Fantasy Children
+merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
+add-book Hob Tolkien Fantasy Children
+add-book LOTR Tolkien Fantasy Teenager
+add-book HP Rowling Fantasy Children
+merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
+add-book HP Rowling Fantasy Children
+add-book LOTR Tolkien Fantasy Teenager
+add-book Hob Tolkien Fantasy Children
+merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
 remove-reader John 123
 add-reader John 123
 remove-book HarryPotter Rowling Fantasy Children
@@ -86,15 +98,3 @@ add-reader
 borrow
 s
 s
-add-reader John 123
-add-reader John 123
-add-reader John 123
-a
-d
-s
-add-reader "John 123"
-add-reader John 123
-add-reader Johnny 1
-borrow
-show
-"add-reader John 123"

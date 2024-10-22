@@ -26,6 +26,7 @@ module Lib2
 
 import qualified Data.Char as C
 
+
 type Parser a = String -> Either String (a, String)
 
 -- Basic Parsers
@@ -173,18 +174,13 @@ parseRemoveReaderQuery :: Parser Query
 parseRemoveReaderQuery =
     and2 (\_ r -> RemoveReaderQuery r) (parseString "remove-reader ") parseReaderInfo
 
+
 -- <merge-command> ::= "merge" <book-info> <merge-command> | "merge" <book-info>
 parseMergeQuery :: Parser Query
-parseMergeQuery s =
-    case parseString "merge " s of
-        Left err -> Left err
-        Right (_, rest) -> case parseBookInfo rest of
-            Left err -> Left err
-            Right (bookInfo, remaining) -> case parseSpace remaining of
-              Left _ -> Right (MergeQuery bookInfo Nothing, remaining)
-              Right (_, nextcommand)-> case parseMergeQuery nextcommand of  
-                Left err -> Left err 
-                Right (nextQuery, finalRemaining) -> Right (MergeQuery bookInfo (Just nextQuery), finalRemaining)
+parseMergeQuery = orX [and4 (\_ bi _ mq -> MergeQuery bi (Just mq)) (parseString "merge ") parseBookInfo parseSpace parseMergeQuery
+                       ,and2 (\_ bi -> MergeQuery bi Nothing) (parseString "merge ") parseBookInfo
+                      ]
+
 
 -- <book-info> ::= <title> <author> <book-genre> <book-audience>
 parseBookInfo :: Parser BookInfo
