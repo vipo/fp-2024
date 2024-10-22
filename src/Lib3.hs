@@ -39,6 +39,7 @@ parseCommand _ = Left "Not implemented 2"
 -- | Parses Statement.
 -- Must be used in parseCommand.
 -- Reuse Lib2 as much as you can.
+-- You can change Lib2.parseQuery signature if needed.
 parseStatements :: String -> Either String (Statements, String)
 parseStatements _ = Left "Not implemented 3"
 
