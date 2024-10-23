@@ -68,5 +68,5 @@ renderStatements _ = error "Not implemented 5"
 -- Right contains an optional message to print and
 -- an updated program's state (potentially loaded from a file)
 stateTransition :: Lib2.State -> Command -> Chan StorageOp ->
-                   Either String (IO (Maybe String, Lib2.State))
-stateTransition _ _ ioChan = Left "Not implemented 6"
+                   IO (Either String (Maybe String, Lib2.State))
+stateTransition _ _ ioChan = return $ Left "Not implemented 6"

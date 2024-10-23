@@ -40,12 +40,10 @@ cmd str = do
     Left e -> liftIO $ putStrLn $ "PARSE ERROR:" ++ e
     Right (c, "") -> do
       (st, chan) <- lift get
-      case Lib3.stateTransition st c chan of
+      tr <- liftIO $ Lib3.stateTransition st c chan
+      case tr of
         Left e2 -> liftIO $ putStrLn $ "ERROR:" ++ e2
-        Right r -> do
-          (m, ns) <- liftIO r
-          lift (put (ns, chan))
-          mapM_ (liftIO . putStrLn) m
+        Right (m ,ns) -> lift (put (ns, chan)) >> mapM_ (liftIO . putStrLn) m
     Right (_, r) -> liftIO $ putStrLn $ "PARSE ERROR: string is not fully consumed - " ++ r
 
 invite :: MultiLine -> Repl String
