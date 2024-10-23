@@ -1,10 +1,12 @@
-<art_studio> ::= <art_piece_list>
+<commands> ::= "Add_New_Artwork" <art_studio> <art_piece> | "Sell_Artwork" <id> | "Print_Info" <art_studio>
+
+<art_studio> ::= <art_piece_list> 
 
 <art_piece_list> ::= <art_piece> | <art_piece> <art_piece_list>
 
-<art_piece> ::= <type> <title> <artist> <date> <price> <description>
+<art_piece> ::= <type> <title> <artist> <date> <price> <description> <id>
 
-<type> ::= "Painting" | "Photograph" | "Sculpture" | "Digital" | "Drawing" | "sketch"
+<type> ::= "Painting" | "Photograph" | "Sculpture" | "Digital" | "Drawing" | "Sketch"
 
 <artist> ::= <first_name> <last_name>
 
@@ -19,6 +21,8 @@
 <first_name> ::= <string>
 
 <last_name> ::= <string>
+
+<id> ::= <intiger>
 
 <string> ::= <letter> | <letter> <string>
 
