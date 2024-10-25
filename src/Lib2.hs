@@ -1,45 +1,28 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE BlockArguments #-}
 module Lib2
-    ( Query(..),
-    parseQuery,
+    ( 
+    Query(..),
     State(..),
-    emptyState,
-    stateTransition,
     ID(..),
     Guest(..),
     Hotel(..),
     Floor(..),
     Room(..),
     Amenity(..),
-    Date(..),
+    Date(..),    
     Time(..),
     CheckIn(..),
     CheckOut(..),
     Price(..),
-    parseLine,
-    startsWith,
-    parseKeyword,
-    parseHotel,
-    parseHotelChain,
-    parseFloors,
-    parseFloor,
-    parseRooms,
-    parseRoom,
-    parseRoomSections,
-    parseAmenities,
-    parseAmenity,
-    parseGuest,
-    parseCheckIn,
-    parseCheckOut,
-    parseDate,
-    parseTime,
-    parsePrice
+    parseQuery,
+    emptyState,
+    stateTransition,
 
     ) where
 
 import Data.Char (isSpace, isDigit)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, tails, findIndex, intercalate)
 
 
 -- | An entity which represets user input.
@@ -119,7 +102,7 @@ parseLine :: Parser String
 parseLine input =
   case lines input of
     (line:rest) -> Right (line, unlines rest)
-    [] -> Left "Expected a line, but got end of input."
+    [] -> Left "Expected a dot (end of query operation), but got end of input."
 
 -- utility function to check if a line starts with a specific keyword
 startsWith :: String -> String -> Bool
@@ -190,6 +173,8 @@ and5' f a b c d e input =
         Left e2 -> Left e2
     Left e1 -> Left e1
 
+
+
 parseInt :: Parser Int
 parseInt input =
   let (numberStr, remaining) = span isDigit input
@@ -208,7 +193,7 @@ parseID input =
 -- The function must have tests.
 -- is pat pradziu buvau padares su Parser, todel kad visko taip stipriai neperrasyti tiesiog pasiimti query is tuple (query, string)
 parseQuery :: String -> Either String Query
-parseQuery input = case lines input of
+parseQuery input = case splitOn ". " input of
   ("ADD":rest) -> fmap fst (parseAdd (unlines rest))
   ("REMOVE":rest) -> fmap fst (parseRemove (unlines rest))
   ("MAKE RESERVATION":rest) -> fmap fst (parseMakeReservation (unlines rest))
@@ -252,6 +237,8 @@ parseHotelName input =
   case parseKeyword "HOTEL: " input of
     Right (line, rest) -> Right (drop 7 line, rest) -- removing hotel prefix
     Left err -> Left err
+
+
 
 parseHotelChain :: Parser [Hotel]
 parseHotelChain input =
@@ -342,7 +329,7 @@ splitAmenities :: [String] -> [Amenity]
 splitAmenities [] = []
 splitAmenities input =
   let amenitiesStr = concat input
-      amenitiesWords = splitOn (== ',') amenitiesStr
+      amenitiesWords = splitOn ", " amenitiesStr
   in parseAmenitiesList amenitiesWords
 
 parseAmenitiesList :: [String] -> [Amenity]
@@ -411,7 +398,7 @@ parseDate input =
   let parts = words input
   in case parts of
        (dateStr:rest) ->
-         let dateParts = splitOn (== '-') dateStr
+         let dateParts = splitOn "-" dateStr
          in case dateParts of
               [yearStr, monthStr, dayStr] ->
                 let yearParsed = read yearStr :: Int
@@ -426,7 +413,7 @@ parseTime input =
   let parts = words input
   in case parts of
        (timeStr:rest) ->
-         let timeParts = splitOn (== ':') timeStr
+         let timeParts = splitOn ":" timeStr
          in case timeParts of
               [hourStr, minuteStr] ->
                 let hourParsed = read hourStr :: Int
@@ -437,14 +424,25 @@ parseTime input =
 
 
 splitOnSpace :: String -> [String]
-splitOnSpace str = splitOn isSpace str
+splitOnSpace str = splitOn " " str
 
-splitOn :: (Char -> Bool) -> String -> [String]
+splitOn :: String -> String -> [String]
 splitOn _ [] = []
-splitOn p s =
-  let (before, remainder) = break p s
-      after = dropWhile p remainder
-  in before : splitOn p after
+splitOn delimiter str =
+  let (before, remainder) = breakOn delimiter str
+  in before : if null remainder
+     then []
+     else splitOn delimiter (drop (length delimiter) remainder)
+
+-- Helper function to find the first occurrence of the delimiter
+breakOn :: String -> String -> (String, String)
+breakOn delim s =
+  case findIndex (isPrefixOf delim) (tails s) of
+    Just idx -> splitAt idx s
+    Nothing  -> (s, "")
+
+
+
 
 
 
@@ -501,7 +499,7 @@ stateTransition st query = case query of
         newHotelEntity = AvailableHotelEntity newId hotel
         newHotels = newHotelEntity : availableHotelEntities st
         newState = st { availableHotelEntities = newHotels }
-    in Right (Just "Hotel added successfully!", newState)
+    in Right (Just $ "Hotel added successfully! " ++ show hotel, newState)
 
   Remove (ID entityId) ->
     let newHotelEntities = filter (\h -> availableEntityId h /= ID entityId) (availableHotelEntities st)
