@@ -18,12 +18,14 @@ import Data.List (isPrefixOf)
 -- as many as needed.
 data Query =
   Add Hotel|
-  Remove Hotel |
+  Remove ID |
   MakeReservation Guest Hotel CheckIn CheckOut Price  |
-  CancelReservation Hotel |
-  AddAdditionalGuest Guest Hotel
+  CancelReservation ID |
+  AddAdditionalGuest Guest ID
   deriving (Show)
 
+newtype ID = ID Int
+  deriving (Show, Eq)
 
 data Guest = Guest{
   guestName :: String,
@@ -157,7 +159,18 @@ and5' f a b c d e input =
         Left e2 -> Left e2
     Left e1 -> Left e1
 
+parseInt :: Parser Int
+parseInt input =
+  let (numberStr, remaining) = span isDigit input
+  in if null numberStr
+       then Left "Expected an integer"
+       else Right (read numberStr, remaining)
 
+parseID :: Parser ID
+parseID input = 
+  case parseInt input of
+    Right (intValue, remaining) -> Right (ID intValue, remaining)
+    Left err -> Left err
 
 
 -- | Parses user's input.
@@ -179,8 +192,8 @@ parseAdd input =
 
 parseRemove :: Parser Query
 parseRemove input =
-  case parseHotel input of
-    Right (hotel, remaining) -> Right (Remove hotel, remaining)
+  case parseID input of
+    Right (id, remaining) -> Right (Remove id, remaining)
     Left err -> Left err
 
 -- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
@@ -190,13 +203,13 @@ parseMakeReservation =
 
 parseCancelReservation :: Parser Query
 parseCancelReservation input =
-  case parseHotel input of
-    Right (hotel, remaining) -> Right (CancelReservation hotel, remaining)
+  case parseID input of
+    Right (id, remaining) -> Right (CancelReservation id, remaining)
     Left err -> Left err
 
 parseAddAdditionalGuest :: Parser Query
 parseAddAdditionalGuest =
-  and2' AddAdditionalGuest parseGuest parseHotel
+  and2' AddAdditionalGuest parseGuest parseID
 
 
 parseHotelName :: Parser String
@@ -414,22 +427,27 @@ parseHotel = and3' Hotel parseHotelName parseHotelChain parseFloors
 
 -- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
 
-parseNumber :: Parser Int
-parseNumber input = 
-  case span isDigit input of
-    ("", _) -> Left "Not a number."
-    (numberStr, rest) ->
-      let number = read numberStr :: Int
-      in Right (number, dropWhile isSpace rest)
-
-
-
-
-
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
-data State
+data Reservation = Reservation {
+  reservationID :: ID,
+  hotel :: Hotel,
+  guests :: [Guest],
+  checkIn :: CheckIn,
+  checkOut :: CheckOut,
+  price :: Price
+} deriving (Show)
+
+data AvailableHotelEntity = AvailableHotelEntity {
+  availableEntityId :: ID,
+  availableHotel :: Hotel
+} deriving (Show)
+
+data State = State {
+  reservations :: [Reservation],
+  availableHotelEntities :: [AvailableHotelEntity]
+} deriving (Show)
 
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
@@ -442,4 +460,54 @@ emptyState = error "Not implemented 1"
 -- Right contains an optional message to print and
 -- an updated program's state.
 stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition _ _ = Left "Not implemented 3"
+stateTransition st query = case query of
+  Add hotel ->
+    let newId = ID (length (availableHotelEntities st) + 1)
+        newHotelEntity = AvailableHotelEntity newId hotel
+        newHotels = newHotelEntity : availableHotelEntities st
+        newState = st { availableHotelEntities = newHotels }
+    in Right (Just "Hotel added successfully!", newState)
+
+  Remove (ID entityId) ->
+    let newHotelEntities = filter (\h -> availableEntityId h /= ID entityId) (availableHotelEntities st)
+        newState = st {
+          availableHotelEntities = newHotelEntities
+        }
+    in Right (Just "Hotel removed successfully!", newState)
+
+  MakeReservation guest hotel checkIn checkOut price ->
+    let newId = ID (length (reservations st) + 1)
+        newReservation = Reservation newId hotel [guest] checkIn checkOut price
+        newReservations = newReservation : reservations st
+        newState = st { reservations = newReservations }
+    in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
+
+  CancelReservation (ID resID) ->
+    let newReservations = filter (\r -> reservationID r /= ID resID) (reservations st)
+        newState = st {
+          reservations = newReservations
+        }
+    in Right (Just "Reservation cancelled successfully!", newState)
+
+  AddAdditionalGuest guest (ID reservID) ->
+    case filter (\r -> reservationID r /= ID reservID) (reservations st) of
+      [] -> Left "Error: Reservation not found."
+      (reservation:_) ->
+        let updatedReservation = reservation {
+              guests = guest: guests reservation
+            }
+            newReservations = updatedReservation : filter (\r -> reservationID r /= ID reservID) (reservations st)
+            newState = st {
+              reservations = newReservations
+            }
+        in Right (Just "Guest added successfully!", newState)
+
+  
+
+  
+    
+
+
+
+
+
