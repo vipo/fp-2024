@@ -206,14 +206,15 @@ parseID input =
 
 -- | Parses user's input.
 -- The function must have tests.
-parseQuery :: Parser Query
+-- is pat pradziu buvau padares su Parser, todel kad visko taip stipriai neperrasyti tiesiog pasiimti query is tuple (query, string)
+parseQuery :: String -> Either String Query
 parseQuery input = case lines input of
-  ("ADD":rest) -> parseAdd (unlines rest)
-  ("REMOVE":rest) -> parseRemove (unlines rest)
-  ("MAKE RESERVATION":rest) -> parseMakeReservation (unlines rest)
-  ("CANCEL RESERVATION":rest) -> parseCancelReservation (unlines rest)
-  ("ADD ADDITIONAL GUEST":rest) -> parseAddAdditionalGuest (unlines rest)
-  ("LIST":rest) -> Right (ListState, unlines rest)
+  ("ADD":rest) -> fmap fst (parseAdd (unlines rest))
+  ("REMOVE":rest) -> fmap fst (parseRemove (unlines rest))
+  ("MAKE RESERVATION":rest) -> fmap fst (parseMakeReservation (unlines rest))
+  ("CANCEL RESERVATION":rest) -> fmap fst (parseCancelReservation (unlines rest))
+  ("ADD ADDITIONAL GUEST":rest) -> fmap fst (parseAddAdditionalGuest (unlines rest))
+  ("LIST":rest) -> Right ListState
   _ -> Left "Invalid command"
 
 parseAdd :: Parser Query
@@ -504,38 +505,32 @@ stateTransition st query = case query of
 
   Remove (ID entityId) ->
     let newHotelEntities = filter (\h -> availableEntityId h /= ID entityId) (availableHotelEntities st)
-        newState = st {
-          availableHotelEntities = newHotelEntities
-        }
+        newState = st { availableHotelEntities = newHotelEntities }
     in Right (Just "Hotel removed successfully!", newState)
 
   MakeReservation guest hotel checkIn checkOut price ->
-    if any (\h -> availableHotel h == hotel) (availableHotelEntities st) -- checking if such hotel is added
-      then let newId = ID (length (reservations st) + 1)
-               newReservation = Reservation newId hotel [guest] checkIn checkOut price
-               newReservations = newReservation : reservations st
-               newState = st { reservations = newReservations }
-           in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
-      else Left "Error: Specified hotel entity does not exist."
+    -- Check if the hotel exists in availableHotelEntities
+    if any (\h -> availableHotel h == hotel) (availableHotelEntities st) then
+      let newId = ID (length (reservations st) + 1)
+          newReservation = Reservation newId hotel [guest] checkIn checkOut price
+          newReservations = newReservation : reservations st
+          newState = st { reservations = newReservations }
+      in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
+    else
+      Left "Error: Hotel does not exist."
 
   CancelReservation (ID resID) ->
     let newReservations = filter (\r -> reservationID r /= ID resID) (reservations st)
-        newState = st {
-          reservations = newReservations
-        }
+        newState = st { reservations = newReservations }
     in Right (Just "Reservation cancelled successfully!", newState)
 
-  AddAdditionalGuest guest (ID resID) ->
-    case filter (\r -> reservationID r /= ID resID) (reservations st) of
+  AddAdditionalGuest guest (ID reservID) ->
+    case filter (\r -> reservationID r == ID reservID) (reservations st) of
       [] -> Left "Error: Reservation not found."
       (reservation:_) ->
-        let updatedReservation = reservation {
-              guests = guest: guests reservation
-            }
-            newReservations = updatedReservation : filter (\r -> reservationID r /= ID resID) (reservations st)
-            newState = st {
-              reservations = newReservations
-            }
+        let updatedReservation = reservation { guests = guest : guests reservation }
+            newReservations = updatedReservation : filter (\r -> reservationID r /= ID reservID) (reservations st)
+            newState = st { reservations = newReservations }
         in Right (Just "Guest added successfully!", newState)
 
   ListState ->
