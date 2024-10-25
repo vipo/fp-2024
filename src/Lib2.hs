@@ -5,7 +5,37 @@ module Lib2
     parseQuery,
     State(..),
     emptyState,
-    stateTransition
+    stateTransition,
+    ID(..),
+    Guest(..),
+    Hotel(..),
+    Floor(..),
+    Room(..),
+    Amenity(..),
+    Date(..),
+    Time(..),
+    CheckIn(..),
+    CheckOut(..),
+    Price(..),
+    parseLine,
+    startsWith,
+    parseKeyword,
+    parseHotel,
+    parseHotelChain,
+    parseFloors,
+    parseFloor,
+    parseRooms,
+    parseRoom,
+    parseRoomSections,
+    parseAmenities,
+    parseAmenity,
+    parseGuest,
+    parseCheckIn,
+    parseCheckOut,
+    parseDate,
+    parseTime,
+    parsePrice
+
     ) where
 
 import Data.Char (isSpace, isDigit)
@@ -21,8 +51,9 @@ data Query =
   Remove ID |
   MakeReservation Guest Hotel CheckIn CheckOut Price  |
   CancelReservation ID |
-  AddAdditionalGuest Guest ID
-  deriving (Show)
+  AddAdditionalGuest Guest ID |
+  ListState
+  deriving (Show, Eq)
 
 newtype ID = ID Int
   deriving (Show, Eq)
@@ -78,8 +109,8 @@ type Parser a = String -> Either String (a, String)
 
 
 -- | The instances are needed basically for tests
-instance Eq Query where
-  (==) _ _= False
+--instance Eq Query where
+  --(==) _ _= False
 
 --instance Show Query where
   --show _ = ""
@@ -182,6 +213,7 @@ parseQuery input = case lines input of
   ("MAKE RESERVATION":rest) -> parseMakeReservation (unlines rest)
   ("CANCEL RESERVATION":rest) -> parseCancelReservation (unlines rest)
   ("ADD ADDITIONAL GUEST":rest) -> parseAddAdditionalGuest (unlines rest)
+  ("LIST":rest) -> Right (ListState, unlines rest)
   _ -> Left "Invalid command"
 
 parseAdd :: Parser Query
@@ -211,6 +243,8 @@ parseAddAdditionalGuest :: Parser Query
 parseAddAdditionalGuest =
   and2' AddAdditionalGuest parseGuest parseID
 
+parseHotel :: Parser Hotel
+parseHotel = and3' Hotel parseHotelName parseHotelChain parseFloors
 
 parseHotelName :: Parser String
 parseHotelName input =
@@ -421,11 +455,8 @@ parsePrice input =
       in Right (Price number, rest)
     Left err -> Left err
 
-parseHotel :: Parser Hotel
-parseHotel = and3' Hotel parseHotelName parseHotelChain parseFloors
 
 
--- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
 
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
@@ -452,7 +483,10 @@ data State = State {
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
 emptyState :: State
-emptyState = error "Not implemented 1"
+emptyState = State {
+  reservations = [],
+  availableHotelEntities = []
+}
 
 -- | Updates a state according to a query.
 -- This allows your program to share the state
@@ -476,11 +510,13 @@ stateTransition st query = case query of
     in Right (Just "Hotel removed successfully!", newState)
 
   MakeReservation guest hotel checkIn checkOut price ->
-    let newId = ID (length (reservations st) + 1)
-        newReservation = Reservation newId hotel [guest] checkIn checkOut price
-        newReservations = newReservation : reservations st
-        newState = st { reservations = newReservations }
-    in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
+    if any (\h -> availableHotel h == hotel) (availableHotelEntities st) -- checking if such hotel is added
+      then let newId = ID (length (reservations st) + 1)
+               newReservation = Reservation newId hotel [guest] checkIn checkOut price
+               newReservations = newReservation : reservations st
+               newState = st { reservations = newReservations }
+           in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
+      else Left "Error: Specified hotel entity does not exist."
 
   CancelReservation (ID resID) ->
     let newReservations = filter (\r -> reservationID r /= ID resID) (reservations st)
@@ -489,25 +525,23 @@ stateTransition st query = case query of
         }
     in Right (Just "Reservation cancelled successfully!", newState)
 
-  AddAdditionalGuest guest (ID reservID) ->
-    case filter (\r -> reservationID r /= ID reservID) (reservations st) of
+  AddAdditionalGuest guest (ID resID) ->
+    case filter (\r -> reservationID r /= ID resID) (reservations st) of
       [] -> Left "Error: Reservation not found."
       (reservation:_) ->
         let updatedReservation = reservation {
               guests = guest: guests reservation
             }
-            newReservations = updatedReservation : filter (\r -> reservationID r /= ID reservID) (reservations st)
+            newReservations = updatedReservation : filter (\r -> reservationID r /= ID resID) (reservations st)
             newState = st {
               reservations = newReservations
             }
         in Right (Just "Guest added successfully!", newState)
 
+  ListState ->
+    let reservationsList = map show (reservations st) -- converting reservations to string format
+        hotelsList = map show (availableHotelEntities st)
+        result = "Reservations: \n" ++ unlines reservationsList ++
+                  "\nAvailable hotels/hotel rooms:\n" ++ unlines hotelsList
+    in Right (Just result, st)
   
-
-  
-    
-
-
-
-
-
