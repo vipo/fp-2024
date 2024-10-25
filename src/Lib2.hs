@@ -258,10 +258,10 @@ parseRoom input =
   case parseKeyword "ROOM: " input of
     Right (line, rest) ->
       let roomNum = read (drop 6 line) :: Int
-      in case parseRoomSections rest of
-           Right (sections, remaining) ->
-             case parseAmenities remaining of
-               Right (amenitiesList, finalRest) ->
+      in case parseAmenities rest of  
+           Right (amenitiesList, remaining) ->
+             case parseRoomSections remaining of  
+               Right (sections, finalRest) ->
                  Right (Room roomNum sections amenitiesList, finalRest)
                Left err -> Left err
            Left err -> Left err
@@ -283,8 +283,9 @@ parseRoomSections input =
 parseAmenities :: Parser [Amenity]
 parseAmenities input =
   case parseKeyword "AMENITIES: " input of
-    Right (_, rest) ->
-      let amenitiesList = splitAmenities (lines rest)
+    Right (line, rest) ->
+      let amenitiesListStr = drop 11 line
+          amenitiesList = splitAmenities [amenitiesListStr]
       in Right (amenitiesList, rest)
     Left _ -> Right ([], input)
 
@@ -293,20 +294,15 @@ splitAmenities :: [String] -> [Amenity]
 splitAmenities [] = []
 splitAmenities input =
   let amenitiesStr = concat input
-      amenitiesWords = splitOnComma amenitiesStr
+      amenitiesWords = splitOn (== ',') amenitiesStr
   in parseAmenitiesList amenitiesWords
-
 
 parseAmenitiesList :: [String] -> [Amenity]
 parseAmenitiesList [] = []
-parseAmenitiesList (amenity:rest) =
-  case parseAmenity amenity of
-    TV -> TV : parseAmenitiesList rest
-    WiFi -> WiFi : parseAmenitiesList rest
-    Minibar -> Minibar : parseAmenitiesList rest
-    Balcony -> Balcony : parseAmenitiesList rest
-    AC -> AC : parseAmenitiesList rest
-    Unknown -> Unknown : parseAmenitiesList rest
+parseAmenitiesList (word:rest) =
+  let amenity = parseAmenity word
+  in amenity : parseAmenitiesList rest
+
 
 parseAmenity :: String -> Amenity
 parseAmenity str = case str of
@@ -316,15 +312,6 @@ parseAmenity str = case str of
   "Balcony" -> Balcony
   "AC" -> AC
   _ -> Unknown
-
-
-splitOnComma :: String -> [String]
-splitOnComma [] = []
-splitOnComma str =
-  let (word, rest) = break isComma str
-  in word : splitOnComma (dropWhile isSpace (drop 1 rest))
-  where isComma c = c == ','
-
 
 
 parseGuest :: Parser Guest
