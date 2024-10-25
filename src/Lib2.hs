@@ -8,7 +8,8 @@ module Lib2
     stateTransition
     ) where
 
-import Data.Char (isSpace)
+import Data.Char (isSpace, isDigit)
+import Data.List (isPrefixOf)
 
 
 -- | An entity which represets user input.
@@ -46,7 +47,7 @@ data Room = Room {
   amenities :: [Amenity]
 } deriving (Show, Eq)
 
-data Amenity = TV | WiFi | Minibar | Balcony | AC 
+data Amenity = TV | WiFi | Minibar | Balcony | AC | Unknown
   deriving (Show, Eq)
 
 data Date = Date { year :: Int, month :: Int, day :: Int} deriving (Show, Eq)
@@ -81,125 +82,217 @@ instance Eq Query where
 --instance Show Query where
   --show _ = ""
   
+parseLine :: Parser String
+parseLine input =
+  case lines input of
+    (line:rest) -> Right (line, unlines rest)
+    [] -> Left "Expected a line, but got end of input."
+
+-- utility function to check if a line starts with a specific keyword
+startsWith :: String -> String -> Bool
+startsWith keyword line = keyword `isPrefixOf` line
+
+-- utility function to parse a specific keyword
+parseKeyword :: String -> Parser String
+parseKeyword keyword input =
+  case parseLine input of
+    Right (line, rest) ->
+      if startsWith keyword line
+        then Right (line, rest)
+        else Left $ "Expected keyword: " ++ keyword
+    Left err -> Left err
+
+
+
+-- parseKeyword :: String -> Parser ()
+-- parseKeyword keyword = \input ->
+--   case input of
+--     (line:rest) | line == keyword -> Right ((), rest)
+--     _ -> Left $ "Expected keyword: " ++ keyword
+
+
+
+-- parseKeyword' :: String -> [String] -> Either String ([String], [String])
+-- parseKeyword' keyword input =
+--   if take (length keyword) input == [keyword]
+--   then Right ([], drop 1 input) -- consume the keyword line
+--   else Left $ "Expected keyword: " ++ keyword
+
+and2' :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+and2' c a b input =
+  case a input of
+    Right (v1, r1) ->
+      case b r1 of
+        Right (v2, r2) -> Right (c v1 v2, r2)
+        Left e2 -> Left e2
+    Left e1 -> Left e1
+
+and3' :: (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+and3' d a b c input =
+  case a input of
+    Right (v1, r1) ->
+      case b r1 of
+        Right (v2, r2) ->
+          case c r2 of
+            Right (v3, r3) -> Right (d v1 v2 v3, r3)
+            Left e3 -> Left e3
+        Left e2 -> Left e2
+    Left e1 -> Left e1
+
+and5' :: (a -> b -> c -> d -> e -> f) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f 
+and5' f a b c d e input =
+  case a input of
+    Right (v1, r1) ->
+      case b r1 of
+        Right (v2, r2) ->
+          case c r2 of
+            Right (v3, r3) ->
+              case d r3 of 
+                Right (v4, r4) ->
+                  case e r4 of
+                    Right (v5, r5) -> Right (f v1 v2 v3 v4 v5, r5)
+                    Left e5 -> Left e5
+                Left e4 -> Left e4
+            Left e3 -> Left e3
+        Left e2 -> Left e2
+    Left e1 -> Left e1
+
 
 
 
 -- | Parses user's input.
 -- The function must have tests.
-parseQuery :: String -> Either String Query
+parseQuery :: Parser Query
 parseQuery input = case lines input of
-  ("ADD":rest) -> parseAdd rest
-  ("REMOVE":rest) -> parseRemove rest
-  ("MAKE RESERVATION":rest) -> parseMakeReservation rest
-  ("CANCEL RESERVATION":rest) -> parseCancelReservation rest
-  ("ADD ADDITIONAL GUEST":rest) -> parseAddAdditionalGuest rest
+  ("ADD":rest) -> parseAdd (unlines rest)
+  ("REMOVE":rest) -> parseRemove (unlines rest)
+  ("MAKE RESERVATION":rest) -> parseMakeReservation (unlines rest)
+  ("CANCEL RESERVATION":rest) -> parseCancelReservation (unlines rest)
+  ("ADD ADDITIONAL GUEST":rest) -> parseAddAdditionalGuest (unlines rest)
   _ -> Left "Invalid command"
 
--- | Parses <hotel>
--- <hotel> ::= "HOTEL: " <text> "\n" | <hotel> "CHAIN OF" <hotel> | <hotel> <floor>
--- parseHotel :: String -> Maybe Hotel
--- parseHotel str =
+parseAdd :: Parser Query
+parseAdd input =
+  case parseHotel input of
+    Right (hotel, remaining) -> Right (Add hotel, remaining)
+    Left err -> Left err
 
--- <hotel> ::= "HOTEL: " <text> "\n" |  <hotel> "CHAIN OF " <hotel> | <hotel> <floor>
-parseHotel :: [String] -> Either String (Hotel, [String])
-parseHotel input =
-  case input of
-    (line:rest) ->
-      let properties = words line
-      in case properties of
-        ("HOTEL:":fullName) ->
-          let name = unwords fullName -- joins multiple words if a hotel has a longer name than a word
-              (chain, remaining) = parseHotelChain rest -- parsing hotel chain
-              (hotelFloors, finalRest) = parseFloors remaining -- parse the floors
-          in Right (Hotel name chain hotelFloors, finalRest)
-        _ -> Left "Invalid hotel format."
-    _ -> Left "Invalid hotel format."
+parseRemove :: Parser Query
+parseRemove input =
+  case parseHotel input of
+    Right (hotel, remaining) -> Right (Remove hotel, remaining)
+    Left err -> Left err
 
--- parsing the hotel chain if such is present
-parseHotelChain :: [String] -> ([Hotel], [String])
+-- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
+parseMakeReservation :: Parser Query
+parseMakeReservation =
+  and5' MakeReservation parseGuest parseHotel parseCheckIn parseCheckOut parsePrice
+
+parseCancelReservation :: Parser Query
+parseCancelReservation input =
+  case parseHotel input of
+    Right (hotel, remaining) -> Right (CancelReservation hotel, remaining)
+    Left err -> Left err
+
+parseAddAdditionalGuest :: Parser Query
+parseAddAdditionalGuest =
+  and2' AddAdditionalGuest parseGuest parseHotel
+
+
+parseHotelName :: Parser String
+parseHotelName input =
+  case parseKeyword "HOTEL: " input of
+    Right (line, rest) -> Right (drop 7 line, rest) -- removing hotel prefix
+    Left err -> Left err
+
+parseHotelChain :: Parser [Hotel]
 parseHotelChain input =
-  case input of
-    (line:rest) ->
-      let properties = words line
-      in case properties of
-        ("CHAIN":"OF": _) ->
-          case parseHotel rest of
-            Right (nextHotel, remaining) ->
-              let (moreHotels, finalRest) = parseHotelChain remaining
-              in (nextHotel : moreHotels, finalRest)
-            Left _ -> ([], input)
-        _ -> ([], input)
-    _ -> ([], input)
+  case parseLine input of
+    Right (line, rest) ->
+      if startsWith "CHAIN OF" line
+        then case parseHotel rest of
+          Right (nextHotel, remaining) ->
+            case parseHotelChain remaining of
+              Right (moreHotels, finalRest) ->
+                Right (nextHotel : moreHotels, finalRest)
+              Left _ -> Right ([nextHotel], remaining)
+          Left _ -> Right ([], input)
+      else Right ([], input)
+    Left _ -> Right ([], input)
 
--- parses floors
-parseFloors :: [String] -> ([Floor], [String])
-parseFloors [] = ([], [])
+
+parseFloors :: Parser [Floor]
 parseFloors input =
   case parseFloor input of
-    Left _ -> ([], input) -- no more floors
     Right (floor, remaining) ->
-      let (moreFloors, finalRest) = parseFloors remaining
-      in (floor:moreFloors, finalRest)
+      case parseFloors remaining of
+        Right (moreFloors, finalRest) ->
+          Right (floor : moreFloors, finalRest)
+        Left _ -> Right ([floor], remaining)
+    Left _ -> Right ([], input)
 
--- <floor> ::= "FLOOR: " <number> "\n" <room>
-parseFloor :: [String] -> Either String (Floor, [String])
-parseFloor input =
-  case input of
-    (line:rest) ->
-      let properties = words line
-      in case properties of
-        ("FLOOR:":numberStr:_) ->
-          let floorNumber = read numberStr :: Int
-              (rooms, finalRest) = parseRooms rest
-          in Right (Floor floorNumber rooms, finalRest)
-        _ -> Left "Invalid floor format."
-    _ -> Left "Invalid floor format."
+parseFloor :: Parser Floor
+parseFloor input = 
+  case parseKeyword "FLOOR: " input of
+    Right (line, rest) ->
+      let floorNum = read (drop 7 line) :: Int -- removing floor prefix and reading the number
+      in case parseRooms rest of
+           Right (roomsList, finalRest) -> Right (Floor floorNum roomsList, finalRest)
+           Left err -> Left err
+    Left err -> Left err
 
-parseRooms :: [String] -> ([Room], [String])
-parseRooms [] = ([], [])
+
+parseRooms :: Parser [Room]
 parseRooms input =
   case parseRoom input of
-    Left _ -> ([], input) -- no more rooms, use what is left
     Right (room, remaining) ->
-      let (moreRooms, finalRest) = parseRooms remaining
-      in (room : moreRooms, finalRest)
+      case parseRooms remaining of
+        Right (moreRooms, finalRest) ->
+          Right (room : moreRooms, finalRest)
+        Left _ -> Right ([room], remaining)
+    Left _ -> Right ([], input)
 
--- <room> ::= "ROOM: " <number> "\n" | <room> "ROOM SECTION " <room> | <room> <amenities> "\n"
-parseRoom :: [String] -> Either String (Room, [String])
-parseRoom input = 
-  case input of
-    ("ROOM: ":numberStr:"":rest) ->
-      let roomNumber = read numberStr :: Int
-          (sections, remaining) = parseRoomSections rest
-          amenitiesList = parseAmenities remaining
-      in Right (Room roomNumber sections amenitiesList, [])
-    _ -> Left "Invalid room format."
 
-parseRoomSections :: [String] -> ([Room], [String])
-parseRoomSections [] = ([], [])
+parseRoom :: Parser Room
+parseRoom input =
+  case parseKeyword "ROOM: " input of
+    Right (line, rest) ->
+      let roomNum = read (drop 6 line) :: Int
+      in case parseRoomSections rest of
+           Right (sections, remaining) ->
+             case parseAmenities remaining of
+               Right (amenitiesList, finalRest) ->
+                 Right (Room roomNum sections amenitiesList, finalRest)
+               Left err -> Left err
+           Left err -> Left err
+    Left err -> Left err
+
+parseRoomSections :: Parser [Room]
 parseRoomSections input =
-  case input of
-    ("ROOM SECTION ":rest) ->
+  case parseKeyword "ROOM SECTION" input of
+    Right (_, rest) ->
       case parseRoom rest of
-        Left _ -> ([], input) -- handle parse error
         Right (roomSection, remaining) ->
-          let (sections, finalRest) = parseRoomSections remaining
-          in (roomSection:sections, finalRest)
-    _ -> ([], input) -- no more sections
+          case parseRoomSections remaining of
+            Right (sections, finalRest) -> Right (roomSection : sections, finalRest)
+            Left _ -> Right ([roomSection], remaining)
+        Left _ -> Right ([], input)
+    Left _ -> Right ([], input)
 
-parseAmenities :: [String] -> [Amenity]
-parseAmenities [] = []
+
+parseAmenities :: Parser [Amenity]
 parseAmenities input =
-  case input of
-    ("AMENITIES: ":rest) ->
-      let amenitiesList = splitAmenities rest
-      in amenitiesList
-    _ -> []
+  case parseKeyword "AMENITIES: " input of
+    Right (_, rest) ->
+      let amenitiesList = splitAmenities (lines rest)
+      in Right (amenitiesList, rest)
+    Left _ -> Right ([], input)
+
 
 splitAmenities :: [String] -> [Amenity]
 splitAmenities [] = []
 splitAmenities input =
-  let amenitiesStr = concat input -- combining input
+  let amenitiesStr = concat input
       amenitiesWords = splitOnComma amenitiesStr
   in parseAmenitiesList amenitiesWords
 
@@ -207,15 +300,13 @@ splitAmenities input =
 parseAmenitiesList :: [String] -> [Amenity]
 parseAmenitiesList [] = []
 parseAmenitiesList (amenity:rest) =
-  let parsedAmenity = parseAmenity amenity
-  in if parsedAmenity == TV 
-    || parsedAmenity == WiFi
-    || parsedAmenity == Minibar
-    || parsedAmenity == Balcony
-    || parsedAmenity == AC
-
-    then parsedAmenity : parseAmenitiesList rest
-    else parseAmenitiesList rest
+  case parseAmenity amenity of
+    TV -> TV : parseAmenitiesList rest
+    WiFi -> WiFi : parseAmenitiesList rest
+    Minibar -> Minibar : parseAmenitiesList rest
+    Balcony -> Balcony : parseAmenitiesList rest
+    AC -> AC : parseAmenitiesList rest
+    Unknown -> Unknown : parseAmenitiesList rest
 
 parseAmenity :: String -> Amenity
 parseAmenity str = case str of
@@ -224,7 +315,7 @@ parseAmenity str = case str of
   "Minibar" -> Minibar
   "Balcony" -> Balcony
   "AC" -> AC
-  _ -> error "Unknown amenity"
+  _ -> Unknown
 
 
 splitOnComma :: String -> [String]
@@ -235,42 +326,80 @@ splitOnComma str =
   where isComma c = c == ','
 
 
--- | main data types
-parseGuest :: [String] -> Either String (Guest, [String])
-parseGuest input = 
-  case input of
-    ("GUEST: ":name:surname:rest) -> Right (Guest name surname, rest)
-    _ -> Left "Invalid guest format. GUEST: <name> <surname>"
+
+parseGuest :: Parser Guest
+parseGuest input =
+  case parseKeyword "GUEST: " input of
+    Right (line, rest) ->
+      let names = words (drop (length "GUEST: ") line)
+      in case names of
+        [name, surname] -> Right (Guest name surname, rest)
+        _ -> Left "Invalid guest format."
+    Left _ -> Left "Invalid guest format."
 
 
-parseCheckIn :: [String] -> Either String (CheckIn, [String])
+parseCheckIn :: Parser CheckIn
 parseCheckIn input =
-  case input of
-    ("CHECK IN: ":dateStr:timeStr:rest) ->
-       let date = parseDate dateStr
-           time = parseTime timeStr
-       in Right $ (CheckIn date time, rest)
-    _ -> Left "Invalid check-in format. CHECK IN: <date> <time>"
+  case parseKeyword "CHECK IN: " input of
+    Right (line, rest) ->
+      let parts = words (drop (length "CHECK IN: ") line)
+      in case parts of
+        [dateString, timeString] ->
+          case parseDate dateString of
+            Right (date, _) ->
+              case parseTime timeString of
+                Right (time, _) -> Right (CheckIn date time, rest)
+                Left err -> Left err
+            Left err -> Left err
+        _ -> Left "Invalid check-in format."
+    Left _ -> Left "Invalid check-in format."
 
-
-parseCheckOut :: [String] -> Either String (CheckOut, [String])
+parseCheckOut :: Parser CheckOut
 parseCheckOut input =
-  case input of
-    ("CHECK OUT: ":dateStr:timeStr:rest) ->
-      let date = parseDate dateStr
-          time = parseTime timeStr
-      in Right $ (CheckOut date time, rest)
-    _ -> Left "Invalid check-out format. CHECK OUT: <date> <time>"
+  case parseKeyword "CHECK OUT: " input of
+    Right (line, rest) ->
+      let parts = words (drop (length "CHECK OUT: ") line)
+      in case parts of
+        [dateString, timeString] ->
+          case parseDate dateString of
+            Right (date, _) ->
+              case parseTime timeString of
+                Right (time, _) -> Right (CheckOut date time, rest)
+                Left err -> Left err
+            Left err -> Left err
+        _ -> Left "Invalid check-out format."
+    Left _ -> Left "Invalid check-out format."
 
-parseDate :: String -> Date
-parseDate dateStr =
-  case splitOnSpace dateStr of
-    [yearStr, monthStr, dayStr] ->
-      let yearParsed = read yearStr :: Int
-          monthParsed = read monthStr :: Int
-          dayParsed = read dayStr :: Int
-      in Date yearParsed monthParsed dayParsed
-    _ -> error "Invalid date format"
+
+parseDate :: Parser Date
+parseDate input =
+  let parts = words input
+  in case parts of
+       (dateStr:rest) ->
+         let dateParts = splitOn (== '-') dateStr
+         in case dateParts of
+              [yearStr, monthStr, dayStr] ->
+                let yearParsed = read yearStr :: Int
+                    monthParsed = read monthStr :: Int
+                    dayParsed = read dayStr :: Int
+                in Right (Date yearParsed monthParsed dayParsed, unwords rest)
+              _ -> Left "Invalid date format."
+       _ -> Left "Invalid date format."
+
+parseTime :: Parser Time
+parseTime input =
+  let parts = words input
+  in case parts of
+       (timeStr:rest) ->
+         let timeParts = splitOn (== ':') timeStr
+         in case timeParts of
+              [hourStr, minuteStr] ->
+                let hourParsed = read hourStr :: Int
+                    minuteParsed = read minuteStr :: Int
+                in Right (Time hourParsed minuteParsed, unwords rest)
+              _ -> Left "Invalid time format."
+       _ -> Left "Invalid time format."
+
 
 splitOnSpace :: String -> [String]
 splitOnSpace str = splitOn isSpace str
@@ -283,82 +412,30 @@ splitOn p s =
   in before : splitOn p after
 
 
-parseTime :: String -> Time
-parseTime timeStr =
-  let [hourStr, minuteStr] = splitOnSpace timeStr
-      hour = read hourStr :: Int
-      minute = read minuteStr :: Int
-  in Time hour minute
 
-parsePrice :: [String] -> Either String (Price, [String])
-parsePrice input =
-  case input of
-    ("PRICE: ":priceStr:rest) -> Right $ (Price (read priceStr :: Int), rest)
-    _ -> Left "Invalid price format. PRICE: <number>"
+parsePrice :: Parser Price
+parsePrice input = 
+  case parseKeyword "PRICE: " input of
+    Right (line, rest) ->
+      let number = read (drop 7 line) :: Int 
+      in Right (Price number, rest)
+    Left err -> Left err
+
+parseHotel :: Parser Hotel
+parseHotel = and3' Hotel parseHotelName parseHotelChain parseFloors
+
 
 -- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
-parseMakeReservation :: [String] -> Either String Query
-parseMakeReservation input =
-  case parseGuest input of
-    Left err -> Left err
-    Right (guest, rest1) ->
-      case parseHotel rest1 of
-        Left err -> Left err
-        Right (hotel, rest2) ->
-          case parseCheckIn rest2 of
-            Left err -> Left err
-            Right (checkIn, rest3) ->
-              case parseCheckOut rest3 of
-                Left err -> Left err
-                Right (checkOut, rest4) ->
-                  case parsePrice rest4 of
-                    Left err -> Left err
-                    Right (price, finalRest) ->
-                      if null finalRest then
-                        Right (MakeReservation guest hotel checkIn checkOut price)
-                      else
-                        Left "Unexpected input after reservation details."
+
+parseNumber :: Parser Int
+parseNumber input = 
+  case span isDigit input of
+    ("", _) -> Left "Not a number."
+    (numberStr, rest) ->
+      let number = read numberStr :: Int
+      in Right (number, dropWhile isSpace rest)
 
 
--- <add_hotel_room> ::= "ADD\n" <hotel> 
-parseAdd :: [String] -> Either String Query
-parseAdd input = 
-  case parseHotel input of
-    Right (hotel, []) -> Right (Add hotel)
-    Right (_, remaining) -> Left $ "Unparsed input remaining: " ++ unwords remaining
-    Left err -> Left err
-
-parseRemove :: [String] -> Either String Query
-parseRemove input =
-  case parseHotel input of
-    Right (hotel, []) -> Right (Remove hotel)
-    Right (_, remaining) -> Left $ "Unparsed input remaining: " ++ unwords remaining
-    Left err -> Left err
-
-
-parseCancelReservation :: [String] -> Either String Query
-parseCancelReservation input =
-  case parseHotel input of
-    Left err -> Left err
-    Right (hotel, rest) ->
-      case parseFloor rest of
-        Left err -> Left err
-        Right (floor, rest2) ->
-          case parseRoom rest2 of
-            Left err -> Left err
-            Right (room, _) ->
-              Right (CancelReservation hotel)
-
--- <add_additional_guest> ::= "ADD ADDITIONAL GUEST\n" <guest> <hotel>
-
-parseAddAdditionalGuest :: [String] -> Either String Query
-parseAddAdditionalGuest input =
-  case parseGuest input of
-    Left err -> Left err
-    Right (guest, rest) -> 
-      case parseHotel rest of
-        Left err -> Left err
-        Right (hotel, _) -> Right $ AddAdditionalGuest guest hotel
 
 
 
