@@ -98,6 +98,7 @@ type Parser a = String -> Either String (a, String)
 --instance Show Query where
   --show _ = ""
   
+-- after all query entries are converted into seperate lines, parse them as seperate inputs
 parseLine :: Parser String
 parseLine input =
   case lines input of
@@ -118,22 +119,7 @@ parseKeyword keyword input =
         else Left $ "Expected keyword: " ++ keyword
     Left err -> Left err
 
-
-
--- parseKeyword :: String -> Parser ()
--- parseKeyword keyword = \input ->
---   case input of
---     (line:rest) | line == keyword -> Right ((), rest)
---     _ -> Left $ "Expected keyword: " ++ keyword
-
-
-
--- parseKeyword' :: String -> [String] -> Either String ([String], [String])
--- parseKeyword' keyword input =
---   if take (length keyword) input == [keyword]
---   then Right ([], drop 1 input) -- consume the keyword line
---   else Left $ "Expected keyword: " ++ keyword
-
+-- helper functions for multiple parsers
 and2' :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
 and2' c a b input =
   case a input of
@@ -174,6 +160,18 @@ and5' f a b c d e input =
     Left e1 -> Left e1
 
 
+-- | Parses user's input.
+-- The function must have tests.
+-- is pat pradziu buvau padares su Parser, todel kad visko taip stipriai neperrasyti tiesiog pasiimti query is tuple (query, string)
+parseQuery :: String -> Either String Query
+parseQuery input = case splitOn ". " input of
+  ("ADD":rest) -> fmap fst (parseAdd (unlines rest))
+  ("REMOVE":rest) -> fmap fst (parseRemove (unlines rest))
+  ("MAKE RESERVATION":rest) -> fmap fst (parseMakeReservation (unlines rest))
+  ("CANCEL RESERVATION":rest) -> fmap fst (parseCancelReservation (unlines rest))
+  ("ADD ADDITIONAL GUEST":rest) -> fmap fst (parseAddAdditionalGuest (unlines rest))
+  ("LIST":rest) -> Right ListState
+  _ -> Left "Invalid command"
 
 parseInt :: Parser Int
 parseInt input =
@@ -188,20 +186,6 @@ parseID input =
     Right (intValue, remaining) -> Right (ID intValue, remaining)
     Left err -> Left err
 
-
--- | Parses user's input.
--- The function must have tests.
--- is pat pradziu buvau padares su Parser, todel kad visko taip stipriai neperrasyti tiesiog pasiimti query is tuple (query, string)
-parseQuery :: String -> Either String Query
-parseQuery input = case splitOn ". " input of
-  ("ADD":rest) -> fmap fst (parseAdd (unlines rest))
-  ("REMOVE":rest) -> fmap fst (parseRemove (unlines rest))
-  ("MAKE RESERVATION":rest) -> fmap fst (parseMakeReservation (unlines rest))
-  ("CANCEL RESERVATION":rest) -> fmap fst (parseCancelReservation (unlines rest))
-  ("ADD ADDITIONAL GUEST":rest) -> fmap fst (parseAddAdditionalGuest (unlines rest))
-  ("LIST":rest) -> Right ListState
-  _ -> Left "Invalid command"
-
 parseAdd :: Parser Query
 parseAdd input =
   case parseHotel input of
@@ -214,10 +198,12 @@ parseRemove input =
     Right (id, remaining) -> Right (Remove id, remaining)
     Left err -> Left err
 
--- <make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
+-- <make_reservation> ::= "MAKE RESERVATION. " <guest> <hotel> <check_in> <check_out> <price>
 parseMakeReservation :: Parser Query
 parseMakeReservation =
   and5' MakeReservation parseGuest parseHotel parseCheckIn parseCheckOut parsePrice
+
+
 
 parseCancelReservation :: Parser Query
 parseCancelReservation input =
@@ -366,10 +352,10 @@ parseCheckIn input =
     Right (line, rest) ->
       let parts = words (drop (length "CHECK IN: ") line)
       in case parts of
-        [dateString, _] ->
+        [dateString, timeString] ->
           case parseDate dateString of
-            Right (date, remaining) ->
-              case parseTime remaining of
+            Right (date, _) ->
+              case parseTime timeString of
                 Right (time, _) -> Right (CheckIn date time, rest)
                 Left err -> Left err
             Left err -> Left err
@@ -392,34 +378,27 @@ parseCheckOut input =
         _ -> Left "Invalid check-out format."
     Left _ -> Left "Invalid check-out format."
 
-
 parseDate :: Parser Date
 parseDate input =
-  let parts = words input
-  in case parts of
-       (dateStr:rest) ->
-         let dateParts = splitOn "-" dateStr
-         in case dateParts of
-              [yearStr, monthStr, dayStr] ->
-                let yearParsed = read yearStr :: Int
-                    monthParsed = read monthStr :: Int
-                    dayParsed = read dayStr :: Int
-                in Right (Date yearParsed monthParsed dayParsed, unwords rest)
-              _ -> Left "Invalid date format."
+  let (dateStr, rest) = break isSpace input
+      dateParts = splitOn "-" dateStr
+  in case dateParts of
+       [yearStr, monthStr, dayStr] ->
+         let yearParsed = read yearStr :: Int
+             monthParsed = read monthStr :: Int
+             dayParsed = read dayStr :: Int
+         in Right (Date yearParsed monthParsed dayParsed, dropWhile isSpace rest)
        _ -> Left "Invalid date format."
 
 parseTime :: Parser Time
 parseTime input =
-  let parts = words input
-  in case parts of
-       (timeStr:rest) ->
-         let timeParts = splitOn ":" timeStr
-         in case timeParts of
-              [hourStr, minuteStr] ->
-                let hourParsed = read hourStr :: Int
-                    minuteParsed = read minuteStr :: Int
-                in Right (Time hourParsed minuteParsed, unwords rest)
-              _ -> Left "Invalid time format."
+  let (timeStr, rest) = break isSpace input
+      timeParts = splitOn ":" timeStr
+  in case timeParts of
+       [hourStr, minuteStr] ->
+         let hourParsed = read hourStr :: Int
+             minuteParsed = read minuteStr :: Int
+         in Right (Time hourParsed minuteParsed, dropWhile isSpace rest)
        _ -> Left "Invalid time format."
 
 
@@ -531,7 +510,7 @@ stateTransition st query = case query of
         in Right (Just "Guest added successfully!", newState)
 
   ListState ->
-    let reservationsList = map show (reservations st) -- converting reservations to string format
+    let reservationsList = map formatReservation (reservations st) -- converting reservations to string format
         hotelsList = map formatHotel (availableHotelEntities st)
         result = "Reservations: \n" ++ unlines reservationsList ++
                   "\nAvailable hotels/hotel rooms:\n" ++ unlines hotelsList
@@ -544,7 +523,9 @@ formatHotel (AvailableHotelEntity (ID id) hotel) =
 formatHotelDetails :: Hotel -> String
 formatHotelDetails (Hotel name chain floors) =
   "Hotel Name: " ++ name ++ "\n" ++
-  "Hotel Chain: \n" ++ (if null chain then "None\n" else unlines (map formatHotelDetails chain)) ++
+  (if null chain
+    then "Hotel Chain: None\n"
+    else "Hotel Chain: " ++ unlines (map formatHotelDetails chain)) ++
   "Floors:\n" ++ unlines (map formatFloor floors)
 
 formatFloor :: Floor -> String
@@ -561,3 +542,38 @@ formatRoom (Room number sections amenities) =
   (if null sections
      then "    Sections: None\n" 
      else "\n    Sections: \n" ++ unlines (map formatRoom sections))
+
+formatReservation :: Reservation -> String
+formatReservation (Reservation (ID id) hotel guests checkIn checkOut price) =
+  "Reservation ID: " ++ show id ++ "\n" ++
+  formatHotelDetails hotel ++
+  "Guests:\n" ++ unlines (map formatGuest guests) ++
+  "Check-in: " ++ formatCheckIn checkIn ++ "\n" ++
+  "Check-out: " ++ formatCheckOut checkOut ++ "\n" ++
+  "Price: " ++ formatPrice price ++ " euros \n"
+
+formatGuest :: Guest -> String
+formatGuest (Guest name surname) = 
+  "Guest: " ++ name ++ " " ++ surname
+
+formatCheckIn :: CheckIn -> String
+formatCheckIn (CheckIn date time) =
+  "Date: " ++ formatDate date ++ ", Time: " ++ formatTime time
+
+formatCheckOut :: CheckOut -> String
+formatCheckOut (CheckOut date time) =
+  "Date: " ++ formatDate date ++ ", Time: " ++ formatTime time
+
+formatDate :: Date -> String
+formatDate (Date year month day) =
+  show year ++ "-" ++ show month ++ "-" ++ show day
+
+formatTime :: Time -> String
+formatTime (Time hour minute) =
+  show hour ++ ":" ++ show minute
+
+formatPrice :: Price -> String
+formatPrice (Price number) =
+  show number
+  
+

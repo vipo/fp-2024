@@ -8,24 +8,26 @@ This is a functional programming project designed to mimic a hotel management sy
 
 ```markdown
 
-<add> ::= "ADD\n" <hotel> 
-<remove> ::= "REMOVE\n" <hotel> 
+<add> ::= "ADD. " <hotelsID> 
+<remove> ::= "REMOVE. " <hotelsID> 
 
-<make_reservation> ::= "MAKE RESERVATION\n" <guest> <hotel> <check_in> <check_out> <price>
-<cancel_reservation> ::= "CANCEL RESERVATION\n" <hotel>
-<add_additional_guest> ::= "ADD ADDITIONAL GUEST\n" <guest> <hotel>
+<make_reservation> ::= "MAKE RESERVATION. " <guest> <hotel> <check_in> <check_out> <price>
+<cancel_reservation> ::= "CANCEL RESERVATION. " <reservationID>
+<add_additional_guest> ::= "ADD ADDITIONAL GUEST. " <guest> <reservationID>
 
-<check_in> ::= "CHECK IN: " <date> " " <time> "\n"
-<check_out> ::= "CHECK OUT: " <date> " " <time> "\n"
-<guest> ::= "GUEST: " <name> " " <surname> "\n"
+<check_in> ::= "CHECK IN: " <date> " " <time> ". "
+<check_out> ::= "CHECK OUT: " <date> " " <time> ". "
+<guest> ::= "GUEST: " <name> " " <surname> ". "
 
-<hotel> ::= "HOTEL: " <text> "\n" |  <hotel> "CHAIN OF " <hotel> | <hotel> <floors>
+<hotel> ::= "HOTEL: " <text> ". " |  <hotel> "CHAIN OF " <hotel> | <hotel> <floors>
 <floors> ::= <floor> | <floor> <floors>
-<floor> ::= "FLOOR: " <number> "\n" <rooms>
+<floor> ::= "FLOOR: " <number> ". " <rooms>
 <rooms> :: <room> | <room> <rooms>
-<room> ::= "ROOM: " <number> "\n" | <room> "ROOM SECTION " <room> | <room> <amenities> "\n"
+<room> ::= "ROOM: " <number> ". " | <room> "ROOM SECTION " <room> | <room> <amenities> ". "
 
-<price> ::= "PRICE: " <number> "\n"
+<price> ::= "PRICE: " <number> ". "
+<hotelsID> ::= <number>
+<reservationID> :: <number>
 
 <amenities> ::= "AMENITIES: " <amenity> | <amenities> ", " <amenity>
 <amenity> ::= "TV" | "WI-FI" | "MINI-BAR" | "BALCONY" | "AC"
@@ -44,46 +46,37 @@ This is a functional programming project designed to mimic a hotel management sy
 
 ### Commands
 
-* `add_hotel_room` - adds a room to a specific hotel
+* `add` - adds a specific hotel entity. The entity can include a hotel, a specific room within a hotel, special properties.
 
     Example:
     ```
-    ADD
-    HOTEL: Klevas
-    CHAIN OF HOTEL: Medis
-    FLOOR: 1
-    ROOM: 105
-    Amenities: BALCONY, TV
+    ADD. HOTEL: Medis. CHAIN OF. HOTEL: Medis. FLOOR: 1. ROOM: 105. AMENITIES: Balcony, TV. 
     ```
-* `remove_hotel_room` - removes a room from a specific hotel
+* `remove` - removes a hotel entity from the available hotel list.
 
     Example:
     ```
-    REMOVE
-    HOTEL: Klevas
-    CHAIN OF HOTEL: Medis
-    FLOOR: 5
-    ROOM: 515
-    ROOM SECTION ROOM: 2
-    AMENITIES: TV, WI-FI
+    REMOVE. 1. 
     ```
-* `make_reservation` - makes a reservation of a corresponding room. 
+* `make_reservation` - makes a reservation of a corresponding hotel room. The hotel room must exist in the available hotel list and it is called by inputting the same hotel. Future configurations could be made for the reservation to call on the ID. 
     
     Example:
     ```
-    MAKE RESERVATION
-    GUEST: ELVINAS SVILPA
-    HOTEL: AZUOLAS
-    FLOOR: 4
-    ROOM: 414
-    AMENITIES: MINI-BAR, BALCONY, AC
-    CHECK IN: 2024-09-16 15:00
-    CHECK OUT: 2024-09-20 12:00
-    PRICE: 510
+    MAKE RESERVATION. GUEST: ELVINAS SVILPA. HOTEL: Medis. CHAIN OF. HOTEL: Medis. FLOOR: 1. ROOM: 105. AMENITIES: Balcony, TV. CHECK IN: 2024-09-16 20:20. CHECK OUT: 2024-09-20 12:00. PRICE: 510.
 
     ```
-* `cancel_reservation` - cancels a reservation
-* `add_additional_guest` - adds an additional guest to a room
+* `cancel_reservation` - cancels a reservation based on its reservation ID.
+
+    Example:
+    ```
+    CANCEL RESERVATION. 1. 
+    ```
+* `add_additional_guest` - adds an additional guest to a room based on its reservation ID.
+
+    Example:
+    ```
+    ADD ADDITIONAL GUEST. GUEST: Antrasis Elvinas. 1. 
+    ```
 
 
 ### Details
