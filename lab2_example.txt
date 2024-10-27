@@ -1,8 +1,30 @@
 Running and manual testing example:
 
-1) Testing one by one:
-    1. navigate to needed folder (/workspaces/fp-2024/src)
-    2. ghci
+1) With 'stack run fp2024-two'
+    1. Navigate to needed folder (/workspaces/fp-2024/src)
+    2. Run 'stack run fp2024-two'
+    3. Write commands with arguments
+
+    Examples with expected output:
+    >>> ADD cat Tom 5
+    Added animal: Animal {species = "cat", name = "Tom", age = 5}
+    >>> ADD fish Jem 1
+    Added animal: Animal {species = "fish", name = "Jem", age = 1}
+    >>> ADD fish Jem 1
+    ERROR:Animal Animal {species = "fish", name = "Jem", age = 1} already exists.
+    >>> LIST
+    Current animals: [Animal {species = "fish", name = "Jem", age = 1},Animal {species = "cat", name = "Tom", age = 5}]
+    >>> DELETE fish Jem 1
+    Deleted animal: Animal {species = "fish", name = "Jem", age = 1}
+    >>> ADD dog Max 3
+    Added animal: Animal {species = "dog", name = "Max", age = 3}
+    >>> LIST
+    Current animals: [Animal {species = "dog", name = "Max", age = 3},Animal {species = "cat", name = "Tom", age = 5}]
+    >>> 
+
+2) Testing one by one:
+    1. Navigate to needed folder (/workspaces/fp-2024/src)
+    2. Run 'ghci'
     3. :l Lib2.hs
     4. Write commands with arguments
 
@@ -18,63 +40,12 @@ Running and manual testing example:
     Right ListAnimals
 
 ------------
-
----Parts 2) and 3) are for testing with runREPL---
-
-2) Testing with a list (starts with an emptyState - no animals in a list):
-    1. navigate to needed folder (/workspaces/fp-2024/src)
-    2. ghci
-    3. :l Lib2.hs
-    4. runREPL emptyState
-    5. run commands, for example:
-        ADD cat Tom 5
-        ADD fish Jem 1
-        ADD dog Max 3
-        DELETE fish Jem 1
-        DELETE cat Tom 5
-        LIST
-        exit
-
-------------
-
-3) Testing with a list (starts not with an emptyState - initial state is presented at the start):
-    1. navigate to needed folder (/workspaces/fp-2024/src)
-    2. ghci
-    3. :l Lib2.hs
-    4. runREPL emptyState
-    5. define initial state, for example:
-        let initialState = State [Animal "dog" "Max" 5, Animal "cat" "Tom" 3]
-    6. runREPL initialState
-    7. run commands, for example just like in 1) example
-
-------------
-
-Example command line session for 2) and 3 testing cases:
-
-ghci> runREPL emptyState
->>> ADD cat Tom 5
-Added animal: Animal {species = "cat", name = "Tom", age = 5}
->>> ADD fish Jem 1
-Added animal: Animal {species = "fish", name = "Jem", age = 1}
->>> LIST
-Current animals: [Animal {species = "fish", name = "Jem", age = 1},Animal {species = "cat", name = "Tom", age = 5}]
->>> ADD dog Max 3
-Added animal: Animal {species = "dog", name = "Max", age = 3}
->>> DELETE fish Jem 1
-Deleted animal: Animal {species = "fish", name = "Jem", age = 1}
->>> LIST
-Current animals: [Animal {species = "dog", name = "Max", age = 3},Animal {species = "cat", name = "Tom", age = 5}]
->>> 
-
-------------
-
----Part 4) is for testing with main---
+3) For testing with main
 
     1. navigate to needed folder (/workspaces/fp-2024/src)
     2. Write "ghci Lib2.hs"
     3. Write "main"
 
 ------------
-
----Part 5) for making sure that tests from Spec.hs pass---
+4) For making sure that tests from Spec.hs pass
     1. Just write "stack test"

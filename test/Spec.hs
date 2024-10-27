@@ -53,8 +53,8 @@ unitTests = testGroup "Lib2 tests"
 
 
     -- -- for parseQuery     
-    testCase "parseQuery valid input for list_animals" $
-      Lib2.parseQuery "list_animals" @?=
+    testCase "parseQuery valid input for LIST command" $
+      Lib2.parseQuery "LIST" @?=
         Right Lib2.ListAnimals,
 
     testCase "parseQuery valid input for ADD command" $

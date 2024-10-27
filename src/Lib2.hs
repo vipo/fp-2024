@@ -11,7 +11,6 @@ module Lib2
       State(..),
       emptyState,
       stateTransition,
-      runREPL,
     ) where
 
 
@@ -51,11 +50,11 @@ parseNumber s = case span C.isDigit s of
     ("", _) -> Left "Expected number, but got none"
     (numStr, rest) -> Right (read numStr, rest)
 
--- <command> ::= <add_animal> | <delete_animal> | 'list_animals' | <compound_query>
+-- <command> ::= <add_animal> | <delete_animal> | 'LIST' | <compound_query>
 parseQuery :: String -> Either String Query
 parseQuery s 
     | null s = Left "Expected some command but did not get anything"
-    | "list_animals" `isPrefixOf` s = Right ListAnimals
+    | "LIST" `isPrefixOf` s = Right ListAnimals
     | otherwise = parseCompoundQuery s `orElse` parseAdd s `orElse` parseDelete s
 
 -- <compound_query> ::= <command> ';' <command>
@@ -98,6 +97,7 @@ emptyState = State []
 
 -- 6) Updates a state according to a query.
 stateTransition :: State -> Query -> Either String (Maybe String, State)
+
 stateTransition (State animals) (Add animal) =
     if animal `elem` animals
     then Left ("Animal " ++ show animal ++ " already exists.")
@@ -114,41 +114,25 @@ stateTransition (State animals) ListAnimals =
     else Right (Just ("Current animals: " ++ show animals), State animals)
 
 -- Handles compound queries
-stateTransition state (CompoundQuery q1 q2) = do
-    (msg1, newState) <- stateTransition state q1
-    (msg2, finalState) <- stateTransition newState q2
+stateTransition state (CompoundQuery q1 q2) =
+    stateTransition state q1 >>= \(msg1, newState) ->
+    stateTransition newState q2 >>= \(msg2, finalState) ->
     let combinedMsg = unwords $ filter (not . null) [maybe "" id msg1, maybe "" id msg2]
-    Right (Just combinedMsg, finalState)
+    in Right (Just combinedMsg, finalState)
+
 
 -- Helper to try one parser or another
 orElse :: Either String a -> Either String a -> Either String a
 orElse (Left _) y = y
 orElse x _ = x
 
--- for testing via terminal
-runREPL :: State -> IO ()
-runREPL state = do
-    putStr ">>> "
-    command <- getLine
-    case command of
-        "exit" -> putStrLn "Exiting the program."
-        _ -> do
-            case parseQuery command of
-                Left err -> putStrLn ("Error: " ++ err)
-                Right query -> do
-                    -- state transition based on the parsed query
-                    case stateTransition state query of
-                        Left err -> putStrLn ("Error: " ++ err)
-                        Right (msg, newState) -> do
-                            putStrLn (maybe "" id msg)
-                            runREPL newState  -- continue the loop with the updated state
 
--- main :: IO ()
--- main = do
---   print (parseAnimal "giraffe Lin 10") -- output: Right (Animal {species = "giraffe", name = "Lin", age = 10})
---   print (parseString "HereLives5Animals") -- output: Right ("HereLives","5Animals")
---   print (parseNumber "30Dogs") -- output: Right (30,"Dogs")
---   print (parseQuery "ADD cat Mino 4") -- output: Right (Add (Animal {species = "cat", name = "Mino", age = 4}))
---   print (parseCompoundQuery "ADD hamster Lili 1; DELETE hamster Lili 1") -- output: Right (CompoundQuery (Add (Animal {species = "hamster", name = "Lili", age = 1})) (Delete (Animal {species = "hamster", name = "Lili", age = 1})))
---   print (parseAdd "ADD fish Jojo 1") -- output: Right (Add (Animal {species = "fish", name = "Jojo", age = 1}))
---   print (parseDelete "DELETE cat Mo 4") -- output: Right (Delete (Animal {species = "cat", name = "Mo", age = 4}))
+main :: IO ()
+main = do
+  print (parseAnimal "giraffe Lin 10") -- output: Right (Animal {species = "giraffe", name = "Lin", age = 10})
+  print (parseString "HereLives5Animals") -- output: Right ("HereLives","5Animals")
+  print (parseNumber "30Dogs") -- output: Right (30,"Dogs")
+  print (parseQuery "ADD cat Mino 4") -- output: Right (Add (Animal {species = "cat", name = "Mino", age = 4}))
+  print (parseCompoundQuery "ADD hamster Lili 1; DELETE hamster Lili 1") -- output: Right (CompoundQuery (Add (Animal {species = "hamster", name = "Lili", age = 1})) (Delete (Animal {species = "hamster", name = "Lili", age = 1})))
+  print (parseAdd "ADD fish Jojo 1") -- output: Right (Add (Animal {species = "fish", name = "Jojo", age = 1}))
+  print (parseDelete "DELETE cat Mo 4") -- output: Right (Delete (Animal {species = "cat", name = "Mo", age = 4}))

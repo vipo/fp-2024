@@ -12,3 +12,5 @@
 
 
 Note: Changes in bnf. Added '<compound_query>' to surely fulfill recursion requirement. 
+
+Note2: Submitted Lab2 on time. Last commit is for modifying code to pass/match newly added checklist points.
