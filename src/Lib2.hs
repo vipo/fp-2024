@@ -366,10 +366,10 @@ parseCheckIn input =
     Right (line, rest) ->
       let parts = words (drop (length "CHECK IN: ") line)
       in case parts of
-        [dateString, timeString] ->
+        [dateString, _] ->
           case parseDate dateString of
-            Right (date, _) ->
-              case parseTime timeString of
+            Right (date, remaining) ->
+              case parseTime remaining of
                 Right (time, _) -> Right (CheckIn date time, rest)
                 Left err -> Left err
             Left err -> Left err
@@ -423,8 +423,7 @@ parseTime input =
        _ -> Left "Invalid time format."
 
 
-splitOnSpace :: String -> [String]
-splitOnSpace str = splitOn " " str
+
 
 splitOn :: String -> String -> [String]
 splitOn _ [] = []
@@ -533,8 +532,32 @@ stateTransition st query = case query of
 
   ListState ->
     let reservationsList = map show (reservations st) -- converting reservations to string format
-        hotelsList = map show (availableHotelEntities st)
+        hotelsList = map formatHotel (availableHotelEntities st)
         result = "Reservations: \n" ++ unlines reservationsList ++
                   "\nAvailable hotels/hotel rooms:\n" ++ unlines hotelsList
     in Right (Just result, st)
-  
+
+formatHotel :: AvailableHotelEntity -> String
+formatHotel (AvailableHotelEntity (ID id) hotel) =
+  "Hotel ID: " ++ show id ++ "\n" ++ formatHotelDetails hotel
+
+formatHotelDetails :: Hotel -> String
+formatHotelDetails (Hotel name chain floors) =
+  "Hotel Name: " ++ name ++ "\n" ++
+  "Hotel Chain: \n" ++ (if null chain then "None\n" else unlines (map formatHotelDetails chain)) ++
+  "Floors:\n" ++ unlines (map formatFloor floors)
+
+formatFloor :: Floor -> String
+formatFloor (Floor number rooms) =
+  "  Floor Number: " ++ show number ++ "\n" ++
+  "  Rooms:\n" ++ unlines (map formatRoom rooms)
+
+formatRoom :: Room -> String
+formatRoom (Room number sections amenities) =
+  "    Room Number: " ++ show number ++ "\n" ++
+  (if null amenities
+     then "    Amenities: None\n"
+     else "    Amenities: " ++ unwords (map show amenities) ++ "\n") ++
+  (if null sections
+     then "    Sections: None\n" 
+     else "\n    Sections: \n" ++ unlines (map formatRoom sections))
