@@ -6,9 +6,13 @@ module Lib1
 -- | This function returns a list of words
 -- to be autocompleted in your program's repl.
 completions :: [String]
-
+--pakeist
 completions =
   [
+	-- Commands
+	"print_info",
+	"sell_artwork",
+	"add_artwork",
 	-- Art piece information
 	"type",
 	"title",
@@ -22,11 +26,5 @@ completions =
 	"Sculpture",
 	"Digital",
 	"Drawing", 
-	"Sketch",
-	-- Price
-	"€",
-	"$",
-	-- Name
-	"first_name",
-	"last_name"
+	"Sketch"
   ]

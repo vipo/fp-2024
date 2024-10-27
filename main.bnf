@@ -1,32 +1,30 @@
-<commands> ::= "Add_New_Artwork" <art_studio> <art_piece> | "Sell_Artwork" <id> | "Print_Info" <art_studio>
+<art_studio> ::= <commands>
 
-<art_studio> ::= <art_piece_list> 
+<commands> ::= <command> | <command> ";" <commands>
 
-<art_piece_list> ::= <art_piece> | <art_piece> <art_piece_list>
+<command> ::= <add_artwork> | <sell_artwork> | <print_info>
 
-<art_piece> ::= <type> <title> <artist> <date> <price> <description> <id>
+<add_artwork> ::= "add_artwork" <art_piece>
+
+<sell_artwork> ::= "sell_artwork" <art_piece>
+
+<print_info> ::= "print_info"
+
+<art_piece> ::= <id> <title> <type> <price> <description> 
 
 <type> ::= "Painting" | "Photograph" | "Sculpture" | "Digital" | "Drawing" | "Sketch"
 
-<artist> ::= <first_name> <last_name>
-
 <title> ::= <string>
-
-<date> ::= "Created: " <intiger> "Ad" | "created: " <intiger> "Bc"
-
-<price> ::= <intiger> "." <intiger> "€" | <intiger> "." <intiger> "$"
 
 <description> ::= <string>
 
-<first_name> ::= <string>
+<price> ::= <integer> "." <integer>
 
-<last_name> ::= <string>
-
-<id> ::= <intiger>
+<id> ::= <integer>
 
 <string> ::= <letter> | <letter> <string>
 
-<intiger> ::= <number> | <number> <intiger>
+<integer> ::= <number> | <number> <integer>
 
 <letter> ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
 
