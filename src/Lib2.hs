@@ -18,11 +18,9 @@ module Lib2
       parseBoardGameWithAddOns,
       parseAddOn,
       State(..),
-      emptyState
-      --stateTransition,
+      emptyState,
+      stateTransition
     ) where
-
-
 
 import qualified Data.Char as C
 import qualified Data.List as L
@@ -36,6 +34,7 @@ data Product = BoardGame String Double [Product]
              | BoardGameWithAddOns String Double [Product] [Product]
              deriving (Eq, Show)
 
+-- OR & ANDs
 and2' :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
 and2' c a b = \input ->
     case a input of
@@ -57,7 +56,6 @@ and3' f a b c = \input ->
                 Left e2 -> Left e2
         Left e1 -> Left e1  
 
-
 and4' :: (a -> b -> c -> d -> e) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e
 and4' e a b c d = \input ->
     case a input of
@@ -72,7 +70,7 @@ and4' e a b c d = \input ->
                         Left e3 -> Left e3
                 Left e2 -> Left e2
         Left e1 -> Left e1  
-
+{-
 and5' :: (a -> b -> c -> d -> e -> f) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f
 and5' f a b c d e = \input ->
     case a input of
@@ -90,8 +88,7 @@ and5' f a b c d e = \input ->
                         Left e3 -> Left e3
                 Left e2 -> Left e2
         Left e1 -> Left e1  
-
-
+-}
 and6' :: (a -> b -> c -> d -> e -> f -> g) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g
 and6' g a b c d e f = \input ->
     case a input of
@@ -113,7 +110,6 @@ and6' g a b c d e f = \input ->
                 Left e2 -> Left e2
         Left e1 -> Left e1  
 
-
 orX :: [Parser a] -> Parser a
 orX [] _ = Left "No parser matched"
 orX (p : ps) s = case p s of
@@ -122,7 +118,7 @@ orX (p : ps) s = case p s of
 
 
 parseDigit :: Parser Char
-parseDigit [] = Left "Cannot find any digits in an empty input"
+-- parseDigit [] = Left "Cannot find any digits in an empty input"
 parseDigit s@(h:t) = if C.isDigit h 
                       then Right (h, t) 
                       else Left ("'" ++ s ++ "'" ++ " does not start with a digit")
@@ -215,23 +211,16 @@ parseBoardGameWithAddOns = and4' (\(BoardGame name price components) _ addons _ 
 -- <products> ::= <product> | <product> ", " <products>
 parseProducts :: Parser [Product]
 parseProducts input = 
-    case parseProduct input of
-        Left err -> Left ("Failed to parse initial product in products list: " ++ err)
-        Right (prod, rest) -> parseMoreProducts [prod] rest
-  where
-    parseMoreProducts :: [Product] -> String -> Either String ([Product], String)
-    parseMoreProducts acc remainingInput =
-        case parseString ", " remainingInput of
-            Left _ -> Right (acc, trim remainingInput)  -- No more products, end the list
-            Right (_, restAfterComma) -> 
-                case parseProduct (dropWhile C.isSpace restAfterComma) of
-                    Left err -> Left ("Failed to parse product after comma in products list: " ++ err)
-                    Right (nextProd, rest) -> parseMoreProducts (acc ++ [nextProd]) rest
-
--- Helper function to remove leading and trailing whitespace
-trim :: String -> String
-trim = L.dropWhileEnd C.isSpace . dropWhile C.isSpace
-
+  case parseProduct input of
+    Right (p, remaining) -> 
+      case parseString ", " remaining of
+        Right (_, restAfterComma) ->
+          case parseProducts restAfterComma of
+            Right (moreProducts, finalRest) -> 
+              Right (p : moreProducts, finalRest)
+            Left _ -> Right ([p], remaining) -- No more products after the comma
+        Left _ -> Right ([p], remaining) -- No comma, single product list
+    Left _ -> Right ([], input)
 
 -- <product> ::= <boardgame_with_addons> | <boardgame> | <add_on> | <component>
 parseProduct :: Parser Product
@@ -290,16 +279,23 @@ data Query = RoundCommand Product
            | GiveDiscountCommand Product Integer  
            | BuyCommand Integer Product
            | CompareCommand Product Product
+           | ViewCommand
+
+-- <view_command> ::= "view"
+parseViewCommand :: Parser Query
+parseViewCommand input = case parseString "view" input of
+    Right (_, rest) -> Right (ViewCommand, rest)
+    Left err -> Left err
 
 -- <round_command> ::= "roundTo " <product>
 parseRoundCommand :: Parser Query
-parseRoundCommand = and2' (\_ product -> RoundCommand product)
+parseRoundCommand = and2' (\_ p -> RoundCommand p)
                           (parseString "roundTo ")
                           parseProduct
 
 -- <check_shipping_command> ::= "checkShipping " <product>
 parseCheckShippingCommand :: Parser Query
-parseCheckShippingCommand = and2' (\_ product -> CheckShippingCommand product)
+parseCheckShippingCommand = and2' (\_ p -> CheckShippingCommand p)
                           (parseString "checkShipping ")
                           parseProduct
 
@@ -309,18 +305,9 @@ parseAddCommand = and2' (\_ ps -> AddCommand ps)
                   (parseString "add ")
                   parseProducts
 
-
--- Helper parser to wrap a single Product into Products
-parseSingleProductAsProducts :: Parser Products
-parseSingleProductAsProducts input =
-    case parseProduct input of
-        Left err -> Left err
-        Right (p, rest) -> Right (Products [p], rest)
-
-
 -- <discount_command> ::= "giveDiscount " <product> " " <discount>
 parseGiveDiscountCommand :: Parser Query
-parseGiveDiscountCommand = and4' (\_ product _ discount -> GiveDiscountCommand product discount)
+parseGiveDiscountCommand = and4' (\_ p _ discount -> GiveDiscountCommand p discount)
                           (parseString "giveDiscount ")
                           parseProduct
                           (parseChar ' ') 
@@ -328,7 +315,7 @@ parseGiveDiscountCommand = and4' (\_ product _ discount -> GiveDiscountCommand p
 
 -- <buy_command> ::= "buy " <quantity> " " <product>
 parseBuyCommand :: Parser Query
-parseBuyCommand = and4' (\_ quantity _ product -> BuyCommand quantity product)
+parseBuyCommand = and4' (\_ quantity _ p -> BuyCommand quantity p)
                           (parseString "buy ")
                           parseQuantity
                           (parseChar ' ') 
@@ -336,13 +323,12 @@ parseBuyCommand = and4' (\_ quantity _ product -> BuyCommand quantity product)
 
 -- <compare_command> ::= "compare " <product> " " <product>
 parseCompareCommand :: Parser Query
-parseCompareCommand = and4' (\_ product1 _ product2 -> CompareCommand product1 product2)
+parseCompareCommand = and4' (\_ p1 _ p2 -> CompareCommand p1 p2)
                           (parseString "compare ")
                           parseProduct
                           (parseChar ' ') 
                           parseProduct
                           
-
 -- | The instances are needed basically for tests
 --instance Eq Query where
 --  (==) _ _= False
@@ -370,6 +356,7 @@ instance Show Query where
 -- The function must have tests.
 -- parseQuery :: String -> Either String Query
 -- parseQuery _ = Left "Not implemented 2"
+{-
 parseQuery :: String -> Either String Query
 parseQuery s =
     case orX
@@ -379,9 +366,11 @@ parseQuery s =
         , parseGiveDiscountCommand
         , parseBuyCommand
         , parseCompareCommand
+        , parseViewCommand
         ] s of
             Left e -> Left e
-            Right (q, _) -> Right q                      
+            Right (q, _) -> Right q
+-}         
 
 type PurchaseHistory = [(Product, Integer)]
 
@@ -404,4 +393,54 @@ emptyState = State
     , purchaseHistory = []
     }
 
+
+-- | Updates a state according to a query. This allows your program to share the state between repl iterations.
+stateTransition :: State -> Query -> Either String (Maybe String, State)
+stateTransition state query = case query of
+  AddCommand newProducts ->
+    let updatedProducts = products state ++ newProducts
+        newState = state { products = updatedProducts }
+    in Right (Just "New products added to the state.", newState)
+
+  GiveDiscountCommand product discount ->
+    let updatedProducts = map (\p -> if p == product then product else p) (products state)
+        newState = state { products = updatedProducts }
+    in Right (Just "Discount applied to the product.", newState)
+
+  BuyCommand quantity product ->
+    let newPurchaseHistory = (product, quantity) : purchaseHistory state
+        newState = state { purchaseHistory = newPurchaseHistory }
+    in Right (Just "Product bought and added to purchase history.", newState)
+
+  RoundCommand product ->
+    Right (Just "Product price rounded.", state)
+
+  CheckShippingCommand product ->
+    Right (Just "Shipping cost calculated for the product.", state)
+
+  CompareCommand product1 product2 ->
+    Right (Just "Comparison between products done.", state)
+
+  ViewCommand ->
+    Right (Just $ "Current state:\n" ++ formatState state, state)
+
+
+-- The function must have tests.
+parseQuery :: String -> Either String Query
+parseQuery input = 
+  case parseAddCommand input of
+    Right (query, _) -> Right query
+    Left _ -> case parseRoundCommand input of
+      Right (query, _) -> Right query
+      Left _ -> case parseCheckShippingCommand input of
+        Right (query, _) -> Right query
+        Left _ -> case parseGiveDiscountCommand input of
+          Right (query, _) -> Right query
+          Left _ -> case parseBuyCommand input of
+            Right (query, _) -> Right query
+            Left _ -> case parseCompareCommand input of
+              Right (query, _) -> Right query
+              Left _ -> case parseViewCommand input of
+                Right (query, _) -> Right query
+                Left _ -> Left "Error: command doesn't match any known query."
 

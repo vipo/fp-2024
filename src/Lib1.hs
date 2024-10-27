@@ -7,12 +7,11 @@ module Lib1
 
 completions :: [String]
 completions = [
-     "round_function"
-    , "check_shipping_function"
-    , "add_function"
-    , "discount_function"
-    , "buy_function"
-    , "compare_function"
+     "roundTo"
+    , "checkShipping"
+    , "add"
+    , "giveDiscount"
+    , "buy"
+    , "compare"
+    , "view"
     ]
-
-
