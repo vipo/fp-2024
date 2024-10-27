@@ -328,6 +328,7 @@ parseCompareCommand = and4' (\_ p1 _ p2 -> CompareCommand p1 p2)
                           parseProduct
                           (parseChar ' ') 
                           parseProduct
+
                           
 -- | The instances are needed basically for tests
 --instance Eq Query where
@@ -388,10 +389,21 @@ data State = State
 -- It is called once when the program starts.
 emptyState :: State
 emptyState = State 
-    { products = []
-    , discounts = []
-    , purchaseHistory = []
+    { products = [],
+      discounts = [],
+      purchaseHistory = []
     }
+
+
+viewState :: State -> String
+viewState (State products discounts purchaseHistory) =
+  "Current State:\n"
+    ++ "Products:\n"
+    ++ unlines (map show products)
+    ++ "Discounts:\n"
+    ++ unlines (map (\(p, d) -> show p ++ " with " ++ show d ++ "% discount") discounts)
+    ++ "Purchase History:\n"
+    ++ unlines (map (\(p, q) -> show q ++ " units of " ++ show p) purchaseHistory)
 
 
 -- | Updates a state according to a query. This allows your program to share the state between repl iterations.
@@ -422,10 +434,9 @@ stateTransition state query = case query of
     Right (Just "Comparison between products done.", state)
 
   ViewCommand ->
-    Right (Just $ "Current state:\n" ++ formatState state, state)
+    Right (Just $ "State: " ++ viewState state, state)
 
 
--- The function must have tests.
 parseQuery :: String -> Either String Query
 parseQuery input = 
   case parseAddCommand input of
@@ -442,5 +453,5 @@ parseQuery input =
               Right (query, _) -> Right query
               Left _ -> case parseViewCommand input of
                 Right (query, _) -> Right query
-                Left _ -> Left "Error: command doesn't match any known query."
+                Left _ -> Left "Error: command doesn't match anything from query."
 

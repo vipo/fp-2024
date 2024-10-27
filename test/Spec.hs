@@ -16,7 +16,7 @@ unitTests :: TestTree
 unitTests = testGroup "Lib2 tests"
   [ 
     testCase "Parsing empty query" $
-     Lib2.parseQuery "" @?= Left "Unknown command",
+     Lib2.parseQuery "" @?= Left "Error: command doesn't match anything from query.",
 
     testGroup "parseBoardGame tests"
       [ testCase "Parsing a valid board game with components" $
@@ -117,6 +117,40 @@ unitTests = testGroup "Lib2 tests"
           Lib2.parseProduct "bigBoxTM 150eur (contains: 2 tile, 1 gameBoard, 5 marker) [includes: playerBoard 10eur, metalResource 20eur]" 
           @?= Right (Lib2.BoardGameWithAddOns "bigBoxTM" 150.0
                 [Lib2.Component 2 "tile", Lib2.Component 1 "gameBoard", Lib2.Component 5 "marker"]
-                [Lib2.AddOn "playerBoard" 10.0, Lib2.AddOn "metalResource" 20.0], "")
+                [Lib2.AddOn "playerBoard" 10.0, Lib2.AddOn "metalResource" 20.0], ""),
+      
 
+    testCase "AddCommand Test" $ 
+      let query = Lib2.AddCommand [Lib2.BoardGame "baseTM" 100.0 [Lib2.Component 2 "tile", Lib2.Component 1 "card"]]
+          initialState = Lib2.emptyState
+          result = Lib2.stateTransition initialState query
+      in case result of
+          Right (Just message, newState) -> do
+            message @?= "New products added to the state."
+            Lib2.products newState @?= [Lib2.BoardGame "baseTM" 100.0 [Lib2.Component 2 "tile", Lib2.Component 1 "card"]]
+          _ -> assertFailure "AddCommand failed to execute",
+
+
+     testCase "ViewCommand Test" $ 
+      let initialState = Lib2.State { Lib2.products = [Lib2.BoardGame "baseTM" 100.0 [Lib2.Component 2 "tile", Lib2.Component 1 "card"]], Lib2.discounts = [], Lib2.purchaseHistory = [] }
+          query = Lib2.ViewCommand
+          result = Lib2.stateTransition initialState query
+      in case result of
+          Right (Just message, _) -> 
+            message @?= "State: Current State:\nProducts:\nBoardGame \"baseTM\" 100.0 [Component 2 \"tile\",Component 1 \"card\"]\n"
+          _ -> assertFailure "ViewCommand failed to execute",
+
+  testCase "AddCommand followed by ViewCommand Test" $ 
+  let addQuery = Lib2.AddCommand [Lib2.BoardGame "baseTM" 100.0 [Lib2.Component 2 "tile", Lib2.Component 1 "card"]]
+      initialState = Lib2.emptyState
+      addResult = Lib2.stateTransition initialState addQuery
+  in case addResult of
+      Right (_, updatedState) -> 
+        let viewQuery = Lib2.ViewCommand
+            viewResult = Lib2.stateTransition updatedState viewQuery
+        in case viewResult of
+          Right (Just message, _) -> message @?= "State: Current State:\nProducts:\nBoardGame \"baseTM\" 100.0 [Component 2 \"tile\",Component 1 \"card\"]\n"
+          _ -> assertFailure "ViewCommand failed to execute"
+      _ -> assertFailure "AddCommand failed to execute"
+     
   ]
