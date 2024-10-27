@@ -36,7 +36,6 @@ data Query =
   CancelReservation ID |
   AddAdditionalGuest Guest ID |
   ListState
-  deriving (Show, Eq)
 
 newtype ID = ID Int
   deriving (Show, Eq)
@@ -92,11 +91,11 @@ type Parser a = String -> Either String (a, String)
 
 
 -- | The instances are needed basically for tests
---instance Eq Query where
-  --(==) _ _= False
+instance Eq Query where
+  (==) _ _= False
 
---instance Show Query where
-  --show _ = ""
+instance Show Query where
+  show _ = ""
   
 -- after all query entries are converted into seperate lines, parse them as seperate inputs
 parseLine :: Parser String
@@ -445,17 +444,17 @@ data Reservation = Reservation {
   checkIn :: CheckIn,
   checkOut :: CheckOut,
   price :: Price
-} deriving (Show)
+} deriving (Show, Eq)
 
 data AvailableHotelEntity = AvailableHotelEntity {
   availableEntityId :: ID,
   availableHotel :: Hotel
-} deriving (Show)
+} deriving (Show, Eq)
 
 data State = State {
   reservations :: [Reservation],
   availableHotelEntities :: [AvailableHotelEntity]
-} deriving (Show)
+} deriving (Show, Eq)
 
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
@@ -477,7 +476,7 @@ stateTransition st query = case query of
         newHotelEntity = AvailableHotelEntity newId hotel
         newHotels = newHotelEntity : availableHotelEntities st
         newState = st { availableHotelEntities = newHotels }
-    in Right (Just $ "Hotel added successfully! " ++ show hotel, newState)
+    in Right (Just $ "Hotel added successfully! ", newState)
 
   Remove (ID entityId) ->
     let newHotelEntities = filter (\h -> availableEntityId h /= ID entityId) (availableHotelEntities st)
@@ -491,7 +490,7 @@ stateTransition st query = case query of
           newReservation = Reservation newId hotel [guest] checkIn checkOut price
           newReservations = newReservation : reservations st
           newState = st { reservations = newReservations }
-      in Right (Just $ "Reservation made successfully! Reservation ID: " ++ show newId, newState)
+      in Right (Just $ "Reservation made successfully!", newState)
     else
       Left "Error: Hotel does not exist."
 
