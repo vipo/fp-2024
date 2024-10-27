@@ -1,9 +1,8 @@
-Groccery store cannot be accesed from root
-<Commands> ::= "Add" <Storage> <Item> | "Delete" <Storage> <Item> | "Restock" <Storage> <Item> | "Sell" <Item> | "Exit"
+<Commands> ::= "add_storage" <Storage> | "sell" <String> <Int> | "show_store" | "restock" <String> <Int> | "remove_item" <String>
 
-<GroceryStore> ::= <Storage> <FoodItems> <Beverages> <HouseholdSupplies>
+<GroceryStore> ::= [<Item>]
 
-<Item> ::= <FoodItems> | <Beverages> | <HouseholdSupplies>
+<Item> ::= <FoodItems> <Int> | <Beverages> <Int> | <HouseholdSupplies> <Int>
 
 <Storage> ::= <Item> | <Storage> <Item>
 
@@ -26,3 +25,5 @@ Groccery store cannot be accesed from root
 <CleaningProducts> ::= <Detergent> | <Soap>
 
 <PaperGoods> ::= <PaperTowels> | <ToiletPaper>
+
+<String> is any of the specific items within the categories of <FoodItems> or <HouseholdSupplies>

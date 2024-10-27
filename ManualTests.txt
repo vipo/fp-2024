@@ -1,0 +1,43 @@
+Run the program with - 'stack run fp2024-two'
+
+>> show_inventory
+Inventory list:
+No more items in inventory.
+>>> add_storage Fruits Apples 7 CleaningProducts Soap
+Added to inventory: [Food Fruits "Apples" 7,HouseholdSupplies "Soap" 0]
+>>> show_inventory
+Inventory list:
+Item ID: 1, Item: Food Fruits "Apples" 7
+Item ID: 2, Item: HouseholdSupplies "Soap" 0
+No more items in inventory.
+>>> add_storage Fruits Bananas Fruits Apples 5 Grains Rice 10
+Added to inventory: [Food Fruits "Bananas" 0,Food Grains "Rice" 10]
+>>> show_inventory
+Inventory list:
+Item ID: 1, Item: Food Fruits "Apples" 7
+Item ID: 2, Item: HouseholdSupplies "Soap" 0
+Item ID: 3, Item: Food Fruits "Bananas" 0
+Item ID: 4, Item: Food Grains "Rice" 10
+No more items in inventory.
+>>> restock Soap 50
+Restocked item: Soap with quantity 50
+>>> sell Rice 2
+Sold item: Rice with quantity 2
+>>> show_inventory
+Inventory list:
+Item ID: 2, Item: HouseholdSupplies "Soap" 50
+Item ID: 3, Item: Food Fruits "Bananas" 0
+Item ID: 4, Item: Food Grains "Rice" 8
+No more items in inventory.
+>>> remove_item Bananas
+Removed item with name: Bananas
+>>> show_inventory
+Inventory list:
+Item ID: 1, Item: Food Fruits "Apples" 7
+Item ID: 2, Item: HouseholdSupplies "Soap" 50
+Item ID: 4, Item: Food Grains "Rice" 8
+No more items in inventory.
+>>> sell Apples 10
+Insufficient stock for item: Apples
+>>> Random Nonsense
+PARSE ERROR:Failed to parse: Unknown command given

@@ -9,3 +9,5 @@
 ### To Build & Test the Project, run the following commands
 1. `stack build`
 2. `stack test`
+
+BNF.txt edit: changed the names and some commands and gave a more specific description of what input they take, added definition of what <String> is in the context of <Commands> and also made so <GrocceryStore> is less confusing it what it contains.

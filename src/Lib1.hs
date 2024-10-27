@@ -7,11 +7,11 @@ module Lib1
 completions :: [String]
 completions =
   [ -- Actions
-    "add_item",
-    "delete_item",
-    "restock_item",
-    "sell_item",
-    "inventory",
+    "add_storage",
+    "remove_item",
+    "restock",
+    "sell",
+    "show_store",
     -- Food Items
     "Fruits",
     "Vegetables",
@@ -38,11 +38,11 @@ completions =
     "Chicken",
     "Beef",
     "Fish",
-    -- Beverages
+    -- Beverage Types
     "Soda",
     "Juice",
     "Water",
-    -- Household Supplies
+    -- Household Supplies Items
     "CleaningProducts",
     "PaperGoods",
     -- Cleaning Products Types
