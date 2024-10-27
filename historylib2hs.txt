@@ -1,0 +1,174 @@
+>>> ADD. HOTEL: Rytas. FLOOR: 3. ROOM: 512. 
+Hotel added successfully! 
+>>> LIST
+Reservations: 
+
+Available hotels/hotel rooms:
+Hotel ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+
+
+
+>>> ADD. HOTEL: Rytas. FLOOR: 3. ROOM: 100. AMENITIES: WiFi. ROOM SECTION. ROOM: 1. AMENITIES: TV, AC. ROOM: 2. AMENITIES: Balcony. 
+Hotel added successfully! 
+>>> LIST
+Reservations: 
+
+Available hotels/hotel rooms:
+Hotel ID: 2
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 100
+    Amenities: WiFi
+
+    Sections: 
+    Room Number: 1
+    Amenities: TV AC
+    Sections: None
+
+
+    Room Number: 2
+    Amenities: Balcony
+    Sections: None
+
+
+
+Hotel ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+
+
+
+>>> MAKE RESERVATION. GUEST: Elvinas Svilpa. HOTEL: Rytas. FLOOR: 3. ROOM: 512. CHECK IN: 2020-01-02 22:00. CHECK OUT: 2020-01-03 10:00. PRICE: 210. 
+Reservation made successfully!
+>>> LIST
+Reservations: 
+Reservation ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+
+Guests:
+Guest: Elvinas Svilpa
+Check-in: Date: 2020-1-2, Time: 22:0
+Check-out: Date: 2020-1-3, Time: 10:0
+Price: 210 euros 
+
+
+Available hotels/hotel rooms:
+Hotel ID: 2
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 100
+    Amenities: WiFi
+
+    Sections: 
+    Room Number: 1
+    Amenities: TV AC
+    Sections: None
+
+
+    Room Number: 2
+    Amenities: Balcony
+    Sections: None
+
+
+
+Hotel ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+
+
+
+>>> ADD ADDITIONAL GUEST. GUEST: testukas testukas. 1. 
+\Guest added successfully!
+>>> \LIST
+PARSE ERROR:Invalid command
+>>> LIST
+Reservations: 
+Reservation ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+
+Guests:
+Guest: testukas testukas
+Guest: Elvinas Svilpa
+Check-in: Date: 2020-1-2, Time: 22:0
+Check-out: Date: 2020-1-3, Time: 10:0
+Price: 210 euros 
+
+
+Available hotels/hotel rooms:
+Hotel ID: 2
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 100
+    Amenities: WiFi
+
+    Sections: 
+    Room Number: 1
+    Amenities: TV AC
+    Sections: None
+
+
+    Room Number: 2
+    Amenities: Balcony
+    Sections: None
+
+
+
+Hotel ID: 1
+Hotel Name: Rytas
+Hotel Chain: None
+Floors:
+  Floor Number: 3
+  Rooms:
+    Room Number: 512
+    Amenities: None
+    Sections: None
+
+

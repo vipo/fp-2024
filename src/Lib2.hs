@@ -536,7 +536,7 @@ formatHotelDetails (Hotel name chain floors) =
   "Hotel Name: " ++ name ++ "\n" ++
   (if null chain
     then "Hotel Chain: None\n"
-    else "Hotel Chain: " ++ unlines (map formatHotelDetails chain)) ++
+    else "Hotel Chain: \n" ++ unlines (map formatHotelDetails chain)) ++
   "Floors:\n" ++ unlines (map formatFloor floors)
 
 formatFloor :: Floor -> String
