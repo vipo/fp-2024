@@ -114,3 +114,26 @@ ellas&hellasTMexp 8.1eur (contains: 0 rules)
       foundationsTMAEexp 67.9eur (contains: 64384 tile) 
    ] 
 </pre>
+
+
+### Changes to BNF:
+
+1. Removed all uneeded and inseparable add_on, component grammar. Just made it simple and not repetetive:
+<component> ::= <component_name>
+<add_on> ::= <add_on_name> " " <price> "eur"
+
+2. Added "%" to <discaout> to make it unique.
+
+3. Moved "eur" from <boardgame> and <add_on> to <price> for clarity
+
+4. Moved <quantity> from <components> to <component>, added missing <add_on> to <product>.
+
+5. 
+   - Deleted <add_ons>, <components>, and moved <add_on>, <component> to <product>. To avoid code repetition for recursive elements.
+   - Separated <boardgame> to two for clarity:
+     <boardgame> ::=  <boardgame_name> " " <price>  " (contains: " <products> ")"
+     <boardgame_with_addons> ::= <boardgame> "[includes: " <products> "]"
+
+
+
+

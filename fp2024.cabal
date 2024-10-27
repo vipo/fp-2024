@@ -28,6 +28,7 @@ library
       BoardgameShop
       Lessons.Lesson01
       Lib1
+      Lib2
   other-modules:
       Paths_fp2024
   autogen-modules:

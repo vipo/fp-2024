@@ -1,11 +1,28 @@
 {-# LANGUAGE InstanceSigs #-}
 module Lib2
     ( Query(..),
-    parseQuery,
-    State(..),
-    emptyState,
-    stateTransition
+      Product(..),
+      Products(..),
+      parseQuery,
+      parseProduct,
+      parseProducts,
+      parseComponent,
+      parseRoundCommand,
+      parseAddOnName,
+      parseBoardGameName,
+      parseComponentName,
+      parseQuantity,
+      parseDiscount,
+      parsePrice,
+      parseBoardGame,
+      parseBoardGameWithAddOns,
+      parseAddOn,
+      State(..),
+      emptyState
+      --stateTransition,
     ) where
+
+
 
 import qualified Data.Char as C
 import qualified Data.List as L
@@ -13,14 +30,11 @@ import qualified Data.List as L
 type Parser a = String -> Either String (a, String)
 
 data Products = Products [Product] deriving (Eq, Show) 
-data Product = BoardGame String Double Components
+data Product = BoardGame String Double [Product]
              | AddOn String Double
-             | AddOns Products
-             | BoardGame' String Double Components Products
+             | Component Integer String
+             | BoardGameWithAddOns String Double [Product] [Product]
              deriving (Eq, Show)
-            
-data Components = Components [Component] deriving (Eq, Show)
-data Component = Component Integer String deriving (Eq, Show)
 
 and2' :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
 and2' c a b = \input ->
@@ -29,8 +43,8 @@ and2' c a b = \input ->
             case b r1 of
                 Right (v2, r2) -> Right (c v1 v2, r2)
                 Left e2 -> Left e2
-        Left e1 -> Left e1        
-
+        Left e1 -> Left e1  
+        
 and3' :: (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
 and3' f a b c = \input ->
     case a input of
@@ -41,7 +55,7 @@ and3' f a b c = \input ->
                         Right (v3, r3) -> Right (f v1 v2 v3, r3)
                         Left e3 -> Left e3
                 Left e2 -> Left e2
-        Left e1 -> Left e1
+        Left e1 -> Left e1  
 
 
 and4' :: (a -> b -> c -> d -> e) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e
@@ -57,7 +71,7 @@ and4' e a b c d = \input ->
                                 Left e4 -> Left e4
                         Left e3 -> Left e3
                 Left e2 -> Left e2
-        Left e1 -> Left e1        
+        Left e1 -> Left e1  
 
 and5' :: (a -> b -> c -> d -> e -> f) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f
 and5' f a b c d e = \input ->
@@ -75,45 +89,68 @@ and5' f a b c d e = \input ->
                                 Left e4 -> Left e4
                         Left e3 -> Left e3
                 Left e2 -> Left e2
-        Left e1 -> Left e1
+        Left e1 -> Left e1  
 
-or2 :: Parser a -> Parser a -> Parser a
-or2 a b = \input ->
+
+and6' :: (a -> b -> c -> d -> e -> f -> g) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g
+and6' g a b c d e f = \input ->
     case a input of
-        Right r1 -> Right r1
-        Left e1 ->
-            case b input of
-                Right r2 -> Right r2
-                Left e2 -> Left ("Error while parsing first: " ++ e1 ++ "and " ++ "second: " ++ e2 ++ " values")
+        Right (v1, r1) ->
+            case b r1 of
+                Right (v2, r2) ->
+                    case c r2 of
+                        Right (v3, r3) ->
+                            case d r3 of
+                                Right (v4, r4) ->
+                                    case e r4 of
+                                        Right (v5, r5) ->
+                                             case f r5 of
+                                            Right (v6, r6) -> Right (g v1 v2 v3 v4 v5 v6, r6)
+                                            Left e6 -> Left e6
+                                        Left e5 -> Left e5
+                                Left e4 -> Left e4
+                        Left e3 -> Left e3
+                Left e2 -> Left e2
+        Left e1 -> Left e1  
+
+
+orX :: [Parser a] -> Parser a
+orX [] _ = Left "No parser matched"
+orX (p : ps) s = case p s of
+  Left _ -> orX ps s
+  Right res -> Right res
+
 
 parseDigit :: Parser Char
 parseDigit [] = Left "Cannot find any digits in an empty input"
 parseDigit s@(h:t) = if C.isDigit h 
                       then Right (h, t) 
-                      else Left (s ++ " does not start with a digit")
+                      else Left ("'" ++ s ++ "'" ++ " does not start with a digit")
 
 parseNumber :: Parser Integer
-parseNumber [] = Left "empty input, cannot parse a number"
+parseNumber [] = Left "Empty input, cannot parse a number"
 parseNumber str =
     let
         digits = L.takeWhile C.isDigit str
         rest = drop (length digits) str
     in
         case digits of
-            [] -> Left "not a number"
+            [] -> Left "Not a number"
             _ -> Right (read digits, rest)
 
 parseChar :: Char -> Parser Char
-parseChar c [] = Left ("Cannot find " ++ [c] ++ " in an empty input")
+parseChar c [] = Left ("Cannot find " ++ "'" ++ [c] ++ "'")
 parseChar c s@(h:t) = if c == h 
                         then Right (c, t) 
-                        else Left (c : " is not found in " ++ s)
+                        else Left ("'" ++ [c] ++ "'" ++ " is not found" )
 
 parseString :: String -> Parser String
 parseString str [] = Left ("Cannot find " ++ str ++ " in an empty input")
 parseString str input = if L.isPrefixOf str input 
                             then Right (str, drop (length str) input)
-                            else Left (str ++ " is not found in " ++ input)
+                            else Left ("'" ++ str ++ "'" ++ " is not found")
+
+-- BNF implementation
 
 -- <quantity> ::= <number>
 parseQuantity :: Parser Integer
@@ -121,154 +158,125 @@ parseQuantity = parseNumber
 
 -- <discount> ::= <number> "%"
 parseDiscount :: Parser Integer
-parseDiscount = and2' (\number _ -> number) parseNumber (parseChar '%')
+parseDiscount = and2' (\number _ -> number) 
+                parseNumber 
+                (parseChar '%')
 
 -- <price> ::= <number> "eur" | <number> "." <number> "eur"
 parsePrice :: Parser Double
-parsePrice = 
-    and2' (\num _ -> fromIntegral num) parseNumber (parseString "eur") 
-    `or2` 
-    and4' (\num1 _ num2 _ -> read (show num1 ++ "." ++ show num2)) 
-           parseNumber 
-           (parseChar '.') 
-           parseNumber 
-           (parseString "eur")
-          
+parsePrice = orX 
+    [ and2' (\num _ -> fromIntegral num) parseNumber (parseString "eur")
+    , and4' (\num1 _ num2 _ -> read (show num1 ++ "." ++ show num2)) 
+            parseNumber 
+            (parseChar '.') 
+            parseNumber 
+            (parseString "eur")
+    ]
+
 -- <boardgame_name> ::= "corporateCEOTM" | "baseTM" | ...
 parseBoardGameName :: Parser String
-parseBoardGameName = 
-    parseString "corporateCEOTM" 
-    `or2` parseString "baseTM" 
-    `or2` parseString "bigBoxTM" 
-    `or2` parseString "venusTMexp" 
-    `or2` parseString "turmoilTMexp" 
-    `or2` parseString "preludeTMexp" 
-    `or2` parseString "prelude1TMexp" 
-    `or2` parseString "prelude2TMexp" 
-    `or2` parseString "coloniesTMexp" 
-    `or2` parseString "ellas&hellasTMexp" 
-    `or2` parseString "automaTMexp" 
-    `or2` parseString "baseTMAE" 
-    `or2` parseString "discoveryTMAEexp" 
-    `or2` parseString "foundationsTMAEexp" 
-    `or2` parseString "crisisTMAEexp" 
+parseBoardGameName = orX 
+    [ parseString "corporateCEOTM"
+    , parseString "baseTM"
+    , parseString "bigBoxTM"
+    , parseString "venusTMexp"
+    , parseString "turmoilTMexp"
+    , parseString "preludeTMexp"
+    , parseString "prelude1TMexp"
+    , parseString "prelude2TMexp"
+    , parseString "coloniesTMexp"
+    , parseString "ellas&hellasTMexp"
+    , parseString "automaTMexp"
+    , parseString "baseTMAE"
+    , parseString "discoveryTMAEexp"
+    , parseString "foundationsTMAEexp"
+    , parseString "crisisTMAEexp"
+    ]
 
--- <boardgame> ::= <boardgame_name> " " <price> " (contains: " <components> ")"
+-- <boardgame> ::= <boardgame_name> " " <price> " (contains: " <products> ")"
 parseBoardGame :: Parser Product
-parseBoardGame = and5' (\name price _ components _ -> BoardGame name price components) 
-                    parseBoardGameName 
-                    parsePrice 
-                    (parseString " (contains: ") 
-                    parseComponents 
+parseBoardGame = and6' (\name _ price _ components _ -> BoardGame name price components)
+                    parseBoardGameName
+                    (parseChar ' ')
+                    parsePrice
+                    (parseString " (contains: ")
+                    parseProducts
                     (parseChar ')')
 
+-- <boardgame_with_addons> ::= <boardgame> "[includes: " <products> "]"
+parseBoardGameWithAddOns :: Parser Product
+parseBoardGameWithAddOns = and4' (\(BoardGame name price components) _ addons _ -> 
+                                  BoardGameWithAddOns name price components addons)
+                                  parseBoardGame
+                                  (parseString " [includes: ")
+                                  parseProducts
+                                  (parseChar ']')
+
 -- <products> ::= <product> | <product> ", " <products>
-parseProducts :: Parser Products
-parseProducts [] = Left ("Product/ts input is empty")
+parseProducts :: Parser [Product]
 parseProducts input = 
     case parseProduct input of
-        Right (prod, rest) -> Right (Products [prod], rest) 
-        Left _ -> case parseProduct input of
-            Left _ -> Left ("Products is empty")
-            Right (product, rest) -> 
-                case parseString ", " rest of
-                    Right (_, rest2) -> 
-                        case parseProducts rest2 of
-                            Right (Products ps, finalRest) -> 
-                                Right (Products (product : ps), finalRest)
-                            Left err -> Left ("Error from recursive parsing")
-                    Left err -> Left ("Error while parsing \", \"")  
+        Left err -> Left ("Failed to parse initial product in products list: " ++ err)
+        Right (prod, rest) -> parseMoreProducts [prod] rest
+  where
+    parseMoreProducts :: [Product] -> String -> Either String ([Product], String)
+    parseMoreProducts acc remainingInput =
+        case parseString ", " remainingInput of
+            Left _ -> Right (acc, trim remainingInput)  -- No more products, end the list
+            Right (_, restAfterComma) -> 
+                case parseProduct (dropWhile C.isSpace restAfterComma) of
+                    Left err -> Left ("Failed to parse product after comma in products list: " ++ err)
+                    Right (nextProd, rest) -> parseMoreProducts (acc ++ [nextProd]) rest
 
--- <product> ::= <boardgame> | <add_on> | <add_ons> | <boardgame> "[includes: " <products> "]"
+-- Helper function to remove leading and trailing whitespace
+trim :: String -> String
+trim = L.dropWhileEnd C.isSpace . dropWhile C.isSpace
+
+
+-- <product> ::= <boardgame_with_addons> | <boardgame> | <add_on> | <component>
 parseProduct :: Parser Product
-parseProduct = 
-    parseBoardGame 
-    `or2`
-    parseAddOn 
-    `or2`
-    parseAddOns 
-    `or2`
-    and4' (\boardGame _ products _ -> 
-                case boardGame of
-                    BoardGame name price components -> BoardGame' name price components products
-                    _ -> error ("Unexpected parse failure")
-          )
-          parseBoardGame 
-          (parseString " [includes: ") 
-          parseProducts 
-          (parseChar ']')
+parseProduct = orX 
+    [ parseBoardGameWithAddOns
+    , parseBoardGame
+    , parseAddOn
+    , parseComponent
+    ]
 
 -- <component_name> ::= "tile" | "gameBoard" | ...
 parseComponentName :: Parser String
-parseComponentName = 
-    parseString "tile" 
-    `or2` parseString "gameBoard" 
-    `or2` parseString "playerBoard" 
-    `or2` parseString "card" 
-    `or2` parseString "marker" 
-    `or2` parseString "rules" 
-
+parseComponentName = orX 
+    [ parseString "tile"
+    , parseString "gameBoard"
+    , parseString "playerBoard"
+    , parseString "card"
+    , parseString "marker"
+    , parseString "rules"
+    ]
 
 -- <component> ::= <quantity> " " <component_name>
-parseComponent :: Parser Component
+parseComponent :: Parser Product
 parseComponent =
-    and2' (\quantity name-> Component quantity name) 
+    and3' (\quantity _ name-> Component quantity name) 
     parseQuantity 
+    (parseChar ' ') 
     parseComponentName 
-
--- <components> ::= <component> | <component> ", " <components> 
-parseComponents :: Parser Components
-parseComponents input = 
-    case parseComponent input of
-        Right (comp, rest) -> 
-            Right (Components [comp], rest) 
-        Left _ -> 
-            case parseComponent input of
-                Left _ -> Left "Components is empty"
-                Right (component, rest) -> 
-                    case parseString ", " rest of
-                        Right (_, rest2) -> 
-                            case parseComponents rest2 of
-                                Right (Components ps, finalRest) -> 
-                                    Right (Components (component : ps), finalRest)
-                                Left err -> Left ("Error from recursive parsing")
-                        Left err -> Left ("Error while parsing \", \"")
 
 -- <add_on_name> ::= "playerBoard" | "miniature" | ...
 parseAddOnName :: Parser String
-parseAddOnName = 
-    parseString "playerBoard" 
-    `or2` parseString "miniature" 
-    `or2` parseString "metalResource" 
-    `or2` parseString "cardSleeve" 
-    `or2` parseString "spaceInsert" 
+parseAddOnName = orX 
+    [ parseString "playerBoard"
+    , parseString "miniature"
+    , parseString "metalResource"
+    , parseString "cardSleeve"
+    , parseString "spaceInsert"
+    ]
 
 -- <add_on> ::= <add_on_name> " " <price> "eur"
-parseAddOn :: Parser Product      
-parseAddOn = 
-    and4' (\name _ price _ -> AddOn name price) 
-        parseAddOnName 
-        (parseChar ' ') 
-        parsePrice 
-        (parseString "eur")
-
--- <add_ons> ::= <add_on> | <add_on> ", " <add_ons>
-parseAddOns :: Parser Product
-parseAddOns input = 
-    case parseAddOn input of
-        Right (addOn, rest) -> 
-            Right (AddOns (Products [addOn]), rest)
-        Left _ -> 
-            case parseAddOn input of
-                Left _ -> Left ("Add-ons input is empty")
-                Right (addOn, rest) -> 
-                    case parseString ", " rest of
-                        Right (_, rest2) -> 
-                            case parseAddOns rest2 of
-                                Right (AddOns (Products addOns), finalRest) -> 
-                                    Right (AddOns (Products (addOn : addOns)), finalRest)
-                                Left err -> Left ("Error from recursive parse")
-                        Left err -> Left ("Error while parsing \", \"")
+parseAddOn :: Parser Product
+parseAddOn = and3' (\name _ price -> AddOn name price)
+                parseAddOnName
+                (parseChar ' ')
+                parsePrice
 
 
 -- | An entity which represets user input.
@@ -278,7 +286,7 @@ parseAddOns input =
 -- The Query type representing user commands
 data Query = RoundCommand Product
            | CheckShippingCommand Product
-           | AddCommand Product Product
+           | AddCommand [Product] 
            | GiveDiscountCommand Product Integer  
            | BuyCommand Integer Product
            | CompareCommand Product Product
@@ -295,65 +303,85 @@ parseCheckShippingCommand = and2' (\_ product -> CheckShippingCommand product)
                           (parseString "checkShipping ")
                           parseProduct
 
--- <add_command> ::= "add " <product> " " <product>
+-- <add_command> ::= "add " <products>
 parseAddCommand :: Parser Query
-parseAddCommand = and3' (\_ product1 product2 -> AddCommand product1 product2)
-                          (parseString "add ")
-                          parseProduct
-                          parseProduct
+parseAddCommand = and2' (\_ ps -> AddCommand ps) 
+                  (parseString "add ")
+                  parseProducts
+
+
+-- Helper parser to wrap a single Product into Products
+parseSingleProductAsProducts :: Parser Products
+parseSingleProductAsProducts input =
+    case parseProduct input of
+        Left err -> Left err
+        Right (p, rest) -> Right (Products [p], rest)
+
 
 -- <discount_command> ::= "giveDiscount " <product> " " <discount>
 parseGiveDiscountCommand :: Parser Query
-parseGiveDiscountCommand = and3' (\_ product discount -> GiveDiscountCommand product discount)
+parseGiveDiscountCommand = and4' (\_ product _ discount -> GiveDiscountCommand product discount)
                           (parseString "giveDiscount ")
                           parseProduct
+                          (parseChar ' ') 
                           parseDiscount
 
 -- <buy_command> ::= "buy " <quantity> " " <product>
 parseBuyCommand :: Parser Query
-parseBuyCommand = and3' (\_ quantity product -> BuyCommand quantity product)
+parseBuyCommand = and4' (\_ quantity _ product -> BuyCommand quantity product)
                           (parseString "buy ")
                           parseQuantity
+                          (parseChar ' ') 
                           parseProduct
 
 -- <compare_command> ::= "compare " <product> " " <product>
 parseCompareCommand :: Parser Query
-parseCompareCommand = and3' (\_ product1 product2-> CompareCommand product1 product2)
+parseCompareCommand = and4' (\_ product1 _ product2 -> CompareCommand product1 product2)
                           (parseString "compare ")
                           parseProduct
+                          (parseChar ' ') 
                           parseProduct
                           
 
 -- | The instances are needed basically for tests
+--instance Eq Query where
+--  (==) _ _= False
 instance Eq Query where
-  (==) _ _= False
+    (RoundCommand p1) == (RoundCommand p2) = p1 == p2
+    (CheckShippingCommand p1) == (CheckShippingCommand p2) = p1 == p2
+    (AddCommand ps1) == (AddCommand ps2) = ps1 == ps2
+    (GiveDiscountCommand p1 d1) == (GiveDiscountCommand p2 d2) = p1 == p2 && d1 == d2
+    (BuyCommand q1 p1) == (BuyCommand q2 p2) = q1 == q2 && p1 == p2
+    (CompareCommand p1 q1) == (CompareCommand p2 q2) = p1 == p2 && q1 == q2
+    _ == _ = False
 
+--instance Show Query where
+--  show _ = ""
 instance Show Query where
-  show _ = ""
+    show (RoundCommand p) = "RoundCommand " ++ show p
+    show (CheckShippingCommand p) = "CheckShippingCommand " ++ show p
+    show (AddCommand ps) = "AddCommand " ++ show ps
+    show (GiveDiscountCommand p d) = "GiveDiscountCommand " ++ show p ++ " " ++ show d
+    show (BuyCommand q p) = "BuyCommand " ++ show q ++ " " ++ show p
+    show (CompareCommand p1 p2) = "CompareCommand " ++ show p1 ++ " " ++ show p2
 
-
-
-or2' :: [Parser a] -> Parser a
-or2' [] = \_ -> Left "All parsers failed"
-or2' (p:ps) = \input -> case p input of
-                         Right res -> Right res
-                         Left _ -> or2' ps input
 
 -- | Parses user's input.
 -- The function must have tests.
 -- parseQuery :: String -> Either String Query
 -- parseQuery _ = Left "Not implemented 2"
 parseQuery :: String -> Either String Query
-parseQuery input = case or2' [ parseRoundCommand
-                            , parseCheckShippingCommand
-                            , parseAddCommand
-                            , parseGiveDiscountCommand
-                            , parseBuyCommand
-                            , parseCompareCommand
-                            ] input of
-                      Right (query, "") -> Right query
-                      Right (_, rest) -> Left ("Unparsed input: " ++ rest)
-                      Left err -> Left ("Failed to parse command:\n" ++ err)
+parseQuery s =
+    case orX
+        [ parseRoundCommand
+        , parseCheckShippingCommand
+        , parseAddCommand
+        , parseGiveDiscountCommand
+        , parseBuyCommand
+        , parseCompareCommand
+        ] s of
+            Left e -> Left e
+            Right (q, _) -> Right q                      
 
 type PurchaseHistory = [(Product, Integer)]
 
@@ -370,93 +398,10 @@ data State = State
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
 emptyState :: State
-emptyState = State { products = [], discounts = [] }
+emptyState = State 
+    { products = []
+    , discounts = []
+    , purchaseHistory = []
+    }
 
 
--- | Creates an initial program's state.
--- It is called once when the program starts.
--- emptyState :: State
--- emptyState = error "Not implemented 1"
-
--- | Updates a state according to a query.
--- This allows your program to share the state
--- between repl iterations.
--- Right contains an optional message to print and
--- an updated program's state.
-stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition _ _ = Left "Not implemented 3"
-
-
-
-roundProductPrice :: Product -> Product
-roundProductPrice (BoardGame name price components) =
-    BoardGame name (fromIntegral (round price)) components
-
-roundProductPrice (AddOn name price) =
-    AddOn name (fromIntegral (round price))
-
-roundProductPrice (AddOns products) =
-    AddOns (roundProductsInProducts products)
-
-roundProductPrice (BoardGame' name price components products) =
-    BoardGame' name (fromIntegral (round price)) components (roundProductsInProducts products)
-
-
-roundProductsInProducts :: Products -> Products
-roundProductsInProducts (Products ps) = Products (roundProducts ps)
-  where
-    roundProducts :: [Product] -> [Product]
-    roundProducts [] = []
-    roundProducts (p:ps) = roundProductPrice p : roundProducts ps
-
--- Adding a new product or updating product in the state
-addOrUpdateProduct :: Product -> [Product] -> [Product]
-addOrUpdateProduct product [] = [product]
-addOrUpdateProduct product (p:ps)
-    | product == p = product : ps  -- Replaces the existing product
-    | otherwise = p : addOrUpdateProduct product ps
-
-
-calculateShippingCost :: Product -> Double
-calculateShippingCost (BoardGame _ price _) = price * 0.2
-calculateShippingCost (AddOn _ price) = price * 0.1
-calculateShippingCost (AddOns (Products ps)) = sumShippingCosts ps
-calculateShippingCost (BoardGame' _ price _ (Products ps)) =
-    price * 0.2 + sumShippingCosts ps
-
-sumShippingCosts :: [Product] -> Double
-sumShippingCosts [] = 0
-sumShippingCosts (p:ps) = calculateShippingCost p + sumShippingCosts ps
-
-
-applyDiscountToPrice :: Double -> Integer -> Double
-applyDiscountToPrice price discount =
-    price * (1 - fromIntegral discount / 100)
-
-applyDiscount :: Product -> Integer -> Product
-applyDiscount (BoardGame name price components) discount =
-    BoardGame name (applyDiscountToPrice price discount) components
-applyDiscount (AddOn name price) discount =
-    AddOn name (applyDiscountToPrice price discount)
-applyDiscount (AddOns products) discount =
-    AddOns (applyDiscountsToProducts products discount)
-applyDiscount (BoardGame' name price components products) discount =
-    BoardGame' name (applyDiscountToPrice price discount) components (applyDiscountsToProducts products discount)
-
-
-applyDiscountsToProducts :: Products -> Integer -> Products
-applyDiscountsToProducts (Products ps) discount = Products (applyDiscounts ps discount)
-
-applyDiscounts :: [Product] -> Integer -> [Product]
-applyDiscounts [] _ = []
-applyDiscounts (p:ps) discount = applyDiscount p discount : applyDiscounts ps discount
-
-getProductPrice :: Product -> Double
-getProductPrice (BoardGame _ price _) = price
-getProductPrice (AddOn _ price) = price
-getProductPrice (AddOns (Products ps)) = sumProductPrices ps
-getProductPrice (BoardGame' _ price _ (Products ps)) = price + sumProductPrices ps
-
-sumProductPrices :: [Product] -> Double
-sumProductPrices [] = 0
-sumProductPrices (p:ps) = getProductPrice p + sumProductPrices ps

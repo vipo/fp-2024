@@ -1,0 +1,24 @@
+ghci> parseQuantity "45"
+Right (45,"")
+ghci> parseQuantity "45awd"
+Right (45,"awd")
+ghci> parseQuantity ""
+Left "empty input, cannot parse a number"
+ghci> parseQuantity "abd"
+Left "not a number"
+ghci> parseQuantity "asd45"
+Left "not a number"
+
+ghci> parseDiscount "20%"
+Right (20,"")
+ghci> parseDiscount "100%dar"
+Right (100,"dar")
+ghci> parseDiscount "10.0%"
+Left "% is not found in .0%"
+ghci> parseDiscount "%"
+Left "not a number"
+ghci> parseDiscount "10"
+Left "Cannot find % in an empty input"
+ghci> parseDiscount ""
+Left "empty input, cannot parse a number"
+
