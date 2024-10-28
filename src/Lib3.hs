@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE EmptyCase #-}
 module Lib3
     ( stateTransition,
     StorageOp (..),
@@ -9,8 +10,9 @@ module Lib3
     renderStatements
     ) where
 
-import Control.Concurrent ( Chan )
+import Control.Concurrent ( Chan, newChan, writeChan, readChan )
 import qualified Lib2
+import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO)
 
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 -- | This function is started from main
@@ -67,6 +69,40 @@ renderStatements _ = error "Not implemented 5"
 -- Batches must be executed atomically (STM).
 -- Right contains an optional message to print and
 -- an updated program's state (potentially loaded from a file)
-stateTransition :: Lib2.State -> Command -> Chan StorageOp ->
-                   IO (Either String (Maybe String, Lib2.State))
-stateTransition _ _ ioChan = return $ Left "Not implemented 6"
+stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp ->
+                   IO (Either String (Maybe String))
+stateTransition state command ioChan =
+  case command of
+    StatementCommand sc ->
+      updateState state sc
+    SaveCommand -> do
+      jakie <- newChan
+      st <- readTVarIO state
+      writeChan ioChan (Save (renderStatements (marshallState st)) jakie)
+      _ <- readChan jakie
+      return $ Right Nothing
+    LoadCommand -> do
+      jakie <- newChan
+      writeChan ioChan (Load jakie)
+      file <- readChan jakie
+      case parseStatements file of
+        Left e -> return $ Left e
+        Right (st, "") -> updateState state st
+        Right _ -> return $ Left "Statements are not fully parsed"
+
+updateState :: TVar Lib2.State -> Statements ->
+               IO (Either String (Maybe String))
+updateState state (Single q) = atomically $ updateState' state [q]
+updateState state (Batch b) = atomically $ updateState' state b
+
+updateState' :: TVar Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String))
+updateState' state [] = return $ Right Nothing
+updateState' state (h:t) = do
+  case h of
+    Print -> do
+      case updateState' state t of
+        Left e -> return $ Left e
+        Right s
+    Add v ->
+  st <- readTVar state
+  case st
