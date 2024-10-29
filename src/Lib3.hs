@@ -67,9 +67,9 @@ renderStatements _ = error "Not implemented 5"
 -- load the state from the file so the state is preserved
 -- between program restarts.
 -- Keep IO as small as possible.
--- Batches must be executed atomically (STM).
--- Right contains an optional message to print and
--- an updated program's state (potentially loaded from a file)
+-- State update must be executed atomically (STM).
+-- Right contains an optional message to print, updated state
+-- is stored in transactinal variable
 stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp ->
                    IO (Either String (Maybe String))
 stateTransition state command ioChan =
