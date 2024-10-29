@@ -10,7 +10,8 @@ module Lib3
     renderStatements
     ) where
 
-import Control.Concurrent ( Chan, newChan, writeChan, readChan )
+
+import Control.Concurrent ( Chan )
 import qualified Lib2
 import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO, modifyTVar)
 
