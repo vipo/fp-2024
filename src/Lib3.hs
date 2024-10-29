@@ -12,7 +12,7 @@ module Lib3
 
 import Control.Concurrent ( Chan, newChan, writeChan, readChan )
 import qualified Lib2
-import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO)
+import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO, modifyTVar)
 
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 -- | This function is started from main
@@ -96,13 +96,16 @@ updateState state (Single q) = atomically $ updateState' state [q]
 updateState state (Batch b) = atomically $ updateState' state b
 
 updateState' :: TVar Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String))
-updateState' state [] = return $ Right Nothing
+updateState' _ [] = return $ Right Nothing
 updateState' state (h:t) = do
   case h of
-    Print -> do
-      case updateState' state t of
+    Lib2.Print -> do
+      Lib2.Sum s <- readTVar state
+      us <- updateState' state t
+      case us of
         Left e -> return $ Left e
-        Right s
-    Add v ->
-  st <- readTVar state
-  case st
+        Right Nothing -> return $ Right $ Just $ show s
+        Right (Just next) -> return $ Right $ Just $ concat [show s, "\n", next]
+    Lib2.Add v -> do
+      modifyTVar state (\(Lib2.Sum s) -> Lib2.Sum (s + v))
+      return $ Right Nothing

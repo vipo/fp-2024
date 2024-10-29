@@ -2,9 +2,10 @@
 module Main (main) where
 
 import Control.Concurrent.Chan
+import Control.Concurrent.STM(TVar, newTVarIO)
 import Control.Monad.IO.Class ()
 import Control.Monad.State.Strict
-    ( MonadIO(liftIO), evalStateT, StateT, put, get, lift)
+    ( MonadIO(liftIO), evalStateT, StateT, get, lift)
 import Data.List qualified as L
 import Lib1 qualified
 import Lib2 qualified
@@ -20,7 +21,7 @@ import System.Console.Repline
   )
 import Control.Concurrent (forkIO)
 
-type Repl a = HaskelineT (StateT (Lib2.State, Chan Lib3.StorageOp) IO) a
+type Repl a = HaskelineT (StateT (TVar Lib2.State, Chan Lib3.StorageOp) IO) a
 
 final :: Repl ExitDecision
 final = do
@@ -43,7 +44,7 @@ cmd str = do
       tr <- liftIO $ Lib3.stateTransition st c chan
       case tr of
         Left e2 -> liftIO $ putStrLn $ "ERROR:" ++ e2
-        Right (m ,ns) -> lift (put (ns, chan)) >> mapM_ (liftIO . putStrLn) m
+        Right m -> mapM_ (liftIO . putStrLn) m
     Right (_, r) -> liftIO $ putStrLn $ "PARSE ERROR: string is not fully consumed - " ++ r
 
 invite :: MultiLine -> Repl String
@@ -53,6 +54,7 @@ invite MultiLine = pure "| "
 main :: IO ()
 main = do
   chan <- newChan :: IO (Chan Lib3.StorageOp)
+  state <- newTVarIO Lib2.emptyState
   _ <- forkIO $ Lib3.storageOpLoop chan
   evalStateT (evalRepl invite cmd [] (Just ':') (Just "paste") (Word completer) ini final)
-    (Lib2.emptyState, chan) 
+    (state, chan) 
