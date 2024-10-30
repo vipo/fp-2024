@@ -31,10 +31,10 @@ data Query
     deriving (Show, Eq)
 
 -- <animal> ::= <species> <name> <age>
-parseAnimal :: String -> Either String Animal -- Parses an animal from a string
+parseAnimal :: String -> Either String Animal
 parseAnimal s =
   case parseString s of
-    Left err -> Left err -- explain this line
+    Left err -> Left err -- if error, returns error msg
     Right (speciesV, rest1) -> 
       case parseString (dropWhile (== ' ') rest1) of
         Left err -> Left err
@@ -53,6 +53,7 @@ parseChar c (h:t)
   | c == h    = Right t
   | otherwise = Left ("Expected " ++ [c] ++ " but got " ++ [h])
 
+
 -- <species> ::= <string>
 -- <name> ::= <string>
 parseString :: Parser String -- just like 'String -> Either String (String, String)'
@@ -61,14 +62,14 @@ parseString s@(h:_)
     | C.isAlpha h = Right (letters, rest)
     | otherwise = Left (s ++ " does not start with an alphabetic character")
   where
-    (letters, rest) = span C.isAlpha s
+    (letters, rest) = span C.isAlpha s -- 'letters' is the longest prefix that is true for C.isAlpha
 
-
--- <age> ::= <integer>
+-- >>> parseNumber "avsd2"
+-- Left "avsd2 does not start with a digit"
 parseNumber :: Parser Int -- just like 'String -> Either String (Int, String)'
 parseNumber [] = Left "Expected number, but got an empty input"
 parseNumber s@(h:_)
-    | C.isDigit h = Right (read digits, rest)
+    | C.isDigit h = Right (read digits, rest) -- ?
     | otherwise = Left (s ++ " does not start with a digit")
   where
     (digits, rest) = span C.isDigit s
@@ -150,13 +151,13 @@ stateTransition (State animals) ListAnimals =
 -- Handles compound queries
 stateTransition state (CompoundQuery q1 q2) =
   case stateTransition state q1 of
-    Left err -> Left err  -- If the first query fails, return the error immediately
+    Left err -> Left err
     Right (msg1, newState) ->
       case stateTransition newState q2 of
-        Left err -> Left err  -- If the second query fails, return that error
+        Left err -> Left err 
         Right (msg2, finalState) ->
           let combinedMsg = unwords $ filter (not . null) [maybe "" id msg1, maybe "" id msg2]
-          in Right (Just combinedMsg, finalState)  -- If both succeed, combine messages and return the final state
+          in Right (Just combinedMsg, finalState)  -- If succes, combines messages and returns the final state
 
 
 -- Helpers
