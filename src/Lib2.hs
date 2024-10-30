@@ -1,13 +1,16 @@
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module Lib2
     ( Animal(..), 
       Query(..),
       parseAnimal,
+      parseChar,
       parseString,
       parseNumber,
       parseQuery, 
       parseCompoundQuery,
       parseAdd,
       parseDelete,
+      parseList,
       State(..),
       emptyState,
       stateTransition,
@@ -15,7 +18,6 @@ module Lib2
 
 
 import qualified Data.Char as C
-import Data.List (isPrefixOf)
 
 -- 1) An entity which represents user input.
 data Animal = Animal { species :: String, name :: String, age :: Int }
@@ -29,63 +31,95 @@ data Query
     deriving (Show, Eq)
 
 -- <animal> ::= <species> <name> <age>
-parseAnimal :: String -> Either String Animal
-parseAnimal s = 
-    parseString s >>= \(speciesV, rest1) ->
-    parseString (dropWhile (== ' ') rest1) >>= \(nameV, rest2) ->
-    parseNumber (dropWhile (== ' ') rest2) >>= \(ageV, _) ->
-    Right (Animal speciesV nameV ageV)
+parseAnimal :: String -> Either String Animal -- Parses an animal from a string
+parseAnimal s =
+  case parseString s of
+    Left err -> Left err -- explain this line
+    Right (speciesV, rest1) -> 
+      case parseString (dropWhile (== ' ') rest1) of
+        Left err -> Left err
+        Right (nameV, rest2) -> 
+          case parseNumber (dropWhile (== ' ') rest2) of
+            Left err -> Left err
+            Right (ageV, _) -> 
+              Right (Animal speciesV nameV ageV)
+
+
+
+-- needed in other parsers
+parseChar :: Char -> String -> Either String String
+parseChar _ [] = Left "Unexpected end of input"
+parseChar c (h:t)
+  | c == h    = Right t
+  | otherwise = Left ("Expected " ++ [c] ++ " but got " ++ [h])
 
 -- <species> ::= <string>
 -- <name> ::= <string>
-parseString :: String -> Either String (String, String)
-parseString [] = Left "Unexpected end of input"
-parseString s = case span C.isAlpha s of
-    ("", _) -> Left "Expected string, but got none"
-    (str, rest) -> Right (str, rest)
+parseString :: Parser String -- just like 'String -> Either String (String, String)'
+parseString [] = Left "Expected string, but got an empty input"
+parseString s@(h:_)
+    | C.isAlpha h = Right (letters, rest)
+    | otherwise = Left (s ++ " does not start with an alphabetic character")
+  where
+    (letters, rest) = span C.isAlpha s
+
 
 -- <age> ::= <integer>
-parseNumber :: String -> Either String (Int, String)
-parseNumber s = case span C.isDigit s of
-    ("", _) -> Left "Expected number, but got none"
-    (numStr, rest) -> Right (read numStr, rest)
+parseNumber :: Parser Int -- just like 'String -> Either String (Int, String)'
+parseNumber [] = Left "Expected number, but got an empty input"
+parseNumber s@(h:_)
+    | C.isDigit h = Right (read digits, rest)
+    | otherwise = Left (s ++ " does not start with a digit")
+  where
+    (digits, rest) = span C.isDigit s
+
+type Parser a = String -> Either String (a, String)
 
 -- <command> ::= <add_animal> | <delete_animal> | 'LIST' | <compound_query>
 parseQuery :: String -> Either String Query
 parseQuery s 
     | null s = Left "Expected some command but did not get anything"
-    | "LIST" `isPrefixOf` s = Right ListAnimals
-    | otherwise = parseCompoundQuery s `orElse` parseAdd s `orElse` parseDelete s
+    | otherwise = parseList s `orElse` parseCompoundQuery s `orElse` parseAdd s `orElse` parseDelete s
+
 
 -- <compound_query> ::= <command> ';' <command>
 parseCompoundQuery :: String -> Either String Query
 parseCompoundQuery s = 
     case break (== ';') s of
-        (firstCmd, ';':restCmd) -> do
-            query1 <- parseQuery firstCmd
-            query2 <- parseQuery (dropWhile (== ' ') restCmd)
+        (firstCmd, ';':restCmd) ->
+            parseQuery firstCmd `andThen` \query1 ->
+            parseQuery (dropWhile (== ' ') restCmd) `andThen` \query2 ->
             Right (CompoundQuery query1 query2)
         _ -> Left "Expected a compound query, but got a single query."
 
 -- <add_animal> ::= 'ADD' <animal>
 parseAdd :: String -> Either String Query
-parseAdd s = do
-    rest1 <- parseLiteral "ADD " s
-    animal <- parseAnimal (dropWhile (== ' ') rest1)
-    return (Add animal)
+parseAdd s =
+    parseLiteral "ADD " s `andThen` \rest1 ->
+    parseAnimal (dropWhile (== ' ') rest1) `andThen` \animal ->
+    Right (Add animal)
 
 -- <delete_animal> ::= 'DELETE' <species> <name> <age>
 parseDelete :: String -> Either String Query
-parseDelete s = do
-    rest1 <- parseLiteral "DELETE " s
-    animal <- parseAnimal (dropWhile (== ' ') rest1)
-    return (Delete animal)
+parseDelete s =
+    parseLiteral "DELETE " s `andThen` \rest1 ->
+    parseAnimal (dropWhile (== ' ') rest1) `andThen` \animal ->
+    Right (Delete animal)
 
--- Checks if the input starts with the given literal (needed for parseAdd and parseDelete)
+-- <list_animals> ::= 'LIST'
+parseList :: String -> Either String Query
+parseList s = 
+    parseLiteral "LIST" s `andThen` \_ ->
+    Right ListAnimals
+
+-- Checks if the input starts w the given literal (needed for parseAdd and parseDelete)
 parseLiteral :: String -> String -> Either String String
-parseLiteral literal s 
-    | literal `isPrefixOf` s = Right (drop (length literal) s)
-    | otherwise = Left ("Did not get a valid command")
+parseLiteral [] s = Right s  -- All characters matched, return remaining string
+parseLiteral (c:cs) s = 
+  case parseChar c s of
+    Left err -> Left err  -- If the character doesn't match, return an error
+    Right rest -> parseLiteral cs rest  -- If it matches, continue with the rest of the literal
+
 
 -- 4) An entity which represents your program's state.
 data State = State [Animal]
@@ -115,16 +149,24 @@ stateTransition (State animals) ListAnimals =
 
 -- Handles compound queries
 stateTransition state (CompoundQuery q1 q2) =
-    stateTransition state q1 >>= \(msg1, newState) ->
-    stateTransition newState q2 >>= \(msg2, finalState) ->
-    let combinedMsg = unwords $ filter (not . null) [maybe "" id msg1, maybe "" id msg2]
-    in Right (Just combinedMsg, finalState)
+  case stateTransition state q1 of
+    Left err -> Left err  -- If the first query fails, return the error immediately
+    Right (msg1, newState) ->
+      case stateTransition newState q2 of
+        Left err -> Left err  -- If the second query fails, return that error
+        Right (msg2, finalState) ->
+          let combinedMsg = unwords $ filter (not . null) [maybe "" id msg1, maybe "" id msg2]
+          in Right (Just combinedMsg, finalState)  -- If both succeed, combine messages and return the final state
 
 
--- Helper to try one parser or another
+-- Helpers
+andThen :: Either String a -> (a -> Either String b) -> Either String b
+andThen (Left err) _ = Left err
+andThen (Right val) f = f val
+
 orElse :: Either String a -> Either String a -> Either String a
-orElse (Left _) y = y
-orElse x _ = x
+orElse (Left _) alt = alt
+orElse result _ = result
 
 
 main :: IO ()

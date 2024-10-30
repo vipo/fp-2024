@@ -29,7 +29,17 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "parseAnimal invalid input" $
       Lib2.parseAnimal "12345 Ben 6" @?=
-        Left "Expected string, but got none",
+        Left "12345 Ben 6 does not start with an alphabetic character",
+
+
+    -- for parseChar
+    testCase "parseChar valid input" $
+      Lib2.parseChar 'n' "number 5" @?= 
+        Right "umber 5",
+
+    testCase "parseChar invalid input" $
+      Lib2.parseChar 'i' "number 5" @?=
+        Left "Expected i but got n",
 
 
     -- for parseString
@@ -39,17 +49,17 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "parseString invalid input" $
       Lib2.parseString "123abc" @?=
-        Left "Expected string, but got none",
+        Left "123abc does not start with an alphabetic character",
 
 
     -- for parseNumber
     testCase "parseNumber valid input" $
-      Lib2.parseNumber "123" @?=
-        Right (123, ""),
+      Lib2.parseNumber "123abc" @?=
+        Right (123, "abc"),
 
     testCase "parseNumber invalid input" $
       Lib2.parseNumber "abc123" @?=
-        Left "Expected number, but got none",
+        Left "abc123 does not start with a digit",
 
 
     -- -- for parseQuery     
@@ -67,7 +77,7 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "parseQuery invalid command" $
       Lib2.parseQuery "bad_command" @?=
-        Left "Did not get a valid command",
+        Left "Expected D but got b",
 
     -- using CompoundQuery
     testCase "parseQuery valid input for compound query" $
@@ -106,7 +116,7 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "ADD invalid" $
       Lib2.parseAdd "ADD Juppy 15" @?= 
-        Left "Expected string, but got none",
+        Left "15 does not start with an alphabetic character",
 
 
     -- for parseDelete
@@ -116,7 +126,7 @@ unitTests = testGroup "Lib2 tests"
 
     testCase "DELETE invalid" $
       Lib2.parseDelete "DELETE dog 5" @?= 
-        Left "Expected string, but got none",
+        Left "5 does not start with an alphabetic character",
 
 
     -- No need for 'State' test bc it is just data type

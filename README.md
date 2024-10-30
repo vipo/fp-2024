@@ -12,5 +12,5 @@
 
 
 Note: Changes in bnf. Added '<compound_query>' to surely fulfill recursion requirement. 
-
-Note2: Submitted Lab2 on time. Last commit is for modifying code to pass/match newly added checklist points.
+Changed command name from '<list_animals> ::= 'list_animals'' to '<list_animals> ::= 'LIST'' for consistency.
+Other changes and fixes :(
