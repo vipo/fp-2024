@@ -476,21 +476,27 @@ parseRoomNumber input =
 
 -- <amenities> ::= "AMENITIES: " <amenity> | <amenities> ", " <amenity>
 parseAmenities :: Parser [Amenity]
-parseAmenities input =
+parseAmenities = or2 parseMultipleAmenities parseSingleAmenity
+
+parseMultipleAmenities :: Parser [Amenity]
+parseMultipleAmenities input =
   case parseKeyword "AMENITIES: " input of
     Right (line, rest) ->
-      let amenitiesListStr = drop 11 line
-          amenitiesList = splitAmenities [amenitiesListStr]
-      in Right (amenitiesList, rest)
-    Left _ -> Right ([], input)
+      let amenitiesStr = drop 11 line
+          amenitiesWords = splitOn ", " amenitiesStr
+      in Right (parseAmenitiesList amenitiesWords, rest)
+    Left _ -> Right ([], input)  
 
-
-splitAmenities :: [String] -> [Amenity]
-splitAmenities [] = []
-splitAmenities input =
-  let amenitiesStr = concat input
-      amenitiesWords = splitOn ", " amenitiesStr
-  in parseAmenitiesList amenitiesWords
+parseSingleAmenity :: Parser [Amenity]
+parseSingleAmenity input =
+  case parseKeyword "AMENITIES: " input of
+    Right (line, rest) ->
+      let amenitiesStr = drop 11 line
+          amenitiesWords = splitOn ", " amenitiesStr
+      in case amenitiesWords of
+        [] -> Right ([], rest) 
+        [amenity] -> Right ([parseAmenity amenity], rest)  
+      
 
 parseAmenitiesList :: [String] -> [Amenity]
 parseAmenitiesList [] = []
