@@ -159,6 +159,15 @@ and5' f a b c d e input =
         Left e2 -> Left e2
     Left e1 -> Left e1
 
+or2 :: Parser a -> Parser a -> Parser a
+or2 a b = \input ->
+    case a input of
+        Right r1 -> Right r1
+        Left e1 ->
+            case b input of
+                Right r2 -> Right r2
+                Left e2 -> Left (e1 ++ ", " ++ e2)
+
 
 or3 :: Parser a -> Parser a -> Parser a -> Parser a
 or3 a b c = \input ->
@@ -291,17 +300,38 @@ parseHotelWithFloors input =
         Left err              -> Left err
     Left err -> Left err
 
+
 -- | Parsing floors.
 -- <floors> ::= <floor> | <floor> <floors>
 parseFloors :: Parser [Floor]
-parseFloors input =
+parseFloors = or2 parseMultipleFloors parseSingleFloor
+
+parseMultipleFloors :: Parser [Floor]
+parseMultipleFloors input =
   case parseFloor input of
     Right (floor, remaining) ->
       case parseFloors remaining of
-        Right (moreFloors, finalRest) ->
-          Right (floor : moreFloors, finalRest)
+        Right (moreFloors, finalRest) -> Right (floor: moreFloors, finalRest)
         Left _ -> Right ([floor], remaining)
-    Left _ -> Right ([], input)
+    Left err -> Left err 
+
+parseSingleFloor :: Parser [Floor] -- cannot use the parseFloor, since it is Parser Floor, not [Floor], so the or comparison will not work
+parseSingleFloor input =
+  case parseFloor input of
+    Right (floor, remaining) -> Right ([floor], remaining)
+    Left err -> Left err
+
+
+
+-- parseFloors :: Parser [Floor]
+-- parseFloors input =
+--   case parseFloor input of
+--     Right (floor, remaining) ->
+--       case parseFloors remaining of
+--         Right (moreFloors, finalRest) ->
+--           Right (floor : moreFloors, finalRest)
+--         Left _ -> Right ([floor], remaining)
+--     Left _ -> Right ([], input)
 
 -- <floor> ::= "FLOOR: " <number> ". " <rooms>
 parseFloor :: Parser Floor
