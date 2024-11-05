@@ -23,6 +23,7 @@ module Lib2
 
 import Data.Char (isSpace, isDigit)
 import Data.List (isPrefixOf, tails, findIndex, intercalate)
+import Foreign.C (errnoToIOError)
 
 
 -- | An entity which represets user input.
@@ -181,6 +182,22 @@ or3 a b c = \input ->
             Right r3 -> Right r3
             Left e3 -> Left (e1 ++ ", " ++ e2 ++ ", " ++ e3)
 
+or4 :: Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+or4 a b c d = \input ->
+  case a input of
+    Right r1 -> Right r1
+    Left e1 ->
+      case b input of
+        Right r2 -> Right r2
+        Left e2 ->
+          case c input of
+            Right r3 -> Right r3
+            Left e3 ->
+              case d input of
+                Right r4 -> Right r4
+                Left e4 -> Left (e1 ++ ", " ++ e2 ++ ", " ++ e3 ++ ", " ++ e4)
+
+
 
 
 
@@ -322,17 +339,6 @@ parseSingleFloor input =
     Left err -> Left err
 
 
-
--- parseFloors :: Parser [Floor]
--- parseFloors input =
---   case parseFloor input of
---     Right (floor, remaining) ->
---       case parseFloors remaining of
---         Right (moreFloors, finalRest) ->
---           Right (floor : moreFloors, finalRest)
---         Left _ -> Right ([floor], remaining)
---     Left _ -> Right ([], input)
-
 -- <floor> ::= "FLOOR: " <number> ". " <rooms>
 parseFloor :: Parser Floor
 parseFloor input = 
@@ -348,43 +354,123 @@ parseFloor input =
 
 -- | Parsing rooms.
 
--- <rooms> :: <room> | <room> <rooms>
 parseRooms :: Parser [Room]
-parseRooms input =
+parseRooms = or2 parseMultipleRooms parseSingleRoom
+
+-- <rooms> :: <room> | <room> <rooms>
+parseMultipleRooms :: Parser [Room]
+parseMultipleRooms input =
   case parseRoom input of
     Right (room, remaining) ->
       case parseRooms remaining of
         Right (moreRooms, finalRest) ->
           Right (room : moreRooms, finalRest)
         Left _ -> Right ([room], remaining)
-    Left _ -> Right ([], input)
+    Left err -> Left err
+
+parseSingleRoom :: Parser [Room] -- cannot use parseRoom, since or will require Parser [Room], not Room
+parseSingleRoom input = 
+  case parseRoom input of
+    Right (room, remaining) -> Right ([room], remaining)
+    Left err -> Left err
 
 -- <room> ::= "ROOM: " <number> ". " | <room> "ROOM SECTION " <room> | <room> <amenities> ". "
 parseRoom :: Parser Room
-parseRoom input =
-  case parseKeyword "ROOM: " input of
-    Right (line, rest) ->
-      let roomNum = read (drop 6 line) :: Int
-      in case parseAmenities rest of  
-           Right (amenitiesList, remaining) ->
-             case parseRoomSections remaining of  
-               Right (sections, finalRest) ->
-                 Right (Room roomNum sections amenitiesList, finalRest)
-               Left err -> Left err
-           Left err -> Left err
+parseRoom = or4 parseRoomWithSecAndAmen parseRoomWithSections parseRoomWithAmenities parseSimpleRoom
+
+parseRoomWithSecAndAmen :: Parser Room
+parseRoomWithSecAndAmen input =
+  case parseRoomNumber input of
+    Right (roomNumber, rest) ->
+      case parseAmenities rest of
+        Right (amenities, rest2) ->
+          case parseKeyword "ROOM SECTION" rest2 of
+            Right (_, remaining) ->
+              case parseRoom remaining of
+                Right (nextRoom, finalRest) ->
+                  case parseRoomWithSecAndAmen finalRest of
+                    Right (moreRooms, finalRest2) ->
+                      Right (Room roomNumber (nextRoom : [moreRooms]) amenities, finalRest2)
+                    Left _ ->
+                       Right (Room roomNumber [nextRoom] amenities, finalRest)
+                Left err -> Left err
+            Left err -> Left err
+        Left err -> Left err
     Left err -> Left err
 
-parseRoomSections :: Parser [Room]
-parseRoomSections input =
-  case parseKeyword "ROOM SECTION" input of
-    Right (_, rest) ->
-      case parseRoom rest of
+parseRoomWithSections :: Parser Room
+parseRoomWithSections input =
+  case parseRoomNumber input of
+    Right (roomNumber, rest) ->
+      case parseKeyword "ROOM SECTION" rest of
         Right (roomSection, remaining) ->
-          case parseRoomSections remaining of
-            Right (sections, finalRest) -> Right (roomSection : sections, finalRest)
-            Left _ -> Right ([roomSection], remaining)
-        Left _ -> Right ([], input)
-    Left _ -> Right ([], input)
+          case parseRoom remaining of
+            Right (nextRoom, remaining2) ->
+              case parseRoomWithSecAndAmen remaining2 of
+                Right (moreRooms, finalRest) -> 
+                  Right (Room roomNumber (nextRoom : [moreRooms]) [], finalRest)
+                Left err ->
+                  Right (Room roomNumber [nextRoom] [], err)
+            Left err -> Left err 
+        Left err -> Left err 
+    Left err -> Left err
+
+parseRoomWithAmenities :: Parser Room
+parseRoomWithAmenities input =
+  case parseRoomNumber input of
+    Right (roomNumber, rest) ->
+      case parseAmenities rest of
+        Right (amenities, finalRest) ->
+          Right (Room roomNumber [] amenities, finalRest)
+        Left err -> Left err 
+    Left err -> Left err
+
+parseSimpleRoom :: Parser Room
+parseSimpleRoom input =
+  case parseRoomNumber input of
+    Right (roomNumber, rest) -> Right (Room roomNumber [] [], rest)
+    Left err -> Left err
+       
+
+parseRoomNumber :: Parser Int
+parseRoomNumber input =
+  case parseKeyword "ROOM: " input of
+    Right (line, rest) -> 
+      let numStr = drop 6 line  -- Removing "ROOM: "
+      in Right (read numStr :: Int, rest)  -- Convert String to Int
+    Left err -> Left err
+
+
+    
+
+
+
+
+-- parseRoom :: Parser Room
+-- parseRoom input =
+--   case parseKeyword "ROOM: " input of
+--     Right (line, rest) ->
+--       let roomNum = read (drop 6 line) :: Int
+--       in case parseAmenities rest of  
+--            Right (amenitiesList, remaining) ->
+--              case parseRoomSections remaining of  
+--                Right (sections, finalRest) ->
+--                  Right (Room roomNum sections amenitiesList, finalRest)
+--                Left err -> Left err
+--            Left err -> Left err
+--     Left err -> Left err
+
+-- parseRoomSections :: Parser [Room]
+-- parseRoomSections input =
+--   case parseKeyword "ROOM SECTION" input of
+--     Right (_, rest) ->
+--       case parseRoom rest of
+--         Right (roomSection, remaining) ->
+--           case parseRoomSections remaining of
+--             Right (sections, finalRest) -> Right (roomSection : sections, finalRest)
+--             Left _ -> Right ([roomSection], remaining)
+--         Left _ -> Right ([], input)
+--     Left _ -> Right ([], input)
 
 -- | Parsing amenities.
 
