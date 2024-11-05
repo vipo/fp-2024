@@ -20,7 +20,7 @@ unitTests = testGroup "Lib1 tests"
     testCase "Parsing basic hotel variant" $
       isRight (Lib2.parseQuery "ADD. HOTEL: Grand. FLOOR: 1. ROOM: 101. ") @?= True,
     testCase "Parsing incorrect variant" $
-      Lib2.parseQuery "ADD. " @?= (Left "Expected a dot (end of query operation), but got end of input."),
+      Lib2.parseQuery "ADD. " @?= (Left "Expected a dot (end of query operation), but got end of input., Expected a dot (end of query operation), but got end of input., Expected a dot (end of query operation), but got end of input."),
     testCase "Parsing add hotel variant with chains and amenities" $
       isRight (Lib2.parseQuery "ADD. HOTEL: Grand. FLOOR: 1. ROOM: 101. AMENITIES: TV, AC, WiFi. ") @?= True,
     testCase "Testing adding and removing hotel variant" $ do

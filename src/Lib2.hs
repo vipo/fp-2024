@@ -160,6 +160,21 @@ and5' f a b c d e input =
     Left e1 -> Left e1
 
 
+or3 :: Parser a -> Parser a -> Parser a -> Parser a
+or3 a b c = \input ->
+  case a input of
+    Right r1 -> Right r1
+    Left e1 ->
+      case b input of
+        Right r2 -> Right r2
+        Left e2 ->
+          case c input of
+            Right r3 -> Right r3
+            Left e3 -> Left (e1 ++ ", " ++ e2 ++ ", " ++ e3)
+
+
+
+
 -- | Parses user's input.
 -- The function must have tests.
 -- Is pat pradziu buvau padares su Parser, todel kad visko taip stipriai neperrasyti tiesiog pasiimti query is tuple (query, string)
@@ -221,7 +236,15 @@ parseAddAdditionalGuest =
 -- | Parsing the hotel.
 -- <hotel> ::= "HOTEL: " <text> ". " |  <hotel> "CHAIN OF " <hotel> | <hotel> <floors>
 parseHotel :: Parser Hotel
-parseHotel = and3' Hotel parseHotelName parseHotelChain parseFloors
+parseHotel = or3 parseChainedHotel parseHotelWithFloors parseSingleHotel
+
+-- ///
+
+parseSingleHotel :: Parser Hotel
+parseSingleHotel input =
+  case parseHotelName input of
+    Right (name, rest) -> Right (Hotel name [] [], rest)
+    Left err -> Left err
 
 parseHotelName :: Parser String
 parseHotelName input =
@@ -229,7 +252,18 @@ parseHotelName input =
     Right (line, rest) -> Right (drop 7 line, rest) -- removing hotel prefix
     Left err -> Left err
 
+-- ///
 
+parseChainedHotel :: Parser Hotel
+parseChainedHotel input =
+  case parseHotelName input of
+    Right (name, rest1) ->
+      case parseHotelChain rest1 of
+        Right (chain, rest2) -> 
+          case parseFloors rest2 of
+            Right (floors, rest3) -> Right (Hotel name chain floors, rest3)
+            Left err -> Right (Hotel name chain [], err) 
+    Left err -> Left err
 
 parseHotelChain :: Parser [Hotel]
 parseHotelChain input =
@@ -245,6 +279,17 @@ parseHotelChain input =
           Left _ -> Right ([], input)
       else Right ([], input)
     Left _ -> Right ([], input)
+
+-- ///
+
+parseHotelWithFloors :: Parser Hotel
+parseHotelWithFloors input =
+  case parseHotelName input of
+    Right (name, rest1) ->
+      case parseFloors rest1 of
+        Right (floors, rest2) -> Right (Hotel name [] floors, rest2)
+        Left err              -> Left err
+    Left err -> Left err
 
 -- | Parsing floors.
 -- <floors> ::= <floor> | <floor> <floors>
@@ -268,6 +313,8 @@ parseFloor input =
            Right (roomsList, finalRest) -> Right (Floor floorNum roomsList, finalRest)
            Left err -> Left err
     Left err -> Left err
+
+-- ///
 
 -- | Parsing rooms.
 
