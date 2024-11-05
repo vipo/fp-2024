@@ -39,6 +39,8 @@ library:
   - random
   - stm
   - async
+  - QuickCheck
+  - transformers
 
 executables:
   fp2024-one:
