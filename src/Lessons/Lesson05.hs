@@ -2,9 +2,6 @@
 module Lessons.Lesson05 () where
 
 import Lessons.Lesson04(Parser, parseNumber, and2', parseChar)
-import Text.Read (Lexeme(String))
-
-
 
 -- listOfNumbers := number (,number)*
 --                                  ^ many
