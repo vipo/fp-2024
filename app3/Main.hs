@@ -58,3 +58,4 @@ main = do
   _ <- forkIO $ Lib3.storageOpLoop chan
   evalStateT (evalRepl invite cmd [] (Just ':') (Just "paste") (Word completer) ini final)
     (state, chan) 
+    

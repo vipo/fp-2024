@@ -1,18 +1,23 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 import Test.Tasty ( TestTree, defaultMain, testGroup )
 import Test.Tasty.HUnit ( testCase, (@?=) )
+import Test.Tasty.QuickCheck as QC
+
+import Data.List (sort)
+import Data.Ord ()
+
+import Lib1 qualified
 import Lib2 qualified
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [unitTests, propertyTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Lib2 tests"
   [
-
     -- No need for 'Animal' tests bc it is just data type
 
     -- No need for 'Query' tests bc it is just data type
@@ -179,3 +184,11 @@ unitTests = testGroup "Lib2 tests"
         Right (msg, _) -> msg @?= Just "Current animals: [Animal {species = \"dog\", name = \"Max\", age = 5},Animal {species = \"cat\", name = \"Tom\", age = 3}]"
         _ -> error "Test failed: listing animals did not work as expected"
   ]
+
+propertyTests :: TestTree
+propertyTests = testGroup "some meaningful name"
+  [
+    QC.testProperty "sort == sort . reverse" $
+      \list -> sort (list :: [Int]) == sort (reverse list)
+  ]
+  
