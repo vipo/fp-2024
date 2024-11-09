@@ -13,6 +13,12 @@ import Control.Concurrent ( Chan )
 import Control.Concurrent.STM(STM, TVar)
 import qualified Lib2
 
+import System.IO (withFile, IOMode(..), hPutStr, hGetContents)
+import Control.Concurrent.Chan (Chan, readChan, writeChan)
+import Control.Exception (try, SomeException)
+
+
+
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 -- | This function is started from main
 -- in a dedicated thread. It must be used to control
@@ -21,8 +27,41 @@ data StorageOp = Save String (Chan ()) | Load (Chan String)
 -- to a channel provided in a request.
 -- Modify as needed.
 storageOpLoop :: Chan StorageOp -> IO ()
-storageOpLoop _ = do
-  return $ error "Not implemented 1"
+storageOpLoop chan = do
+  -- Read the next operation from the channel
+  op <- readChan chan
+  case op of
+    Save content notifyChan -> do
+      -- Atytempt to write the content to a file
+      result <- try $ withFile "state.txt" WriteMode $ \handle -> hPutStr handle content -- 'withFile' for file access; for Save, we open in 'WriteMode'
+      case result of
+        Left err -> putStrLn $ "Error saving state: " ++ show (err :: SomeException)
+        Right _  -> writeChan notifyChan ()  -- Notify completion
+      storageOpLoop chan  -- Loop agai nfor next command
+      
+    Load notifyChan -> do
+      -- Attempt to read from the file
+      result <- try $ withFile "state.txt" ReadMode hGetContents -- for Load, we open it in 'ReadMode' and read all
+      case result of
+        Left err     -> writeChan notifyChan $ "Error loading state: " ++ show (err :: SomeException)
+        Right content -> writeChan notifyChan content  -- Send back the file contents
+      storageOpLoop chan  -- Loop again for next command
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 data Statements = Batch [Lib2.Query] |
                Single Lib2.Query

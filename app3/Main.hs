@@ -1,7 +1,7 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 module Main (main) where
 
-import Control.Concurrent.Chan
+import Control.Concurrent.Chan ( newChan, Chan )
 import Control.Concurrent.STM(TVar, newTVarIO)
 import Control.Monad.IO.Class ()
 import Control.Monad.State.Strict
