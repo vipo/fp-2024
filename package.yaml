@@ -92,6 +92,7 @@ tests:
     - tasty
     - tasty-hunit
     - tasty-quickcheck
+    - QuickCheck
   fp2024-doctest:
     main:                Doctest.hs
     source-dirs:         doctest

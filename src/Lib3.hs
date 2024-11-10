@@ -15,6 +15,7 @@ import Control.Concurrent.STM (STM, TVar, atomically, readTVar, readTVarIO, writ
 import Control.Applicative ( Alternative (many), (<|>) )
 import Control.Monad (forever)
 import Data.Maybe (fromJust, isNothing)
+import Data.List (intercalate)
 import Parsers
 import qualified Lib2
 import System.Directory (doesFileExist)
@@ -84,9 +85,22 @@ marshallState state = Batch vehicleQueries
     vehicleQueries = map (\(vt, model, year, mileage) -> Lib2.AddVehicle vt model year mileage) (Lib2.vehicles state)
 
 renderQuery :: Lib2.Query -> String
-renderQuery (Lib2.AddVehicle vt model year mileage) = 
-  "add_vehicle(" ++ show vt ++ ", " ++ show model ++ ", " ++ show year ++ ", " ++ show mileage ++ "km)"
-renderQuery _ = error "Unsupported query type for rendering"
+renderQuery (Lib2.AddVehicle vehicleType model year distance) =
+  "add_vehicle(" ++ show vehicleType ++ ", \"" ++ model ++ "\", " ++ show year ++ ", " ++ show distance ++ " km)"
+renderQuery (Lib2.PerformMaintenance vehicleType maintenanceType duration) =
+  "perform_maintenance(" ++ show vehicleType ++ ", " ++ show maintenanceType ++ ", " ++ renderDuration duration ++ ")"
+renderQuery (Lib2.SellVehicle vehicleType model year price) =
+  "sell_vehicle(" ++ show vehicleType ++ ", \"" ++ model ++ "\", " ++ show year ++ ", " ++ show price ++ ")"
+renderQuery (Lib2.Inventory vehicleType) =
+  "inventory(" ++ show vehicleType ++ ")"
+renderQuery Lib2.View =
+  "view()"
+renderQuery (Lib2.Sequence queries) =
+  intercalate "\n" (map renderQuery queries)
+
+renderDuration :: Lib2.Duration -> String
+renderDuration (Lib2.Hours n) = show n ++ " hours"
+renderDuration (Lib2.Days n) = show n ++ " days"
 
 -- | Renders Statements into a String which
 -- can be parsed back into Statements by parseStatements
@@ -95,7 +109,8 @@ renderQuery _ = error "Unsupported query type for rendering"
 -- Must have a property test
 -- for all s: parseStatements (renderStatements s) == Right(s, "")
 renderStatements :: Statements -> String
-renderStatements = show
+renderStatements (Single q) = renderQuery q
+renderStatements (Batch qs) = "BEGIN\n" ++ concatMap ((++ ";\n") . renderQuery) qs ++ "END\n"
 
 -- | Updates a state according to a command.
 -- Performs file IO via ioChan if needed.

@@ -8,8 +8,11 @@ import Data.List
 import Data.Ord
 
 import Lib2 qualified
+import Lib3
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
+import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1, suchThat)
+import Data.Char (isAlpha)
 
 main :: IO ()
 main = defaultMain tests
@@ -100,9 +103,44 @@ unitTests =
           Left err -> error err
     ]
 
+instance Arbitrary Statements where
+  arbitrary = oneof [Single <$> arbitrary, Batch <$> arbitrary]
+
+instance Arbitrary Lib2.Query where
+  arbitrary =
+    oneof
+      [ Lib2.AddVehicle <$> arbitrary <*> nonEmptyAlphabeticString <*> positiveInt <*> positiveInt,
+        Lib2.PerformMaintenance <$> arbitrary <*> arbitrary <*> arbitrary,
+        Lib2.SellVehicle <$> arbitrary <*> nonEmptyAlphabeticString <*> positiveInt <*> positiveDouble,
+        Lib2.Inventory <$> arbitrary,
+        pure Lib2.View
+      ]
+
+nonEmptyAlphabeticString :: Gen String
+nonEmptyAlphabeticString = listOf1 (arbitrary `suchThat` isAlpha)
+
+positiveInt :: Gen Int
+positiveInt = arbitrary `suchThat` (> 0)
+
+positiveDouble :: Gen Double
+positiveDouble = do
+  wholePart <- positiveInt
+  fractionalPart <- positiveInt
+  return (read (show wholePart ++ "." ++ show fractionalPart) :: Double)
+
+instance Arbitrary Lib2.VehicleType where
+  arbitrary = elements [Lib2.Car, Lib2.Truck, Lib2.SUV, Lib2.Motorcycle]
+
+instance Arbitrary Lib2.MaintenanceType where
+  arbitrary = elements [Lib2.OilChange, Lib2.TireRotation, Lib2.BrakeInspection, Lib2.EngineTuneUp]
+
+instance Arbitrary Lib2.Duration where
+  arbitrary = oneof [Lib2.Hours <$> positiveInt, Lib2.Days <$> positiveInt]
+
 propertyTests :: TestTree
-propertyTests = testGroup "some meaningful name"
+propertyTests = testGroup "Property tests"
   [
-    QC.testProperty "sort == sort . reverse" $
-      \list -> sort (list :: [Int]) == sort (reverse list)
+    QC.testProperty "parseStatements . renderStatements == Right (statements, \"\")" $
+      \statements ->
+        parseStatements (renderStatements statements) == Right (statements, "")
   ]
