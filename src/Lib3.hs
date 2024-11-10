@@ -1,13 +1,15 @@
 {-# LANGUAGE InstanceSigs #-}
 module Lib3
     ( stateTransition,
-    StorageOp (..),
-    storageOpLoop,
-    parseCommand,
-    parseStatements,
-    marshallState,
-    renderStatements,
-    Statements (..),
+      StorageOp (..),
+      storageOpLoop,
+      parseCommand,
+      parseStatements,
+      marshallState,
+      renderStatements,
+      Statements (..),
+      Command (..),
+      atomicStatements
     ) where
 
 import Control.Concurrent ( Chan, newChan, readChan, writeChan )
@@ -122,8 +124,7 @@ renderStatements (Batch qs) = "BEGIN\n" ++ concatMap ((++ ";\n") . renderQuery) 
 -- State update must be executed atomically (STM).
 -- Right contains an optional message to print, updated state
 -- is stored in transactinal variable
-stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp ->
-                   IO (Either String (Maybe String))
+stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp -> IO (Either String (Maybe String))
 stateTransition s SaveCommand ioChan = do
   s' <- readTVarIO s
   chan <- newChan :: IO (Chan ())
@@ -139,8 +140,8 @@ stateTransition s LoadCommand ioChan = do
     else case parseStatements $ fromJust qs of
       Left e -> do
         return $ Left $ "Failed to load state from file:\n" ++ e
-      Right (qs', _) -> stateTransition s (StatementCommand qs') ioChan
-stateTransition s (StatementCommand sts) _ = atomically $ atomicStatemets s sts
+      Right (qs', _) -> atomically $ atomicStatements s qs'
+stateTransition s (StatementCommand sts) _ = atomically $ atomicStatements s sts
 
 transitionThroughList :: Lib2.State -> [Lib2.Query] -> Either String (Maybe String, Lib2.State)
 transitionThroughList _ [] = Left "Empty query list"
@@ -153,15 +154,15 @@ transitionThroughList s (q : qs) = case Lib2.stateTransition s q of
         Left e -> Left e
         Right (msg', ns') -> Right ((\x y -> x ++ "\n" ++ y) <$> msg <*> msg', ns')
 
-atomicStatemets :: TVar Lib2.State -> Statements -> STM (Either String (Maybe String))
-atomicStatemets s (Batch qs) = do
+atomicStatements :: TVar Lib2.State -> Statements -> STM (Either String (Maybe String))
+atomicStatements s (Batch qs) = do
   s' <- readTVar s
   case transitionThroughList s' qs of
     Left e -> return $ Left e
     Right (msg, ns) -> do
       writeTVar s ns
       return $ Right msg
-atomicStatemets s (Single q) = do
+atomicStatements s (Single q) = do
   s' <- readTVar s
   case Lib2.stateTransition s' q of
     Left e -> return $ Left e
@@ -184,4 +185,3 @@ statements =
       return $ Batch q
   )
     <|> (Single <$> Lib2.parseTask)
-

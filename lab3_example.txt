@@ -1,0 +1,41 @@
+>>> :paste
+-- Entering multi-line mode. Press <Ctrl-D> to finish.
+| BEGIN
+| add_vehicle(Car, "Mini", 2009, 240000 km);
+| perform_maintenance(Car, OilChange, 2 days);
+| inventory(Car);
+| sell_vehicle(Car, "Mini", 2009, 5555.55);
+| END
+| 
+Added Car Mini (2009)
+Performed OilChange on Car for Days 2
+Inventory for Car:
+Mini (2009)
+
+Sold Car Mini (2009) for $5555.55
+
+---------------------------------------------------------
+>>> add_vehicle(Car, "Mini", 2009, 240000 km)
+Added Car Mini (2009)
+>>> add_vehicle(Car, "Audi", 2008, 320000 km)
+Added Car Audi (2008)
+>>> save
+State saved successfully
+
+---------------------------------------------------------
+Welcome! Press [TAB] for auto completion, type ':paste' for multiline input
+>>> view()
+Vehicles:
+
+Inventory:
+
+>>> load
+Added Car Audi (2008)
+Added Car Mini (2009)
+>>> view()
+Vehicles:
+Car Mini (2009)
+Car Audi (2008)
+
+Inventory:
+2 Car

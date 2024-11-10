@@ -1,18 +1,17 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-import Test.Tasty ( TestTree, defaultMain, testGroup )
-import Test.Tasty.HUnit ( testCase, (@?=) )
-import Test.Tasty.QuickCheck as QC
 
+import Control.Concurrent (forkIO, newChan)
+import Control.Concurrent.STM (TVar, atomically, newTVarIO, readTVarIO)
+import Data.Char (isAlpha)
 import Data.List
 import Data.Ord
-
 import Lib2 qualified
-import Lib3
+import Lib3 qualified
+import Test.QuickCheck (Arbitrary (..), Gen, elements, listOf1, suchThat)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
-import Test.QuickCheck (Arbitrary(..), Gen, elements, listOf1, suchThat)
-import Data.Char (isAlpha)
+import Test.Tasty.QuickCheck as QC
 
 main :: IO ()
 main = defaultMain tests
@@ -100,11 +99,32 @@ unitTests =
           Right (Just msg, newState) -> do
             msg @?= "\nAdded Car ModelX (2020)\nAdded Truck ModelY (2019)"
             Lib2.vehicles newState @?= [(Lib2.Truck, "ModelY", 2019, 20000), (Lib2.Car, "ModelX", 2020, 15000)]
-          Left err -> error err
+          Left err -> error err,
+      testCase "SaveCommand state transition" $ do
+        initialState <- newTVarIO Lib2.emptyState
+        ioChan <- newChan
+        _ <- forkIO $ Lib3.storageOpLoop ioChan
+        result <- Lib3.stateTransition initialState Lib3.SaveCommand ioChan
+        result @?= Right (Just "State saved successfully"),
+      testCase "Batch processing with valid queries" $ do
+        initialState <- newTVarIO Lib2.emptyState
+        let queries = Lib3.Batch [Lib2.AddVehicle Lib2.Car "ModelX" 2020 15000, Lib2.AddVehicle Lib2.Truck "ModelY" 2019 20000]
+        result <- atomically $ Lib3.atomicStatements initialState queries
+        case result of
+          Right msg -> do
+            msg @?= Just "Added Car ModelX (2020)\nAdded Truck ModelY (2019)"
+            newState <- readTVarIO initialState
+            Lib2.vehicles newState @?= [(Lib2.Truck, "ModelY", 2019, 20000), (Lib2.Car, "ModelX", 2020, 15000)]
+          Left err -> error err,
+      testCase "Batch processing with invalid query" $ do
+        initialState <- newTVarIO Lib2.emptyState
+        let queries = Lib3.Batch [Lib2.AddVehicle Lib2.Car "ModelX" 2020 15000, Lib2.SellVehicle Lib2.Truck "ModelY" 2019 20000]
+        result <- atomically $ Lib3.atomicStatements initialState queries
+        result @?= Left "Vehicle not found in inventory"
     ]
 
-instance Arbitrary Statements where
-  arbitrary = oneof [Single <$> arbitrary, Batch <$> arbitrary]
+instance Arbitrary Lib3.Statements where
+  arbitrary = oneof [Lib3.Single <$> arbitrary, Lib3.Batch <$> arbitrary]
 
 instance Arbitrary Lib2.Query where
   arbitrary =
@@ -138,9 +158,10 @@ instance Arbitrary Lib2.Duration where
   arbitrary = oneof [Lib2.Hours <$> positiveInt, Lib2.Days <$> positiveInt]
 
 propertyTests :: TestTree
-propertyTests = testGroup "Property tests"
-  [
-    QC.testProperty "parseStatements . renderStatements == Right (statements, \"\")" $
-      \statements ->
-        parseStatements (renderStatements statements) == Right (statements, "")
-  ]
+propertyTests =
+  testGroup
+    "Property tests"
+    [ QC.testProperty "parseStatements . renderStatements == Right (statements, \"\")" $
+        \statements ->
+          Lib3.parseStatements (Lib3.renderStatements statements) == Right (statements, "")
+    ]

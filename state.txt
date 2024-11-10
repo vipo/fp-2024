@@ -1,4 +1,0 @@
-BEGIN
-add_vehicle(Car, "Lexus", 2005, 4000000km);
-add_vehicle(Car, "Audi", 2008, 300000km);
-END

@@ -137,6 +137,7 @@ test-suite fp2024-test
     , base >=4.7 && <5
     , directory
     , fp2024
+    , stm
     , tasty
     , tasty-hunit
     , tasty-quickcheck

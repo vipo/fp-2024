@@ -14,3 +14,24 @@
 
 ### Lib2.hs BNF Changes
 Added View command to BNF for a more extensive display of inventory, clearly defined what is a digit and what is a number.
+
+### Batch Queries
+From Lib3 it is possible to provide queries as a batch.
+After loading the program, you can run it using `stack run fp2024-three`, then write the following commands:
+```
+>>> :paste
+-- Entering multi-line mode. Press <Ctrl-D> to finish.
+| BEGIN
+| add_vehicle(Car, "Mini", 2009, 240000 km);
+| perform_maintenance(Car, OilChange, 2 days);
+| inventory(Car);
+| sell_vehicle(Car, "Mini", 2009, 5555.55);
+| END
+| 
+Added Car Mini (2009)
+Performed OilChange on Car for Days 2
+Inventory for Car:
+Mini (2009)
+
+Sold Car Mini (2009) for $5555.55
+```
