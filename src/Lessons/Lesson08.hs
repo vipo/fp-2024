@@ -1,5 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
-module Lessons.Lesson08 () where
+module Lessons.Lesson08 (Parser(..), parseDigit) where
 
 import Data.Char as C
 

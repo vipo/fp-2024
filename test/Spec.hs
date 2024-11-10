@@ -1,5 +1,11 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+import Test.Tasty ( TestTree, defaultMain, testGroup )
+import Test.Tasty.HUnit ( testCase, (@?=) )
+import Test.Tasty.QuickCheck as QC
+
+import Data.List
+import Data.Ord
 
 import Lib2 qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -9,7 +15,7 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [unitTests, propertyTests]
 
 unitTests :: TestTree
 unitTests =
@@ -93,3 +99,10 @@ unitTests =
             Lib2.vehicles newState @?= [(Lib2.Truck, "ModelY", 2019, 20000), (Lib2.Car, "ModelX", 2020, 15000)]
           Left err -> error err
     ]
+
+propertyTests :: TestTree
+propertyTests = testGroup "some meaningful name"
+  [
+    QC.testProperty "sort == sort . reverse" $
+      \list -> sort (list :: [Int]) == sort (reverse list)
+  ]
