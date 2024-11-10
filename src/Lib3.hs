@@ -93,23 +93,45 @@ splitOn delimiter (c:cs) -- check if the current character c is the delimiter
 
 
 
-
-
-
-
 -- | Converts program's state into Statements
 -- (probably a batch, but might be a single query)
+-- translates the current State into a minimal list of operations (represented as Statements) 
+-- that could recreate the current state if applied to an empty state
 marshallState :: Lib2.State -> Statements
-marshallState _ = error "Not implemented 4"
+marshallState (Lib2.State animals) =
+    let addQueries = map Lib2.Add animals  -- Create an `Add` query for each animal
+    in Batch addQueries  -- Wrap the list of `Add` queries in a `Batch`
 
--- | Renders Statements into a String which
--- can be parsed back into Statements by parseStatements
--- function. The String returned by this function must be used
--- as persist program's state in a file. 
+
+
+-- takes the Statements (produced by marshallState) and converts it
+-- back into a String that follows the BNF syntax, allowing it to be 
+-- saved and later parsed back into Statements.
+
 -- Must have a property test
 -- for all s: parseStatements (renderStatements s) == Right(s, "")
-renderStatements :: Statements -> String
-renderStatements _ = error "Not implemented 5"
+
+renderStatements :: Statements -> String -- Renders Statements into a String which can be parsed back into Statements
+renderStatements (Single query) = renderQuery query  -- Render a single query directly
+renderStatements (Batch queries) = unwords ["BEGIN", renderBatch queries, "END"]  -- Wrap batch in BEGIN and END
+
+-- renders a batch of queries as a ; separeted string
+renderBatch :: [Lib2.Query] -> String
+renderBatch [] = ""
+renderBatch (q:qs) = renderQuery q ++ "; " ++ renderBatch qs
+-- here: q - first query, gs - remaining queries
+
+-- to convert individual Queries to original string
+renderQuery :: Lib2.Query -> String
+renderQuery (Lib2.Add (Lib2.Animal species name age)) =
+    "ADD " ++ species ++ " " ++ name ++ " " ++ show age
+renderQuery (Lib2.Delete (Lib2.Animal species name age)) =
+    "DELETE " ++ species ++ " " ++ name ++ " " ++ show age
+renderQuery Lib2.ListAnimals = 
+    "LIST"
+renderQuery (Lib2.CompoundQuery q1 q2) =  -- recursively i could add here as many quaries as i want
+    renderQuery q1 ++ "; " ++ renderQuery q2
+
 
 -- | Updates a state according to a command.
 -- Performs file IO via ioChan if needed.
@@ -151,3 +173,7 @@ main = do
     -- Test for invalid command
     print $ parseCommand "INVALID_COMMAND"
     -- Left "One or more queries in the batch could not be parsed."
+
+
+
+    
