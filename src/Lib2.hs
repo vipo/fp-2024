@@ -3,6 +3,7 @@
 
 {-# HLINT ignore "Redundant lambda" #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Lib2
     (Query(..),
@@ -16,12 +17,17 @@ module Lib2
     Suit(..),
     Number(..),
     parseCard,
-    parseDeck
+    parseDeck,
+    convertParser,
+    parseQuery'
     )
 where
 
+import Control.Applicative (Alternative ((<|>)))
+
 import qualified Data.Char as C
 import qualified Data.List as L
+import qualified Parser as P
 
 data Number = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten
   deriving (Show, Eq)
@@ -245,3 +251,33 @@ stateTransition (State maybeDeck) query = case query of
 mergeDecks :: Deck -> Deck -> Deck
 mergeDecks (SingleCard card) existingDeck = Deck card existingDeck
 mergeDecks (Deck card restOfDeck) existingDeck = Deck card (mergeDecks restOfDeck existingDeck)
+
+
+convertParser :: Parser a -> P.Parser a
+convertParser p= P.Parser {P.runParser = p}
+
+parseQuery' :: P.Parser Query
+parseQuery' =
+   parseView'
+    <|> parseDeleteDeck'
+    <|> parseAddDeck'
+
+parseView' :: P.Parser Query
+parseView' = do
+  _ <- P.parseString "view"
+  return ViewDeck
+
+parseDeleteDeck' :: P.Parser Query
+parseDeleteDeck' = do
+  _ <- P.parseString "delete"
+  return DeleteDeck
+
+parseAddDeck' :: P.Parser Query
+parseAddDeck' = do
+  _ <- P.parseString "add "
+  deck <- convertParser parseDeck
+  return (AddDeck deck)
+
+
+
+

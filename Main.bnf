@@ -1,4 +1,4 @@
-<command> ::= <viewDeck> | <addDeck> | <deleteDeck>
+<command> ::= <viewDeck> | <addDeck> | <deleteDeck> | "save" | "load"
 
 <viewDeck> ::= "view"
 <addDeck> ::= "add" <deck>
