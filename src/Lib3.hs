@@ -103,6 +103,10 @@ marshallState (Lib2.State animals) =
     in Batch addQueries  -- Wrap the list of `Add` queries in a `Batch`
 
 
+-- do i need? other way???
+-- to load the State from a parsed representation
+unmarshallState :: Statements -> LibState
+unmarshallState = undefined  -- Define this as needed
 
 -- takes the Statements (produced by marshallState) and converts it
 -- back into a String that follows the BNF syntax, allowing it to be 
@@ -132,7 +136,7 @@ renderQuery Lib2.ListAnimals =
 renderQuery (Lib2.CompoundQuery q1 q2) =  -- recursively i could add here as many quaries as i want
     renderQuery q1 ++ "; " ++ renderQuery q2
 
-
+-- needs modifying
 -- | Updates a state according to a command.
 -- Performs file IO via ioChan if needed.
 -- This allows your program to share the state
@@ -143,37 +147,54 @@ renderQuery (Lib2.CompoundQuery q1 q2) =  -- recursively i could add here as man
 -- State update must be executed atomically (STM).
 -- Right contains an optional message to print, updated state
 -- is stored in transactinal variable
-stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp ->
-                   IO (Either String (Maybe String))
-stateTransition _ _ ioChan = return $ Left "Not implemented 6"
+
+stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp -> IO (Either String (Maybe String, Lib2.State))
+stateTransition stateVar command ioChan = case command of
+    LoadCommand -> do -- load state from a file
+        responseChan <- newChan  -- create a new channel to receive the loaded data
+        writeChan ioChan (Load responseChan)  -- send Load request to storageOpLoop
+        result <- readChan responseChan  -- waits for response
+        case parseStatements result of  -- parses the loaded data
+            Left err -> return $ Left ("Error loading state: " ++ err)
+            Right (loadedStatements, _) -> do
+                let loadedState = unmarshallState loadedStatements  -- parsed data to state
+                atomically $ writeTVar stateVar loadedState  -- updates the state atomically
+                return $ Right (Just "State loaded from file.", loadedState)
+
+    -- save current state to a file
+    SaveCommand -> do
+        currentState <- atomically $ readTVar stateVar  -- read the current state
+        let statements = marshallState currentState  -- marshallState converts state to minimal representation
+        let serializedState = renderStatements statements  -- to string
+        responseChan <- newChan  -- new channel to receive the save confirmation
+        writeChan ioChan (Save serializedState responseChan)  -- aend Save request
+        _ <- readChan responseChan  -- wait for confirmation (no result expected)
+        return $ Right (Just "State saved to file.", currentState)
+
+    -- execute a single query or batch of queries
+    StatementCommand statements -> do
+        finalResult <- atomically $ processStatements stateVar statements  -- Process batch or single query atomically
+        return finalResult
+  where
+    -- to process Statements (Single/Batch) atomically
+    processStatements :: TVar Lib2.State -> Statements -> STM (Either String (Maybe String, Lib2.State))
+    processStatements tvar (Single query) = executeQuery tvar query
+    processStatements tvar (Batch queries) = do
+        initialState <- readTVar tvar
+        processBatch initialState queries
+      where
+        processBatch :: Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String, Lib2.State))
+        processBatch currentState [] = return $ Right (Just "Batch processed.", currentState)
+        processBatch currentState (q:qs) = do
+            result <- executeQuerySTM currentState q
+            case result of
+                Left err -> return $ Left err
+                Right (msg, newState) -> processBatch newState qs
+
+    -- Execute individual query and update TVar state
+    executeQuerySTM :: Lib2.State -> Lib2.Query -> STM (Either String (Maybe String, Lib2.State))
+    executeQuerySTM
 
 
 
--- for testing
-main :: IO ()
-main = do
-    -- Test for LoadCommand
-    print $ parseCommand "LOAD"          -- Expected: Right (LoadCommand, "")
-    
-    -- Test for SaveCommand
-    print $ parseCommand "SAVE"          -- Expected: Right (SaveCommand, "")
-    
-    -- Test for a single ADD command
-    print $ parseCommand "ADD dog Max 5" 
-    -- Right (StatementCommand (Single (Add (Animal {species = "dog", name = "Max", age = 5}))),"")
-    
-    -- Test for a single DELETE command
-    print $ parseCommand "DELETE cat Whiskers 3" 
-    -- Right (StatementCommand (Single (Delete (Animal {species = "cat", name = "Whiskers", age = 3}))),"")
-    
-    -- Test for a batch of commands (ADD + DELETE)
-    print $ parseCommand "ADD dog Max 5; DELETE cat Whiskers 3"
-    -- Right (StatementCommand (Batch [Add (Animal {species = "dog", name = "Max", age = 5}),Delete (Animal {species = "cat", name = "Whiskers", age = 3})]),"")
-    
-    -- Test for invalid command
-    print $ parseCommand "INVALID_COMMAND"
-    -- Left "One or more queries in the batch could not be parsed."
 
-
-
-    
