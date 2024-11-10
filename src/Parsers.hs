@@ -86,7 +86,7 @@ parseTaskList = do
 
 -- <task> ::= <add_vehicle> | <perform_maintenance> | <sell_vehicle> | <inventory> | <view>
 parseTask :: Parser Query
-parseTask = 
+parseTask =
   parseAddVehicle <|>
   parsePerformMaintenance <|>
   parseSellVehicle <|>
@@ -109,7 +109,6 @@ parseAddVehicle = do
   _ <- parseChar ')'
   return $ AddVehicle vType model year mileage
 
--- <perform_maintenance> ::= "perform_maintenance" "(" <vehicle_type> "," <maintenance_type> "," <duration> ")"
 parsePerformMaintenance :: Parser Query
 parsePerformMaintenance = do
   _ <- parseLiteral "perform_maintenance"
@@ -165,7 +164,7 @@ parseVehicleGarage = do
 
 -- <vehicle_type> ::= "Car" | "Truck" | "Motorcycle" | "SUV"
 parseVehicleType :: Parser VehicleType
-parseVehicleType = 
+parseVehicleType =
   (parseLiteral "Car" >> return Car) <|>
   (parseLiteral "Truck" >> return Truck) <|>
   (parseLiteral "Motorcycle" >> return Motorcycle) <|>
@@ -180,7 +179,7 @@ parseMileage = do
 
 -- <maintenance_type> ::= "OilChange" | "TireRotation" | "BrakeInspection" | "EngineTuneUp"
 parseMaintenanceType :: Parser MaintenanceType
-parseMaintenanceType = 
+parseMaintenanceType =
   (parseLiteral "OilChange" >> return OilChange) <|>
   (parseLiteral "TireRotation" >> return TireRotation) <|>
   (parseLiteral "BrakeInspection" >> return BrakeInspection) <|>
@@ -224,10 +223,16 @@ parseChar = char
 skipSpaces :: String -> String
 skipSpaces = dropWhile (== ' ')
 
+skipSpaces' :: Parser ()
+skipSpaces' = P $ \input ->
+  let input' = dropWhile (== ' ') input
+   in Right ((), input')
+
 parseLiteral :: String -> Parser String
 parseLiteral [] = return []
 parseLiteral (x : xs) = do
-  _ <- char x
+  _ <- skipSpaces'
+  _ <- parseChar x
   parseLiteral xs
 
 parseString :: Parser String

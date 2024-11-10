@@ -23,29 +23,29 @@ unitTests =
     "Lib2 tests"
     [ testCase "AddVehicle command parsing" $
         Lib2.parseQuery "add_vehicle(Car, \"ModelX\", 2020, 15000km)"
-          @?= Right (Lib2.Sequence [Lib2.AddVehicle Lib2.Car "ModelX" 2020 15000]),
+          @?= Right (Lib2.AddVehicle Lib2.Car "ModelX" 2020 15000),
       testCase "PerformMaintenance command parsing" $
-        Lib2.parseQuery "perform_maintenance(Truck, OilChange, 2hours)"
-          @?= Right (Lib2.Sequence [Lib2.PerformMaintenance Lib2.Truck Lib2.OilChange (Lib2.Hours 2)]),
+        Lib2.parseQuery "perform_maintenance(Truck, OilChange, 2 hours)"
+          @?= Right (Lib2.PerformMaintenance Lib2.Truck Lib2.OilChange (Lib2.Hours 2)),
       testCase "SellVehicle command parsing" $
         Lib2.parseQuery "sell_vehicle(SUV, \"ModelY\", 2018, 25000.50)"
-          @?= Right (Lib2.Sequence [Lib2.SellVehicle Lib2.SUV "ModelY" 2018 25000.50]),
+          @?= Right (Lib2.SellVehicle Lib2.SUV "ModelY" 2018 25000.50),
       testCase "Inventory command parsing" $
         Lib2.parseQuery "inventory(Motorcycle)"
-          @?= Right (Lib2.Sequence [Lib2.Inventory Lib2.Motorcycle]),
+          @?= Right (Lib2.Inventory Lib2.Motorcycle),
       testCase "View command parsing" $
         Lib2.parseQuery "view()"
-          @?= Right (Lib2.Sequence [Lib2.View]),
+          @?= Right Lib2.View,
       testCase "Invalid command parsing" $
         Lib2.parseQuery "invalid command"
-          @?= Left "Unrecognized command",
+          @?= Left "Could not recognize: invalid command",
       testCase "State transition with AddVehicle" $ do
         let initialState = Lib2.emptyState
         case Lib2.parseQuery "add_vehicle(Car, \"ModelX\", 2020, 15000km)" of
           Right query ->
             case Lib2.stateTransition initialState query of
               Right (Just msg, newState) -> do
-                msg @?= "\nAdded Car ModelX (2020)"
+                msg @?= "Added Car ModelX (2020)"
                 Lib2.vehicles newState @?= [(Lib2.Car, "ModelX", 2020, 15000)]
               Left err -> error err
           Left err -> error err,
@@ -60,7 +60,7 @@ unitTests =
           Right query ->
             case Lib2.stateTransition initialState query of
               Right (Just msg, newState) -> do
-                msg @?= "\nSold Car ModelX (2020) for $25000.5"
+                msg @?= "Sold Car ModelX (2020) for $25000.5"
                 Lib2.vehicles newState @?= []
               Left err -> error err
           Left err -> error err,
@@ -74,11 +74,11 @@ unitTests =
           Left err -> error err,
       testCase "State transition with PerformMaintenance" $ do
         let initialState = Lib2.emptyState
-        case Lib2.parseQuery "perform_maintenance(Truck, OilChange, 2hours)" of
+        case Lib2.parseQuery "perform_maintenance(Truck, OilChange, 2 hours)" of
           Right query ->
             case Lib2.stateTransition initialState query of
               Right (Just msg, newState) -> do
-                msg @?= "\nPerformed OilChange on Truck for Hours 2"
+                msg @?= "Performed OilChange on Truck for Hours 2"
                 newState @?= initialState
               Left err -> error err
           Left err -> error err,
@@ -87,7 +87,7 @@ unitTests =
         case Lib2.parseQuery "inventory(Motorcycle)" of
           Right query ->
             case Lib2.stateTransition initialState query of
-              Right (Just msg, _) -> msg @?= "\nInventory for Motorcycle:\nModelZ (2019)\n"
+              Right (Just msg, _) -> msg @?= "Inventory for Motorcycle:\nModelZ (2019)\n"
               Left err -> error err
           Left err -> error err,
       testCase "State transition with Sequence" $ do
