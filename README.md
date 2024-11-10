@@ -10,7 +10,15 @@
 1. `stack build`
 2. `stack test`
 
+--------------------------
 
-Note: Changes in bnf. Added '<compound_query>' to surely fulfill recursion requirement. 
+Lab2 notes: Changes in bnf. Added '<compound_query>' to surely fulfill recursion requirement. 
 Changed command name from '<list_animals> ::= 'list_animals'' to '<list_animals> ::= 'LIST'' for consistency.
 Other changes and fixes :(
+
+--------------------------
+
+Lab3 notes:
+
+Where to put generators needed for testing? Spec.hs??
+can i use `listOf1` (build in)?
