@@ -1,18 +1,28 @@
 {-# LANGUAGE ImportQualifiedPost #-}
+
+
 import Test.Tasty ( TestTree, defaultMain, testGroup )
 import Test.Tasty.HUnit ( testCase, (@?=) )
+import Test.Tasty.QuickCheck as QC
+import Test.QuickCheck (Gen, forAll, elements, oneof, choose, listOf1)
+
+
+import Data.List (sort)
+import Data.Ord ()
+
+import Lib1 qualified
 import Lib2 qualified
+import Lib3 qualified
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [unitTests, propertyTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Lib2 tests"
   [
-
     -- No need for 'Animal' tests bc it is just data type
 
     -- No need for 'Query' tests bc it is just data type
@@ -179,3 +189,57 @@ unitTests = testGroup "Lib2 tests"
         Right (msg, _) -> msg @?= Just "Current animals: [Animal {species = \"dog\", name = \"Max\", age = 5},Animal {species = \"cat\", name = \"Tom\", age = 3}]"
         _ -> error "Test failed: listing animals did not work as expected"
   ]
+
+
+-- "We will generate possible Statements, render them into text, and then 
+-- check whether we get back the same Statements when we parse it back"
+
+-- small generators
+genSpecies :: Gen String
+genSpecies = elements ["dog", "cat", "hamster", "fish", "bird"]
+
+genName :: Gen String
+genName = elements ["Tom", "Max", "Jem", "Whiskers"]
+
+genAge :: Gen Int
+genAge = choose (1, 25)
+
+
+-- larger generators
+genAnimal :: Gen Lib2.Animal
+genAnimal = do
+    species <- genSpecies
+    name <- genName
+    age <- genAge
+    return $ Lib2.Animal species name age
+
+genQuery :: Gen Lib2.Query -- for individual Queries
+genQuery = oneof
+    [ Lib2.Add <$> genAnimal
+    , Lib2.Delete <$> genAnimal
+    , return Lib2.ListAnimals
+    , Lib2.CompoundQuery <$> genQuery <*> genQuery
+    ]
+
+genStatements :: Gen Lib3.Statements
+genStatements = oneof
+    [ Lib3.Single <$> genQuery
+    , Lib3.Batch <$> listOf1 genQuery  -- can i use `listOf1` (build in)?
+    ]
+
+-- cor testing for render/parse round-trip
+prop_renderParseRoundTrip :: Property
+prop_renderParseRoundTrip = forAll genStatements $ \statements ->
+    let rendered = Lib3.renderStatements statements
+        parsed = Lib3.parseStatements rendered
+    in parsed == Right (statements, "")
+
+propertyTests :: TestTree
+propertyTests = testGroup "Property-based tests"
+  [
+    QC.testProperty "sort == sort . reverse" $
+      \list -> sort (list :: [Int]) == sort (reverse list),
+    
+    QC.testProperty "Render/Parse round-trip for Statements" prop_renderParseRoundTrip
+  ]
+  

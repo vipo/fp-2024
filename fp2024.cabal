@@ -26,8 +26,15 @@ source-repository head
 library
   exposed-modules:
       Lessons.Lesson01
+      Lessons.Lesson04
+      Lessons.Lesson05
+      Lessons.Lesson06
+      Lessons.Lesson07
+      Lessons.Lesson08
+      Lessons.Lesson09
       Lib1
       Lib2
+      Lib3
   other-modules:
       Paths_fp2024
   autogen-modules:
@@ -36,7 +43,12 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , random
+    , stm
+    , transformers
   default-language: Haskell2010
 
 executable fp2024-one
@@ -52,6 +64,23 @@ executable fp2024-one
       base >=4.7 && <5
     , fp2024
     , repline
+  default-language: Haskell2010
+
+executable fp2024-three
+  main-is: Main.hs
+  other-modules:
+      Paths_fp2024
+  autogen-modules:
+      Paths_fp2024
+  hs-source-dirs:
+      app3
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , fp2024
+    , mtl
+    , repline
+    , stm
   default-language: Haskell2010
 
 executable fp2024-two
@@ -96,8 +125,10 @@ test-suite fp2024-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , fp2024
     , tasty
     , tasty-hunit
+    , tasty-quickcheck
   default-language: Haskell2010
