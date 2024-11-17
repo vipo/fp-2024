@@ -1,14 +1,100 @@
+END
 LIST
-ADD fish Jem 1
-ADD cat Tom 5
-ADD cat Tom 5
+ADD dog Maxi 5;
+BEGIN
+:paste
+END
 LIST
-LIST
-DELETE fish Jem 1
-DELETE fish Jem 1
-LIST
-ADD fish Jem 1
-ADD cat Tom 5
-ADD cat Tom 5
-ADD fish Jem 1
-ADD cat Tom 5
+ADD dog Max 5;
+BEGIN
+:paste
+END
+ADD dog Max 5;
+BEGIN
+:paste
+END
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+ADD cat Tom 3;
+BEGIN
+:paste
+end
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+  ADD cat Tom 3;
+BEGIN
+:paste
+  ADD cat Tom 3;
+BEGIN
+END
+BEGIN
+:paste
+END
+DELETE dog Rex 5;
+ADD dog Rex 5;
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+ADD cat Tom 3; 
+BEGIN
+:paste
+END
+ADD cat Tom 3
+BEGIN
+:paste
+END
+ADD cat Tom 3
+BEGIN
+:paste
+END
+ADD cat Tom 3
+BEGIN
+:paste
+END
+ADD cat Tom 3
+BEGIN
+ADD cat Tom 3
+"ADD cat Tom 3"
+parseQuery "ADD cat Tom 3"
+Lib2.parseQuery "ADD cat Tom 3"
+END
+  ADD cat Tom 3;
+BEGIN
+:paste
+END
+BEGIN
+:paste
+ADD "cat Tom 3"
+ADD "cat Tom 3;
+ADD cat Tom 3;
+ADD cat Tom 3
+ ADD cat Tom 3
+END
+ADD dog Max 5;
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+ADD dog Max 5;
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+  ADD cat Tom 3;
+BEGIN
+:paste
+END
+ADD dog Max 5;
+ADD cat Tom 3;
+BEGIN
+:paste
+END
+ADD dog Max 5;
+ADD cat Tom 3;
+BEGIN
+:paste

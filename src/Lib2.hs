@@ -1,4 +1,6 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 module Lib2
     ( Animal(..), 
       Query(..),
@@ -124,7 +126,7 @@ parseLiteral (c:cs) s =
 
 -- 4) An entity which represents your program's state.
 data State = State [Animal]
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- 5) Creates an initial program's state.
 emptyState :: State

@@ -1,9 +1,22 @@
-<command> ::= <add_animal> | <delete_animal> | <list_animals> | <compound_query>
+<batch> ::= 'BEGIN' <command_list> 'END'
+
+<command_list> ::= <command> ';' <command_list> | <command>
+
+<command> ::= <add_animal> 
+            | <delete_animal> 
+            | <list_animals> 
+            | <compound_query> 
+            | <load_command> 
+            | <save_command>
+
 <compound_query> ::= <command> ';' <command>
+
+<load_command> ::= 'LOAD'
+<save_command> ::= 'SAVE'
 
 <add_animal> ::= 'ADD' <animal>
 <delete_animal> ::= 'DELETE' <species> <name> <age>
-<list_animals> ::= 'list_animals'
+<list_animals> ::= 'LIST'
 
 <animal> ::= <species> <name> <age>
 <species> ::= <string>

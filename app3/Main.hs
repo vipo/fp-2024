@@ -44,8 +44,13 @@ cmd str = do
       tr <- liftIO $ Lib3.stateTransition st c chan
       case tr of
         Left e2 -> liftIO $ putStrLn $ "ERROR:" ++ e2
-        Right m -> mapM_ (liftIO . putStrLn) m
+        Right (m, _) -> mapM_ (liftIO . putStrLn) (maybeToList m) -- Convert Maybe String to [String]
     Right (_, r) -> liftIO $ putStrLn $ "PARSE ERROR: string is not fully consumed - " ++ r
+
+-- replace/place somewhere else??
+maybeToList :: Maybe a -> [a]
+maybeToList Nothing = []
+maybeToList (Just x) = [x]
 
 invite :: MultiLine -> Repl String
 invite SingleLine = pure ">>> "

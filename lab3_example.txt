@@ -1,1 +1,51 @@
-Run 'stack run fp2024-three'
+Run 'stack run fp2024-three' and execute commands. Here are some showcases:
+
+-- As single queries
+>>> ADD cat Tom 3
+Added animal: Animal {species = "cat", name = "Tom", age = 3}
+>>> ADD mouse Jerry 2
+Added animal: Animal {species = "mouse", name = "Jerry", age = 2}
+>>> LIST
+Current animals: [Animal {species = "mouse", name = "Jerry", age = 2},Animal {species = "cat", name = "Tom", age = 3}]
+>>> DELETE cat Tom 3
+Deleted animal: Animal {species = "cat", name = "Tom", age = 3}
+>>> LIST
+Current animals: [Animal {species = "mouse", name = "Jerry", age = 2}]
+
+-- As compound queries with ':paste'
+1)
+>>> :paste
+-- Entering multi-line mode. Press <Ctrl-D> to finish.
+| BEGIN
+| ADD cat Tom 2;
+| ADD dog Max 5;
+| DELETE dog Max 5;
+| ADD fish Jem 1;
+| END
+| 
+Added animal: Animal {species = "cat", name = "Tom", age = 2} Added animal: Animal {species = "dog", name = "Max", age = 5} Deleted animal: Animal {species = "dog", name = "Max", age = 5} Added animal: Animal {species = "fish", name = "Jem", age = 1} Batch processed.
+>>> 
+
+2)
+>>> :paste
+-- Entering multi-line mode. Press <Ctrl-D> to finish.
+| BEGIN
+| ADD snake Long 10;
+| ADD bug Sim 1;
+| ADD cat Murr 4;
+| ADD dog Au 8;
+| DELETE cat Murr 4;
+| LIST
+| END
+| 
+Added animal: Animal {species = "snake", name = "Long", age = 10} Added animal: Animal {species = "bug", name = "Sim", age = 1} Added animal: Animal {species = "cat", name = "Murr", age = 4} Added animal: Animal {species = "dog", name = "Au", age = 8} Deleted animal: Animal {species = "cat", name = "Murr", age = 4} Current animals: [Animal {species = "dog", name = "Au", age = 8},Animal {species = "bug", name = "Sim", age = 1},Animal {species = "snake", name = "Long", age = 10}] Batch processed.
+>>> 
+
+-- With SAVE and LOAD as compound queries with ':paste' (after output from 2))
+>>> SAVE
+State saved to file.
+>>> LOAD
+State loaded from file.
+>>> LIST
+Current animals: [Animal {species = "snake", name = "Long", age = 10},Animal {species = "bug", name = "Sim", age = 1},Animal {species = "dog", name = "Au", age = 8}]
+>>> 
