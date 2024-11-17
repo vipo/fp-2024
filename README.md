@@ -12,16 +12,24 @@
 
 ## Batch Syntax
 begin
+
 q1;
+
 q2;
+
 q3;
+
 ...
 qn;
+
 end
 
 ### Example:
 begin
+
 add-reader "John" 123;
+
 add-book "Hobbit" "Tolkien" "Fantasy" "Children";
+
 end
 
