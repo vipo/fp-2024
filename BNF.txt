@@ -1,12 +1,10 @@
+<command> ::= "Add" | "Delete"
 <cline> ::= <command> <plan>
-<plan> ::= <weekDay> "(" <routine> ")" | <weekDay> "(" <routine>  ") " <plan> | "Week:" <number> "{" <plan> "} " <plan>
+<plan> ::= <weekDay> "(" <routine> ")" 
 <routine> ::= <exercise> | <exercise> ", " <routine> 
-<exercise> ::= <sor> "leg-extensions" | <sor> "squats" | <sor> "pull-ups" | <sor> "bench-press" | <sor> "deadlift" | "Superset of [" <routine> "]"
-<sor> ::= <number> "x" <reps> "repetitions of "
-<sdigit> ::= "1" | "2"
-<number> ::= <sdigit> | "3" | "4" | "5" | "6"
-<reps> ::= "7" | "8" | "9" | <number> | <sdigit> <number> | <sdigit> <zero>
-<zero> ::= "0"
+<exercise> ::= <sor> <name> | "Superset[" <routine> "]"
+<sor> ::= <digits> "x" <digits>
+<name> ::= <name> <char> | <char>
+<char> ::= "a" | ... | "z"
+<digits> ::= "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0"
 <weekDay> ::= "Monday" | "Tuesday" | "Thursday" | "Wednesday" | "Friday" | "Saturday" | "Sunday"
-<command> ::= "Add " | "Merge " | "Delete "
-
