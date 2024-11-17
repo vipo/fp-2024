@@ -3,6 +3,8 @@
 {-# HLINT ignore "Use newtype instead of data" #-}
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 {-# HLINT ignore "Redundant case" #-}
+{-# HLINT ignore "Redundant lambda" #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Lib2
     ( Query(..),
@@ -16,8 +18,12 @@ import qualified Data.Char as C
 import qualified Data.List as L
 import Text.Read (readMaybe)
 
+instance Eq Query where
+      (==) :: Query -> Query -> Bool
+      (==) q1 q2 = show q1 == show q2
+
 -- <cline> ::= <command> <plan>
-data Query = Add Plan | Delete Int | List
+data Query = Add Plan | Delete Int | Merge Int Int | List
 
 -- <plan> ::= <weekDay> "(" <routine> ")" | <weekDay> "(" <routine>  ") " <plan> 
 data Plan = WeekDay [(String, Routine)]
@@ -65,7 +71,7 @@ instance Show State where
         listPlans = unlines . zipWith (\i plan -> show i ++ ". " ++ show plan) [1..]
 
 parseQuery :: String -> Either String Query
-parseQuery input = fmap fst (orElse parseList parseOrder input)
+parseQuery input = fmap fst (orElse parseList (orElse parseMerge parseOrder) input)
   where
     parseList :: Parser Query
     parseList input' =
@@ -84,6 +90,17 @@ parseQuery input = fmap fst (orElse parseList parseOrder input)
                     Nothing -> Left "Invalid index for Delete"
             _ -> Left "Expected 'Add <plan>' or 'Delete <number>'"
 
+    parseMerge :: Parser Query
+    parseMerge input' =
+        case removeSpaces input' of
+            'M':'e':'r':'g':'e':' ':rest ->
+                let (idx1Str, rest') = span C.isDigit rest
+                    (idx2Str, rest'') = span C.isDigit (removeSpaces rest')
+                in case (readMaybe idx1Str, readMaybe idx2Str) of
+                    (Just idx1, Just idx2) -> Right (Merge idx1 idx2, rest'')
+                    _ -> Left "Invalid indices for Merge"
+            _ -> Left "Expected 'Merge <index1> <index2>'"
+
 parsePlan :: Parser Plan
 parsePlan input =
     let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -100,19 +117,30 @@ parsePlan input =
                          Left err -> Left err
         else parseWeekDay rest input'
 
-
 parseRoutine :: Parser Routine
-parseRoutine input =
-    let parseExercises :: Parser [Exercise]
-        parseExercises input' =
-            case parseExercise input' of
-                Right (exercise, rest) -> 
-                    case removeSpaces rest of
-                        ',':' ':rest' -> 
-                            fmap (\(exercises, remaining) -> (exercise : exercises, remaining)) (parseExercises rest')
-                        _ -> Right ([exercise], rest) 
-                Left err -> Left err
-    in fmap (\(exercises, remaining) -> (Routine exercises, remaining)) (parseExercises input)
+parseRoutine input = 
+    fmap (\(exercises, rest) -> (Routine exercises, rest)) (parseExercises input)
+    where
+    parseExercises :: Parser [Exercise]
+    parseExercises =
+        and3' combine parseExercise parseCommaOrEnd parseOptionalExercises
+
+    combine :: Exercise -> Maybe Char -> Maybe [Exercise] -> [Exercise]
+    combine exercise _ Nothing = [exercise]
+    combine exercise _ (Just moreExercises) = exercise : moreExercises
+
+    parseCommaOrEnd :: Parser (Maybe Char)
+    parseCommaOrEnd input' =
+        case removeSpaces input' of
+            ',':' ':rest -> Right (Just ',', rest)
+            _            -> Right (Nothing, input')
+
+    parseOptionalExercises :: Parser (Maybe [Exercise])
+    parseOptionalExercises input' =
+        case parseExercises input' of
+            Right (exercises, rest) -> Right (Just exercises, rest)
+            Left _                  -> Right (Nothing, input')
+
 
 parseExercise :: Parser Exercise
 parseExercise input =
@@ -148,6 +176,18 @@ orElse p1 p2 input =
     case p1 input of
         Right res -> Right res
         Left _ -> p2 input
+        
+and3' :: (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+and3' f a b c = \input ->
+    case a input of
+        Right (v1, r1) ->
+            case b r1 of
+                Right (v2, r2) ->
+                    case c r2 of
+                        Right (v3, r3) -> Right (f v1 v2 v3, r3)
+                        Left e3 -> Left e3
+                Left e2 -> Left e2
+        Left e1 -> Left e1
 
 removeSpaces :: String -> String
 removeSpaces = dropWhile C.isSpace
@@ -175,6 +215,18 @@ stateTransition (State created) query =
             let newState = State (created ++ [plan])
             in Right (Just $ "Added Plan: " ++ show plan, newState)
         
+        Merge idx1 idx2 -> 
+            if idx1 < 1 || idx1 > length created || idx2 < 1 || idx2 > length created || idx1 == idx2
+            then Left $ "Invalid indices: " ++ show idx1 ++ ", " ++ show idx2
+            else
+                let idx1' = min idx1 idx2  -- Ensure idx1 < idx2
+                    idx2' = max idx1 idx2
+                    (before1, plan1 : after1) = splitAt (idx1' - 1) created
+                    (before2, plan2 : after2) = splitAt (idx2' - idx1' - 1) after1
+                    mergedPlan = mergePlans plan1 plan2
+                    newState = State (before1 ++ [mergedPlan] ++ before2 ++ after2)
+                in Right (Just $ "Merged Plans: " ++ show idx1 ++ " and " ++ show idx2, newState)
+        
         Delete idx ->
             if idx < 1 || idx > length created
             then Left $ "Invalid index: " ++ show idx
@@ -182,3 +234,5 @@ stateTransition (State created) query =
                 let (before, toDelete : after) = splitAt (idx - 1) created  
                 in Right (Just $ "Deleted Plan: " ++ show toDelete, State (before ++ after)) 
 
+mergePlans :: Plan -> Plan -> Plan
+mergePlans (WeekDay days1) (WeekDay days2) = WeekDay (days1 ++ days2)
