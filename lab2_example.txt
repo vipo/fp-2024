@@ -1,0 +1,23 @@
+>> Add Monday 3x9 squats, 123x213 of nothing, Superset[3x9 squats, 14x10 dead-lift], 12x32 squats
+Added Plan: Monday: 3x9 repetitions of squats, 123x213 repetitions of of nothing, Superset of [3x9 repetitions of squats, 14x10 repetitions of dead-lift], 12x32 repetitions of squats
+
+>>> Add Tuesday 3x9 squats, 123x213 of nothing, Superset[3x9 squats, 14x10 dead-lift], 12x32 squats
+Added Plan: Tuesday: 3x9 repetitions of squats, 123x213 repetitions of of nothing, Superset of [3x9 repetitions of squats, 14x10 repetitions of dead-lift], 12x32 repetitions of squats
+
+>>> Delete 2
+Deleted Plan: Tuesday: 3x9 repetitions of squats, 123x213 repetitions of of nothing, Superset of [3x9 repetitions of squats, 14x10 repetitions of dead-lift], 12x32 repetitions of squats
+
+>>> List
+Created Plans:
+1. Monday: 3x9 repetitions of squats, 123x213 repetitions of of nothing, Superset of [3x9 repetitions of squats, 14x10 repetitions of dead-lift], 12x32 repetitions of squats
+
+
+>>> Delete 2
+ERROR:Invalid index: 2
+>>> Delete 1
+Deleted Plan: Monday: 3x9 repetitions of squats, 123x213 repetitions of of nothing, Superset of [3x9 repetitions of squats, 14x10 repetitions of dead-lift], 12x32 repetitions of squats
+
+>>> List
+Created Plans:
+
+>>> 

@@ -1,11 +1,12 @@
-# fp-2024
 
-## Setup
 
-### To get started, you first need to open the project using Visual Studio Code and having Docker Desktop
-1. `Ctrl + Shift + P`
-2. `Dev Containers: Open Folder in Container`
+# General changes 
+## Added Commands "Add" "Delete" "List" 
+## Made some more smaller changes to BNF file like removing "()" or deleting spaces (example:"Superset [" -> "Superset[")
+## Redid Lib1 to fit BNF
 
-### To Build & Test the Project, run the following commands
-1. `stack build`
-2. `stack test`
+## Some examples
+### Add Monday 3x9 squats 
+### List
+### Delete 1
+### Add Tuesday 3x9 squats, Superset[3x9 bench-press, 14x10 dead-lift], 12x32 push-ups
