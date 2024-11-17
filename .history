@@ -1,3 +1,83 @@
+END
+LIST
+ADD dog Maxi 5;
+BEGIN
+:paste
+END
+LIST
+BEGIN
+:paste
+LOAD
+END
+LIST
+BEGIN
+:paste
+END
+LIST
+BEGIN
+:paste
+LIST
+LOAD
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+LOAD
+LOAD
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+SAVE
+END
+SAVE
+ADD mouse Whiskers 5
+BEGIN
+:paste
+END
+SAVE
+ADD Cat Whiskers 5
+BEGIN
+:paste
+SAVE
+END
+ADD Cat Whiskers 5
+BEGIN
+:paste
+END
+ADD Cat Whiskers 5
+BEGIN
+:paste
+END
+BEGIN
+:paste
+END
+ADD Animal Cat Whiskers 4
+ADD Animal Cat Whiskers 5
+BEGIN
+:paste
+ADD Animal Cat Whiskers 5
+cmd "ADD cat Tom 3"
+cmd ADD cat Tom 3;
+ADD cat Tom 3;
+  LIST
+  DELETE dog Max 5;
+  ADD cat Tom 3;
+BEGIN
+:paste
+  LIST
+  DELETE dog Max 5;
+  ADD cat Tom 3;
+BEGIN
+:paste
 LIST
 ADD cat Tom 5
 TestWord TestWord 

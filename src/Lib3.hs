@@ -38,11 +38,14 @@ storageOpLoop chan = do
       storageOpLoop chan
 
     Load notifyChan -> do
-      result <- try $ withFile "state.txt" ReadMode hGetContents
+      result <- try $ withFile "state.txt" ReadMode $ \handle -> do
+        content <- hGetContents handle
+        length content `seq` return content -- Force reading the file content immediately
       case result of
         Left err     -> writeChan notifyChan $ "Error loading state: " ++ show (err :: SomeException)
         Right content -> writeChan notifyChan content
       storageOpLoop chan
+
 
 -- Data structure to represent single or batch statements
 data Statements = Batch [Lib2.Query] | Single Lib2.Query

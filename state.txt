@@ -1,0 +1,6 @@
+BEGIN
+ADD fish Jem 1;
+ADD cat Tom 2;
+ADD chicken Chi 1;
+ADD cow Luna 4;
+END
