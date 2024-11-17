@@ -27,7 +27,7 @@ module Lib2
     parseBookAudience
   ) where
     
-import Control.Applicative (Alternative (empty), (<|>), many, optional)  -- Added many, optional
+import Control.Applicative (Alternative (empty), (<|>), many, optional)
 import qualified Data.Char as C
 
 data Parser a = Parser { runParser :: String -> Either String (a, String) }
@@ -105,7 +105,11 @@ parseString (c:cs) = do
     return (c : rest)
 
 many1 :: Parser a -> Parser [a]
-many1 p = (:) <$> p <*> many p
+many1 p = do
+  first <- p
+  rest  <- many p
+  return (first : rest)  
+
 
 -- Data Types
 data Query
@@ -203,7 +207,6 @@ parseMergeQuery = do
         parseMergeQuery
     return $ MergeQuery book rest
 
--- Book and Reader Info Parsers
 parseBookInfo :: Parser BookInfo
 parseBookInfo = do
   title <- parseTitle
