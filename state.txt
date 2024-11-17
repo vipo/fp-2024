@@ -1,0 +1,6 @@
+begin
+add-book HarryPotter Rowling Fantasy Children;
+add-book Hobbit Tolkien Fantasy Children;
+add-reader Mark 123;
+add-reader John 123;
+end

@@ -1,0 +1,31 @@
+Welcome! Press [TAB] for auto completion, type ':paste' for multiline input
+>>> add-reader John 123
+ReaderInfo "John" 123 added.
+>>> add-book Hobbit Tolkien Fantasy Children
+BookInfo "Hobbit" "Tolkien" Fantasy Children added.
+>>> :paste
+-- Entering multi-line mode. Press <Ctrl-D> to finish.
+| begin
+| add-reader Mark 123;
+| add-book HarryPotter Rowling Fantasy Children;
+| end
+| 
+ReaderInfo "Mark" 123 added.
+BookInfo "HarryPotter" "Rowling" Fantasy Children added.
+>>> save
+State saved successfully
+>>> remove-book HarryPotter Rowling Fantasy Children
+BookInfo "HarryPotter" "Rowling" Fantasy Children removed.
+>>> remove-reader Mark 123;
+PARSE ERROR: string is not fully consumed - ;
+>>> remove-reader Mark 123
+ReaderInfo "Mark" 123 removed.
+>>> remove-book Hobbit Tolkien Fantasy Children
+BookInfo "Hobbit" "Tolkien" Fantasy Children removed.
+>>> remove-reader John 123
+ReaderInfo "John" 123 removed.
+>>> load
+BookInfo "HarryPotter" "Rowling" Fantasy Children added.
+BookInfo "Hobbit" "Tolkien" Fantasy Children added.
+ReaderInfo "Mark" 123 added.
+ReaderInfo "John" 123 added.

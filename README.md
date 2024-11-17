@@ -9,3 +9,19 @@
 ### To Build & Test the Project, run the following commands
 1. `stack build`
 2. `stack test`
+
+## Batch Syntax
+begin
+q1;
+q2;
+q3;
+...
+qn;
+end
+
+### Example:
+begin
+add-reader "John" 123;
+add-book "Hobbit" "Tolkien" "Fantasy" "Children";
+end
+

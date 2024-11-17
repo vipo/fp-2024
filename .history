@@ -1,100 +1,100 @@
-add-book HP Rowling Fantasy Children
-add-book LOTR Tolkien Fantasy Teenager
-add-book Hob Tolkien Fantasy Children
-merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
-add-book Hob Tolkien Fantasy Children
-add-book LOTR Tolkien Fantasy Teenager
-add-book HP Rowling Fantasy Children
-merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
-add-book HP Rowling Fantasy Children
-add-book LOTR Tolkien Fantasy Teenager
-add-book Hob Tolkien Fantasy Children
-merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager merge HP Rowling Fantasy Children
+load
+remove-reader John 123
+remove-book Hobbit Tolkien Fantasy Children
+remove-reader Mark 123
+remove-reader Mark 123;
+remove-book HarryPotter Rowling Fantasy Children
+save
+end
+add-book HarryPotter Rowling Fantasy Children;
+add-reader Mark 123;
+begin
+:paste
+add-book Hobbit Tolkien Fantasy Children
+add-reader John 123
+remove-reader John 112
+save
+add-reader John 12
+load
+end
+add-reader John 12;
+begin
+:paste 
+load
+save
+add-reader John 1123
+add-reader John 112
+add-reader John 11
+save
+load
+save
+remove-reader John 112
+remove-reader John 1
+load
+add-reader John 12
+load
+save
+end
+add-reader John 112;
+add-reader John 1234;
+begin
+:paste
 remove-reader John 123
 add-reader John 123
-remove-book HarryPotter Rowling Fantasy Children
-add-book HarryPotter Rowling Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-add-book HarryPotter Rowling Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-remove-book Hobbit Tolkien Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-return Hobbit Tolkien Fantasy Children John 123
-borrow Hobbit Tolkien Fantasy Children John 123
-add-book Hobbit Tolkien Fantasy Children
-borrow Hobbit Tolkien Fantasy Children John 123
-add-reader John 123
-borrow Hobbit Tolkien Fantasy Children John 123
-add-reader John 123
+save
+load
+load
 remove-reader John 123
-borrow Hobbit Tolkien Fantasy Children John 123
-borrow LordOfTheRings Tolkien Fantasy Teenager John 123
-add-book Hobbit Tolkien Fantasy Children
-borrow LordOfTheRings Tolkien Fantasy Teenager John 123
-return Hobbit Tolkien Fantasy Children John 123
-remove-reader John 123
-add-reader John 123
-remove-reader John 123
-remove-reader John 123
-add-reader John 123
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-merge EnglishDictionary Tom Dictionary Adult
-return Hobbit Tolkien Fantasy Children John 123
-borrow Hobbit Tolkien Fantasy Children John 123
-borrow LordOfTheRings Tolkien Fantasy Teenager John 123
-remove-reader John 111
-add-book Hobbit Tolkien Fantasy Children
-add-book Hobbit Tolkien Fantasy Children
-add-reader John 123
-add-book f
-add-reader John 123
-merge EnglishDictionary Tom Dictionary Adult
-merge EnglishDictionary Tom Dictionary Adult
-add-reader John 123
-merge EnglishDictionary Tom Dictionary Adult
-return LordOfTheRings Tolkien Fantasy Teenager John 123
-remove-book LordOfTheRings Tolkien Fantasy Teenager
-remove-book LordOfTheRings Tolkien Fantasy Children
-borrow LordOfTheRings Tolkien Fantasy Teenager John 123
-add-reader John 123
+remove-reader John 123;
+save
+end
+add-reader John 123;
+add-reader John 1;
+begin
+:paste
+load
+save
+merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy Teenager
+merge Hob Tolkien Fantasy Children merge LOTR Tolkien Fantasy
+remove-book Hobbit Tolkien Fantasy Children
+load
+remove-book Hobbit Tolkien Fantasy Children
+load
 remove-book Hobbit Tolkien Fantasy Children
 remove-book Hobbit Tolkien Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-add-book LordOfTheRings Tolkien Fantasy Teenager
-remove-book HarryPotter Rowling Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-remove-book HarryPotter Rowling Fantasy Children
-merge Hobbit Tolkien Fantasy Children merge HarryPotter Rowling Fantasy Children
-add-book HarryPotter Rowling Fantasy Children
-remove-book Rowling HarryPotter Fantasy Children
-add-book Rowling HarryPotter Fantasy Children
-remove-reader John 123
-remove-reader John 111
+remove-book Hobbit Tolkien Fantasy Children;
+end
+add-reader john 1;
+add-reader john 2;
+add-book Hobbit Tolkien Fantasy Children;
+begin
+:paste
+load
+remove-reader john 2
+remove-reader john 1
+remove john 1
+load
+save
+remove-reader john 3
+load
+remove-reader john 3
+load
+save
 add-book Hobbit Tolkien Fantasy Children
-add-book Hobbit Tolkien Fantasy Children 
-add-book Hobbit Tolkien fantasy children
-add-book f
-add-reader John 123
-f
-d
-s
-add-reader
-borrow
-s
-s
+add-reader john 3
+add-reader john 2
+add-reader john 1
+add-reader john
+remove-reader john 12
+add-reader john 12
+load
+load
+save
+add-book Hobbit Tolkien Fantasy Teenager
+add-book Hobbit Tolkien Fantasy Teenage
+save
+add-reader John 12
+load
+load
+save
+end
