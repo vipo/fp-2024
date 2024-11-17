@@ -8,21 +8,22 @@ module Lib3
       parseCommand,
       parseStatements,
       marshallState,
+      unmarshallState,
       renderStatements,
       Statements(..),
       Command(..),
     ) where
 
-import System.IO (withFile, IOMode(..), hPutStr, hGetContents)
-import Control.Concurrent.Chan (Chan, newChan, readChan, writeChan)
-import Control.Exception (try, SomeException)
-import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO)
-import Data.Either (partitionEithers)
-import Data.List (isPrefixOf, isSuffixOf)
 import qualified Lib2
 import Debug.Trace (trace)
+import Data.Either (partitionEithers)
+import Data.List (isPrefixOf, isSuffixOf)
+import Control.Exception (try, SomeException)
+import System.IO (withFile, IOMode(..), hPutStr, hGetContents)
+import Control.Concurrent.Chan (Chan, newChan, readChan, writeChan)
+import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO)
 
--- Define the storage operations (saving and loading)
+-- Storage operations (SAVE or LOAD)
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 
 -- Background thread function that handles storage operations
@@ -40,21 +41,21 @@ storageOpLoop chan = do
     Load notifyChan -> do
       result <- try $ withFile "state.txt" ReadMode $ \handle -> do
         content <- hGetContents handle
-        length content `seq` return content -- Force reading the file content immediately
+        length content `seq` return content
       case result of
         Left err     -> writeChan notifyChan $ "Error loading state: " ++ show (err :: SomeException)
         Right content -> writeChan notifyChan content
       storageOpLoop chan
 
 
--- Data structure to represent single or batch statements
+-- Data structure to for single or batch statements
 data Statements = Batch [Lib2.Query] | Single Lib2.Query
     deriving (Show, Eq)
 
 data Command = StatementCommand Statements | LoadCommand | SaveCommand
     deriving (Show, Eq)
 
--- Parses the command
+-- Parses commands
 parseCommand :: String -> Either String (Command, String)
 parseCommand input
   | "LOAD" `isPrefixOf` input = Right (LoadCommand, drop 4 input)
@@ -62,7 +63,10 @@ parseCommand input
   | "BEGIN" `isPrefixOf` input = case parseStatements input of
       Left err -> Left err
       Right (gotStatements, rest) -> Right (StatementCommand gotStatements, rest)
-  | otherwise = Left "Expected 'LOAD', 'SAVE', or a batch starting with 'BEGIN'."
+  | otherwise = case Lib2.parseQuery (trim input) of
+      Left err -> Left $ "Error parsing query: " ++ err
+      Right query -> Right (StatementCommand (Single query), "")
+
 
 -- Parses statements (single or batch)
 parseStatements :: String -> Either String (Statements, String)
@@ -84,11 +88,12 @@ parseStatements input =
            else Left "Expected 'END' for batch processing."
        else Left "Expected 'BEGIN' and 'END' for batch processing."
 
--- Utility functions for trimming and splitting strings
+-- For trimming strings
 trim :: String -> String
 trim = f . f
    where f = reverse . dropWhile (`elem` [' ', '\n', '\r', '\t'])
 
+-- For splitting strings
 splitOn :: Char -> String -> [String]
 splitOn _ [] = [""]
 splitOn delimiter (c:cs)
@@ -97,7 +102,7 @@ splitOn delimiter (c:cs)
   where
     rest = splitOn delimiter cs
 
--- Convert the program's state to statements (to save it in a file)
+-- Convert the program's state to statements (for saving it in a file)
 marshallState :: Lib2.State -> Statements
 marshallState (Lib2.State animals) =
     let addQueries = map Lib2.Add animals
@@ -109,7 +114,15 @@ unmarshallState (Batch queries) = foldl applyQuery Lib2.emptyState queries
   where
     applyQuery state query = case Lib2.stateTransition state query of
       Right (_, newState) -> newState
-      Left _ -> state -- Ignore errors for simplicity
+      Left _ -> state -- Ignore errors
+
+unmarshallState (Single query) = applyQuery Lib2.emptyState query
+  where
+    applyQuery state query = case Lib2.stateTransition state query of
+      Right (_, newState) -> newState
+      Left _ -> state -- Ignore errors
+
+
 
 -- Convert statements to string representation
 renderStatements :: Statements -> String

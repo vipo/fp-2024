@@ -1,4 +1,3 @@
--- This is Main.hs
 {-# LANGUAGE ImportQualifiedPost #-}
 module Main (main) where
 
