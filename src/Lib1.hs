@@ -3,7 +3,7 @@ module Lib1
     ) where
 
 completions :: [String]
-completions = [ "Add", "Delete", "List"
+completions = [ "Add", "Delete", "List", "Merge"
     ,"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""
     , "x"
     , "Superset["

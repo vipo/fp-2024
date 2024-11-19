@@ -44,6 +44,7 @@ instance Show Query where
     show List = "List"
     show (Add plan) = "Add " ++ show plan
     show (Delete idx) = "Delete " ++ show idx
+    show (Merge idx1 idx2) = "Merge " ++ show idx1 ++ show idx2
 
 instance Show Plan where
     show :: Plan -> String
@@ -219,7 +220,7 @@ stateTransition (State created) query =
             if idx1 < 1 || idx1 > length created || idx2 < 1 || idx2 > length created || idx1 == idx2
             then Left $ "Invalid indices: " ++ show idx1 ++ ", " ++ show idx2
             else
-                let idx1' = min idx1 idx2  -- Ensure idx1 < idx2
+                let idx1' = min idx1 idx2 
                     idx2' = max idx1 idx2
                     (before1, plan1 : after1) = splitAt (idx1' - 1) created
                     (before2, plan2 : after2) = splitAt (idx2' - idx1' - 1) after1

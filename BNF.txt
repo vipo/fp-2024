@@ -1,4 +1,4 @@
-<command> ::= "Add" | "Delete"
+<command> ::= "Add" | "Delete" | "Merge"
 <cline> ::= <command> <plan>
 <plan> ::= <weekDay> "(" <routine> ")" 
 <routine> ::= <exercise> | <exercise> ", " <routine> 
