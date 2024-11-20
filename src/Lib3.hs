@@ -14,7 +14,6 @@ where
 
 import Control.Concurrent (Chan, newChan, readChan, writeChan)
 import Control.Concurrent.STM (STM, TVar, atomically, readTVar, readTVarIO, writeTVar)
-import Control.Monad (forever)
 import qualified Lib2
 import Lib2 (Parser, parseString, runParser)
 import System.Directory (doesFileExist)
@@ -23,7 +22,7 @@ import Control.Applicative ((<|>), many)
 data StorageOp = Save String (Chan ()) | Load (Chan (Maybe String))
 
 storageOpLoop :: Chan StorageOp -> IO ()
-storageOpLoop storageOpChannel = forever $ do
+storageOpLoop storageOpChannel = do
   storageOp <- readChan storageOpChannel
   case storageOp of
     Save string responseChannel -> writeFile fileName string >> writeChan responseChannel ()
@@ -32,6 +31,7 @@ storageOpLoop storageOpChannel = forever $ do
       if fileExists
         then Just <$> readFile fileName >>= writeChan responseChannel
         else writeChan responseChannel Nothing
+  storageOpLoop storageOpChannel 
 
 
 fileName :: String
@@ -73,6 +73,20 @@ marshallState (Lib2.State books readers) =
 
 renderStatements :: Statements -> String
 renderStatements = show
+
+saveParser :: Parser Command
+saveParser = do
+  _ <- parseString "save"
+  return SaveCommand
+
+loadParser :: Parser Command
+loadParser = do
+  _ <- parseString "load"
+  return LoadCommand
+
+
+command :: Parser Command
+command = StatementCommand <$> statements <|> loadParser <|> saveParser
 
 stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp -> IO (Either String (Maybe String))
 stateTransition state SaveCommand ioChan = do
@@ -149,15 +163,3 @@ statements =
   )
     <|> (Single <$> Lib2.query)
 
-loadParser :: Parser Command
-loadParser = do
-  _ <- parseString "load"
-  return LoadCommand
-
-saveParser :: Parser Command
-saveParser = do
-  _ <- parseString "save"
-  return SaveCommand
-
-command :: Parser Command
-command = StatementCommand <$> statements <|> loadParser <|> saveParser

@@ -1,3 +1,16 @@
+save
+load
+save
+end
+add-reader John 123;
+add-reader Mark 123;
+add-book Hobbit Tolkien Fantasy Children;
+add-book HarryPotter Rowling Fantasy Children;
+begin
+:paste
+remove-reader John 12
+save
+add-reader John 12
 load
 remove-reader John 123
 remove-book Hobbit Tolkien Fantasy Children
@@ -85,16 +98,3 @@ add-reader john 3
 add-reader john 2
 add-reader john 1
 add-reader john
-remove-reader john 12
-add-reader john 12
-load
-load
-save
-add-book Hobbit Tolkien Fantasy Teenager
-add-book Hobbit Tolkien Fantasy Teenage
-save
-add-reader John 12
-load
-load
-save
-end
