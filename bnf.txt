@@ -1,3 +1,16 @@
+<command> ::= <create_command> | <modify_command> | <query_command>
+
+<create_command> ::= "create(" <toy> ")"
+<modify_command> ::= "modify(" <toy> "," <modification> ")"
+<query_command> ::= "query(" <query_type> ")"
+
+<modification> ::= <add_decoration> | <remove_decoration>
+<add_decoration> ::= "add(" <decoration> ")"
+<remove_decoration> ::= "remove(" <decoration> ")"
+
+<query_type> ::= "all_toys" | "toys_with_decoration(" <decoration> ")" | "toys_of_type(" <toy_type> ")"
+<toy_type> ::= "simple" | "composite" | "decorated"
+
 <toy> ::= <simple_toy> | <composite_toy> | <decorated_toy>
 <simple_toy> ::= "ball" | "doll" | "car" | "robot" | "train"
 <composite_toy> ::= "combine(" <toy_list> ")"

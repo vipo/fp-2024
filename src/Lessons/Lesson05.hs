@@ -16,6 +16,7 @@ many p = many' p []
 
 -- >>> parseManyAs ""
 -- Right ("","")
+
 -- >>> parseManyAs "aaab"
 -- Right ("aaa","b")
 -- >>> parseManyAs "baaab"

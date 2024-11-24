@@ -44,7 +44,7 @@ dup'' l =
 -- >>> safeDiv 1 0
 -- Nothing
 -- >>> safeDiv 10 2
--- Just 5
+
 safeDiv :: Integer -> Integer -> Maybe Integer
 safeDiv _ 0 = Nothing
 safeDiv a b = Just (a `div` b)
