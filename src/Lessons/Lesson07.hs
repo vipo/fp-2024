@@ -104,7 +104,6 @@ em''' = do
     b <- Left "omg"
     Right a
 
-
 -- >>> c == (Just 1 >>= (\z -> return (z + 1)) >>= (\x -> return (x, 'a')))
 -- True
 c :: Maybe (Int, Char)

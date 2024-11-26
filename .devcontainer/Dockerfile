@@ -12,6 +12,7 @@ RUN apt-get update -y \
   libgmp3-dev \
   libncurses5-dev \
   libncursesw5-dev \
+  zlib1g-dev \
   && rm -rf /var/lib/apt/lists/
 
 ENV PATH=/root/.ghcup/bin:/root/.local/bin:$PATH \
