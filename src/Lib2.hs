@@ -6,7 +6,10 @@ module Lib2
       parseQuery,
       State(..),
       emptyState,
-      stateTransition
+      stateTransition,
+      Toy(..),
+      Decoration(..),
+      ToyType(..)
     ) where
 
 import qualified Data.Char as C
@@ -189,9 +192,8 @@ parseLiteral :: String -> String -> Maybe String
 parseLiteral literal input
     | literal `isPrefixOf` input = Just (drop (length literal) input)
     | otherwise = Nothing
-  where
-    isPrefixOf = (==) . take (length literal)
-
+    where
+        isPrefixOf prefix str = prefix == take (length prefix) str
 -- | Represents the program's state.
 data State = State
     { toys :: [Toy]

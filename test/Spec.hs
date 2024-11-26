@@ -15,8 +15,12 @@ unitTests :: TestTree
 unitTests = testGroup "Lib1 tests"
   [ testCase "List of completions is not empty" $
       null Lib1.completions @?= False,
-    testCase "Parsing case 1 - give a better name" $
-      Lib2.parseQuery "" @?= (Left "Some error message"),
-    testCase "Parsing case 2 - give a better name" $
-      Lib2.parseQuery "o" @?= (Left "Some error message")
+    testCase "Parse incomplete input" $
+      Lib2.parseQuery "o" @?= Left "Invalid command format",
+    testCase "Parse valid create command" $
+      Lib2.parseQuery "create(ball)" @?= Right (Lib2.CreateCommand (Lib2.SimpleToy "ball")),
+    testCase "Parse create command with composite toy" $
+      Lib2.parseQuery "create(combine(ball,car))" @?= Right (Lib2.CreateCommand (Lib2.CompositeToy [Lib2.SimpleToy "ball", Lib2.SimpleToy "car"])),
+    testCase "Parse create command with decorated toy" $
+      Lib2.parseQuery "create(decorate(doll,blue))" @?= Right (Lib2.CreateCommand (Lib2.DecoratedToy (Lib2.SimpleToy "doll") (Lib2.Color "blue")))
   ]
