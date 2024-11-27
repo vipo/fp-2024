@@ -1,6 +1,78 @@
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+DELETE dog Max 5;
+END
+DELETE dog Max 5;
+ADD cat Whiskers 2;
+BEGIN
+:paste
+END
+DELETE dog Max 5;
+ADD cat Whiskers 2;
+BEGIN
+LIST
+LIST
+END
+DELETE dog Max 5;
+ADD cat Whiskers 2;
+BEGIN
+:paste
+END
+DELETE dog Max 5;
+ADD cat Whiskers 2;
+BEGIN
+END
+DELETE dog Max 5;
+ADD cat Whiskers 2;
+BEGIN
+:paste
+SAVE
+END
+ADD cat Whiskers 2;
+BEGIN
+:paste
+END
+ADD cat Whiskers 2;
+BEGIN
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
 LIST
 LOAD
 SAVE
+LIST
 END
 LIST
 DELETE cat Murr 4;
@@ -10,87 +82,15 @@ ADD bug Sim 1;
 ADD snake Long 10;
 BEGIN
 :paste
-END
-LIST
-DELETE cat Murr 4
-ADD dog Au 8
-ADD cat Murr 4
-ADD bug Sim 1
-ADD snake Long 10
-BEGIN
-:paste
-LIST
-DELETE fish Jem 1;
-DELETE cat Tom 2;
-:paste
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-:paste
-END
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-:paste
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-:paste
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-LIST
-DELETE mouse Jerry 2
-LIST
-DELETE cat Tom 3
-LIST
-ADD mouse Jerry 2
-ADD cat Tom 3
-LOAD
-LIST
-SAVE
-ADD bug Mi 1
-END
-LIST
-ADD dog Maxi 5;
-BEGIN
-:paste
-END
-LIST
-BEGIN
-:paste
-LOAD
-END
-LIST
-BEGIN
-:paste
-END
-LIST
-BEGIN
-:paste
-LIST
-LOAD
 SAVE
 END
-ADD fish Jem 1;
-DELETE dog Max 5;
 ADD dog Max 5;
-ADD cat Tom 2;
 BEGIN
 :paste
-LOAD
+ADD chicken Tom 4;
+ADD chicken Tom 5;
+ADD chicken Tom 5;
+LIST
 LOAD
 SAVE
 END

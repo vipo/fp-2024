@@ -1,0 +1,4 @@
+BEGIN
+ADD fish Jem 1;
+ADD cat Tom 2;
+END

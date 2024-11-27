@@ -26,12 +26,6 @@ source-repository head
 library
   exposed-modules:
       Lessons.Lesson01
-      Lessons.Lesson04
-      Lessons.Lesson05
-      Lessons.Lesson06
-      Lessons.Lesson07
-      Lessons.Lesson08
-      Lessons.Lesson09
       Lib1
       Lib2
       Lib3

@@ -1,4 +1,3 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Lib3
@@ -15,116 +14,129 @@ module Lib3
     ) where
 
 import qualified Lib2
-import Debug.Trace (trace)
 import Data.Either (partitionEithers)
 import Data.List (isPrefixOf, isSuffixOf)
 import Control.Exception (try, SomeException)
-import System.IO (withFile, IOMode(..), hPutStr, hGetContents)
 import Control.Concurrent.Chan (Chan, newChan, readChan, writeChan)
-import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar, readTVarIO)
+import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar)
 
--- Storage operations (SAVE or LOAD)
+
+
+-- DT for storage opperations
+-- Chan - a notification/communication channel - nofifies the caller when the operation completes
+-- / or throught it result of loading op will be sent back to the caller
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 
--- Background thread function that handles storage operations
-storageOpLoop :: Chan StorageOp -> IO ()
+
+
+-- Background thread for storage operations
+storageOpLoop :: Chan StorageOp -> IO () -- takes Save | Load
 storageOpLoop chan = do
-  op <- readChan chan
+  op <- readChan chan -- waits for a StorageOp val
   case op of
+
     Save content notifyChan -> do
-      result <- try $ withFile "state.txt" WriteMode $ \handle -> hPutStr handle content
+      result <- try $ writeFile "state.txt" content
       case result of
-        Left err -> putStrLn $ "Error saving state: " ++ show (err :: SomeException)
-        Right _  -> writeChan notifyChan ()
-      storageOpLoop chan
+        Left err -> putStrLn $ "Error saving state: " ++ show (err :: SomeException) -- if err, msg to the console
+        Right _  -> writeChan notifyChan () -- if success, notifyChan sends a signal (()) back to the caller
+      storageOpLoop chan -- calls itself - ready to handle more operations
 
     Load notifyChan -> do
-      result <- try $ withFile "state.txt" ReadMode $ \handle -> do
-        content <- hGetContents handle
-        length content `seq` return content
+      result <- try $ readFile "state.txt"
       case result of
-        Left err     -> writeChan notifyChan $ "Error loading state: " ++ show (err :: SomeException)
+        Left err      -> writeChan notifyChan $ "Error loading state: " ++ show (err :: SomeException)
         Right content -> writeChan notifyChan content
       storageOpLoop chan
 
 
--- Data structure to for single or batch statements
+
+-- DT
 data Statements = Batch [Lib2.Query] | Single Lib2.Query
     deriving (Show, Eq)
 
+-- DT - Statements val is Batch or Single
 data Command = StatementCommand Statements | LoadCommand | SaveCommand
     deriving (Show, Eq)
 
--- Parses commands
+-- Parses commands - user input
 parseCommand :: String -> Either String (Command, String)
 parseCommand input
-  | "LOAD" `isPrefixOf` input = Right (LoadCommand, drop 4 input)
+  | "LOAD" `isPrefixOf` input = Right (LoadCommand, drop 4 input) -- Returns input without first 4 chars
   | "SAVE" `isPrefixOf` input = Right (SaveCommand, drop 4 input)
-  | "BEGIN" `isPrefixOf` input = case parseStatements input of
+  | "BEGIN" `isPrefixOf` input = case parseStatements input of -- BEGIN means that we have batch. Delegates input to parseStatements
       Left err -> Left err
       Right (gotStatements, rest) -> Right (StatementCommand gotStatements, rest)
-  | otherwise = case Lib2.parseQuery (trim input) of
+  | otherwise = case Lib2.parseQuery (trim input) of -- Case for ADD, DELETE, LIST... - single query therefore just uses Lib2.parseQuery
       Left err -> Left $ "Error parsing query: " ++ err
       Right query -> Right (StatementCommand (Single query), "")
 
 
--- Parses statements (single or batch)
+
+-- Parses statements (single or batch but must be between BEGIN & END)
 parseStatements :: String -> Either String (Statements, String)
 parseStatements input =
   let inputTrimmed = trim input
-  in if "BEGIN" `isPrefixOf` inputTrimmed
+  in if "BEGIN" `isPrefixOf` inputTrimmed -- Checks if it starsts with BEGIN
        then
-         if "END" `isSuffixOf` inputTrimmed
+         if "END" `isSuffixOf` inputTrimmed -- Checks if it ends with END
            then
-             let body = trim $ drop 5 $ take (length inputTrimmed - 3) inputTrimmed
+             let body = trim $ drop 5 $ take (length inputTrimmed - 3) inputTrimmed -- Removes BEGIN & END and trims
              in if null body
-                  then Right (Batch [], "") -- Allow an empty batch
+                  then Right (Batch [], "") -- If therr is nothing between BEGIN & END
                   else
                     let queries = map (Lib2.parseQuery . trim) (filter (not . null) $ splitOn ';' body)
                         (errors, parsedQueries) = partitionEithers queries
                     in if null errors
                          then Right (Batch parsedQueries, "")
                          else Left $ "Error parsing queries: " ++ show errors
-           else Left "Expected 'END' for batch processing."
-       else Left "Expected 'BEGIN' and 'END' for batch processing."
+           else Left "Expected 'END' for the end of batch processing." -- If it does not end with END
+       else Left "Expected 'BEGIN' for the start of batch processing." -- If it does not start with BEGIN
 
--- For trimming strings
+
+
+-- Removes unnecessary characters
 trim :: String -> String
-trim = f . f
-   where f = reverse . dropWhile (`elem` [' ', '\n', '\r', '\t'])
+trim = f . f -- trim x = f (f x)
+   where f = reverse . dropWhile (`elem` [' ', '\n'])
 
--- For splitting strings
+
+
+-- Used fow splitting when delimiter is ';'
 splitOn :: Char -> String -> [String]
 splitOn _ [] = [""]
 splitOn delimiter (c:cs)
     | c == delimiter = "" : rest
     | otherwise = (c : head rest) : tail rest
   where
-    rest = splitOn delimiter cs
+    rest = splitOn delimiter cs -- Recursively
 
--- Convert the program's state to statements (for saving it in a file)
-marshallState :: Lib2.State -> Statements
+
+
+-- State to statements (for saving it in a file)
+marshallState :: Lib2.State -> Statements -- From Lib2: 'data State = State [Animal]'
 marshallState (Lib2.State animals) =
-    let addQueries = map Lib2.Add animals
+    let addQueries = map Lib2.Add animals -- Applies the Lib2.Add to each Animal in the animals list
     in Batch addQueries
 
--- Load the state from statements
-unmarshallState :: Statements -> Lib2.State
-unmarshallState (Batch queries) = foldl applyQuery Lib2.emptyState queries
-  where
-    applyQuery state query = case Lib2.stateTransition state query of
-      Right (_, newState) -> newState
-      Left _ -> state -- Ignore errors
 
+
+-- Reverse - statements to state
+unmarshallState :: Statements -> Lib2.State
+unmarshallState (Batch queries) = foldl applyQuery Lib2.emptyState queries -- Initialize emptyState
+  where
+    applyQuery state query = case Lib2.stateTransition state query of -- Has current state, a single query from the batch
+      Right (_, newState) -> newState -- Lib2.stateTransition returs a new state that becomes state
+      Left _ -> state -- Current state unchanged
 unmarshallState (Single query) = applyQuery Lib2.emptyState query
   where
     applyQuery state query = case Lib2.stateTransition state query of
       Right (_, newState) -> newState
-      Left _ -> state -- Ignore errors
+      Left _ -> state
 
 
 
--- Convert statements to string representation
+-- Statements to strings
 renderStatements :: Statements -> String
 renderStatements (Single query) = renderQuery query
 renderStatements (Batch queries) = "BEGIN\n" ++ renderBatch queries ++ "END\n"
@@ -139,41 +151,52 @@ renderQuery (Lib2.Delete (Lib2.Animal species name age)) = "DELETE " ++ species 
 renderQuery Lib2.ListAnimals = "LIST"
 renderQuery (Lib2.CompoundQuery q1 q2) = renderQuery q1 ++ "; " ++ renderQuery q2
 
--- Update state based on a command
+
+
+-- made atomic
+-- One big function to update state based on a command
+-- TVar Lib2.State - application's current state in TVar 
+-- Command - some commmand in process - LoadCommand/SaveCommand/StatementCommand
+-- Chan StorageOp - to notify or retrieve results for save/load operationsSAVE
+-- IO - performs IO operations (saving/loading)
 stateTransition :: TVar Lib2.State -> Command -> Chan StorageOp -> IO (Either String (Maybe String, Lib2.State))
 stateTransition stateVar command ioChan = case command of
+
     LoadCommand -> do
-        responseChan <- newChan
-        writeChan ioChan (Load responseChan)
-        result <- readChan responseChan
+        responseChan <- newChan -- New chan for receiving the result of Load performed in storageOpLoop
+        writeChan ioChan (Load responseChan) -- Writes to ioChan
+        result <- readChan responseChan -- result gets data from responseChan
         case parseStatements result of
             Left err -> return $ Left ("Error loading state: " ++ err)
             Right (loadedStatements, _) -> do
-                let loadedState = unmarshallState loadedStatements
-                atomically $ writeTVar stateVar loadedState
+                let loadedState = unmarshallState loadedStatements -- Statements to State
+                atomically $ writeTVar stateVar loadedState -- loadedState is written to current state stateVar
                 return $ Right (Just "State loaded from file.", loadedState)
 
     SaveCommand -> do
-        currentState <- readTVarIO stateVar
-        let statements = marshallState currentState
-        let serializedState = renderStatements statements
-        responseChan <- newChan
+        (serializedState, currentState) <- atomically $ do
+            currentState <- readTVar stateVar
+            let statements = marshallState currentState
+            let serializedState = renderStatements statements
+            return (serializedState, currentState)
+        responseChan <- newChan -- ) to receive the result of save from storageOpLoop
         writeChan ioChan (Save serializedState responseChan)
-        _ <- readChan responseChan
+        _ <- readChan responseChan -- Waits for a response from responseChan
         return $ Right (Just "State saved to file.", currentState)
 
-    StatementCommand statements -> do
+
+    StatementCommand statements -> do -- Handles the main execution of queries
         atomically $ processStatements stateVar statements
   where
     processStatements :: TVar Lib2.State -> Statements -> STM (Either String (Maybe String, Lib2.State))
-    processStatements tvar (Single query) = executeQuerySTM tvar query
+    processStatements tvar (Single query) = executeQuerySTM tvar query -- TVar - current state
     processStatements tvar (Batch queries) = do
         initialState <- readTVar tvar
         processBatch initialState queries
       where
         processBatch :: Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String, Lib2.State))
-        processBatch currentState [] = return $ Right (Just "Batch processed.", currentState)
-        processBatch currentState (q:qs) = do
+        processBatch _ [] = return $ Right (Just "Batch processed.", Lib2.emptyState)
+        processBatch _ (q:qs) = do
             result <- executeQuerySTM tvar q
             case result of
                 Left err -> return $ Left err
@@ -187,9 +210,9 @@ stateTransition stateVar command ioChan = case command of
 
     executeQuerySTM :: TVar Lib2.State -> Lib2.Query -> STM (Either String (Maybe String, Lib2.State))
     executeQuerySTM stateVar query = do
-        currentState <- readTVar stateVar
-        case Lib2.stateTransition currentState query of
+        currentState <- readTVar stateVar -- Reads the current state atomically from the shared TVar
+        case Lib2.stateTransition currentState query of -- Attempts to apply the query to the current state
             Left err -> return $ Left err
             Right (msg, newState) -> do
-                writeTVar stateVar newState
+                writeTVar stateVar newState -- Updates the TVar atomically
                 return $ Right (msg, newState)
