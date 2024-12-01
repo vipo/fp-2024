@@ -5,6 +5,7 @@
 {-# HLINT ignore "Redundant case" #-}
 {-# HLINT ignore "Redundant lambda" #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Lib2
     ( Query(..),
@@ -44,7 +45,7 @@ instance Show Query where
     show List = "List"
     show (Add plan) = "Add " ++ show plan
     show (Delete idx) = "Delete " ++ show idx
-    show (Merge idx1 idx2) = "Merge " ++ show idx1 ++ show idx2
+
 
 instance Show Plan where
     show :: Plan -> String
