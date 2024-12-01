@@ -1,0 +1,67 @@
+ghci> parseInteger "1235"
+Right ("1235","")
+ghci> parseInteger "12a35"
+Right ("12","a35")
+ghci> parseInteger "   12a3   5"
+Right ("12","a3   5")
+ghci> parseInteger "-0000"      
+Left "Expected an integer but found no digits"
+ghci> parseNumber "123456"
+Right (123456,"")
+ghci> parseString "hello;'[]"
+Right ("hello;'[]","")
+
+ghci> parseNumber "abc12"
+Left "Expected a number but found no digits"
+ghci> parseNumber "12abc12"
+Right (12,"abc12")
+
+ghci> and4' (\a b c d -> (a, b, c, d)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') "abcd"
+Right (('a','b','c','d'),"")
+ghci> and4' (\a b c d -> (a, b, c, d)) (parseChar 'a') (parseChar 'b') (parseChar 'c') (parseChar 'd') "abc"  
+Left "Unexpected end of input"
+
+ghci> or3' (parseChar 'a') (parseChar 'b') (parseChar 'c') "ab"
+Right ('a',"b")
+ghci> or3' (parseChar 'a') (parseChar 'b') (parseChar 'c') "d" 
+Left "Expected 'a', but found 'd'; Expected 'b', but found 'd'; Expected 'c', but found 'd'"
+ghci> or3' (parseChar 'a') (parseChar 'b') (parseChar 'c') "abc"
+Right ('a',"bc")
+ghci> or3' (parseChar 'a') (parseChar 'b') (parseChar 'c') "c"  
+Right ('c',"")
+
+ghci> parseLiteral "hello" "aahello"
+Left "Expected \"hello\", but found \"aahel\""
+ghci> parseLiteral "hello" "hello goodbye"
+Right ("hello"," goodbye")
+
+ghci> parseString "sigma   sigma"                    
+Right ("sigma","   sigma")
+ghci> parseString "sigma,sigma"  
+Right ("sigma",",sigma")
+ghci> parseString "\"Hello, world!\" remaining input"
+Right ("Hello, world!"," remaining input")
+
+ghci> parsePrice "10.100000"
+Right (10.1,"")
+ghci> parsePrice "10.10 $"     
+Right (10.1," $")
+ghci> parsePrice "10.a0 $"
+Left "Expected digits after decimal point"
+
+ghci> parseArtType  "Painting"
+Right (Painting,"")
+ghci> parseArtType  "Painting     aaaaaaaaaaaaaaaaaa"
+Right (Painting,"     aaaaaaaaaaaaaaaaaa")
+ghci> parseArtType  "painting     aaaaaaaaaaaaaaaaaa"
+Left "Expected an art type but found none"
+
+ghci> parseArtPiece "10 kms? Photograph 10.1 yup" 
+Right (ArtPiece {artId = 10, title = "kms?", artType = Photograph, price = 10.1, description = "yup"},"")
+
+ghci>  parseAddArtwork "add_artwork (10 kms? Photograph 10.1 yup)"
+Right (AddArtwork (ArtPiece {artId = 10, title = "kms?", artType = Photograph, price = 10.1, description = "yup"}),"")
+
+ghci>  parseCommands "add_artwork (10 kms? Photograph 10.1 yup), print_info ()"
+Right ([AddArtwork (ArtPiece {artId = 10, title = "kms?", artType = Photograph, price = 10.1, description = "yup"})],", print_info ()")
+

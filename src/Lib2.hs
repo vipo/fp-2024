@@ -8,6 +8,10 @@ module Lib2
     ArtPiece(..),
     ArtType(..),
     Artist(..),
+    parseAddArtwork,
+    parseSellArtwork,
+    parsePrintInfo,
+    parseCommands
     ) where
 import Data.Char
 
@@ -16,7 +20,7 @@ data Query
   = AddArtwork ArtPiece
   | SellArtwork ArtPiece
   | PrintInfo 
-  | Sequence [Query] -- Sequence of queries
+  | Sequence [Query] 
   deriving (Eq, Show)
 
 data ArtPiece = ArtPiece {
@@ -71,15 +75,6 @@ parseInteger input =
   in if null digits
        then Left "Expected an integer but found no digits"
        else Right (digits, rest)
-
-and2' :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
-and2' c a b = \input ->
-    case a input of
-        Right (v1, r1) ->
-            case b r1 of
-                Right (v2, r2) -> Right (c v1 v2, r2)
-                Left e2 -> Left e2
-        Left e1 -> Left e1
 
 and3' :: (a1 -> a2 -> a3 -> d) -> Parser a1 -> Parser a2 -> Parser a3 -> Parser d
 and3' f a1 a2 a3 = \input ->
@@ -236,7 +231,7 @@ parseAddArtwork :: Parser Query
 parseAddArtwork =
   and4'
     (\_ _ artWork _ -> AddArtwork artWork)
-    (parseLiteral "sell_artwork")
+    (parseLiteral "add_artwork")
     (parseChar '(')
     parseArtPiece
     (parseChar ')')
@@ -245,6 +240,8 @@ parseAddArtwork =
 
 parseCommand :: Parser Query
 parseCommand = or3' parseAddArtwork parseSellArtwork parsePrintInfo
+
+-- <commands> ::= <command> | <command> ";" <commands>
 
 parseCommands :: Parser [Query]
 parseCommands input = case parseCommand input of
@@ -276,28 +273,33 @@ emptyState = State {artworks = []}
 
 stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition state (AddArtwork art) =
-  -- Check if the artwork already exists in the state by artId.
   if any (\a -> artId a == artId art) (artworks state)
     then Left "Artwork with the same ID already exists."
     else Right (Just "Artwork added.", state { artworks = art : artworks state })
 
 stateTransition state (SellArtwork art) =
-  -- Remove artwork by ID, ensuring it exists in the state.
   let updatedArtworks = filter (\a -> artId a /= artId art) (artworks state)
   in if length updatedArtworks == length (artworks state)
        then Left "Artwork not found for sale."
        else Right (Just "Artwork sold.", state { artworks = updatedArtworks })
 
 stateTransition state PrintInfo =
-  -- Display the current state of artworks.
   let info = if null (artworks state)
                then "No artworks available."
                else unlines (map show (artworks state))
   in Right (Just info, state)
 
+
 stateTransition state (Sequence queries) =
-  -- Process a sequence of queries, updating the state sequentially.
-  foldl (\acc q -> case acc of
-           Left err -> Left err
-           Right (_, st) -> stateTransition st q)
-        (Right (Nothing, state)) queries
+  let applyQuery (accMsg, st) q =
+        case stateTransition st q of
+          Left err -> Left err
+          Right (Just newMsg, newSt) ->
+            Right (Just (maybe "" (++ "\n") accMsg ++ newMsg), newSt)
+          Right (Nothing, newSt) -> Right (accMsg, newSt)
+  in case foldl (\acc q -> case acc of
+                            Left err -> Left err
+                            Right (msg, st) -> applyQuery (msg, st) q)
+                (Right (Nothing, state)) queries of
+       Right (Just msg, finalState) -> Right (Just (init msg), finalState)  
+       result -> result
