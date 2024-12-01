@@ -11,7 +11,10 @@ module Lib2
     parseAddArtwork,
     parseSellArtwork,
     parsePrintInfo,
-    parseCommands
+    parseCommands,
+    parseLiteral,
+    strip,
+    or3'
     ) where
 import Data.Char
 
@@ -130,8 +133,21 @@ or3' p1 p2 p3 = \input ->
       Left e2 -> case p3 input of
         Right r3 -> Right r3
         Left e3 -> Left (e1 ++ "; " ++ e2 ++ "; " ++ e3)
--- BNF parsers
 
+-- BNF parsers
+strip :: String -> String
+strip = lstrip . rstrip
+
+lstrip :: String -> String
+lstrip s = case s of
+  [] -> []
+  (x : xs) ->
+    if x `elem` " \t\r\n"
+      then lstrip xs
+      else s
+
+rstrip :: String -> String
+rstrip = reverse . lstrip . reverse
 -- <id> ::= <integer>
 parseNumber :: Parser Int
 parseNumber input =
@@ -270,6 +286,13 @@ data State = State
 emptyState :: State
 emptyState = State {artworks = []}
 
+many :: Parser a -> Parser [a]
+many p = many' p []
+  where
+    many' p' acc input =
+      case p' input of
+        Left _ -> Right (acc, input)
+        Right (v, r) -> many' p' (acc ++ [v]) r
 
 stateTransition :: State -> Query -> Either String (Maybe String, State)
 stateTransition state (AddArtwork art) =
