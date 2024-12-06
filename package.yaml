@@ -99,7 +99,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - doctest
-=======
+
 name:                fp2024
 version:             0.1.0.0
 github:              "githubuser/fp2024"

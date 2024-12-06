@@ -8,9 +8,14 @@
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Lib2
-    ( Query(..),
-      parseQuery,
+    ( 
+      Query(..),
       State(..),
+      parseQuery,
+      Plan(..),
+      Routine(..),
+      Exercise(..),
+      SOR(..),
       emptyState,
       stateTransition
     ) where
@@ -23,8 +28,12 @@ instance Eq Query where
       (==) :: Query -> Query -> Bool
       (==) q1 q2 = show q1 == show q2
 
+instance Eq Plan where
+      (==) :: Plan -> Plan -> Bool
+      (==) q1 q2 = show q1 == show q2
+
 -- <cline> ::= <command> <plan>
-data Query = Add Plan | Delete Int | Merge Int Int | List
+data Query = Add Plan | Delete Int | Merge Int Int | List 
 
 -- <plan> ::= <weekDay> "(" <routine> ")" | <weekDay> "(" <routine>  ") " <plan> 
 data Plan = WeekDay [(String, Routine)]
@@ -45,11 +54,13 @@ instance Show Query where
     show List = "List"
     show (Add plan) = "Add " ++ show plan
     show (Delete idx) = "Delete " ++ show idx
-
+    show (Merge idx1 idx2) = "Merge " ++ show idx1 ++ " " ++ show idx2
 
 instance Show Plan where
     show :: Plan -> String
-    show (WeekDay days) = unlines $ map (\(day, routine) -> day ++ ": " ++ show routine) days
+    show (WeekDay days) = 
+        let planStrs = map (\(day, routine) -> day ++ ": " ++ show routine) days
+        in L.intercalate ";\n   " planStrs ++ ";"
 
 instance Show Routine where
     show :: Routine -> String
@@ -85,7 +96,10 @@ parseQuery input = fmap fst (orElse parseList (orElse parseMerge parseOrder) inp
     parseOrder input' =
         case removeSpaces input' of
             'A':'d':'d':' ':rest ->
-                fmap (\(plan, remaining) -> (Add plan, remaining)) (parsePlan rest)
+                let (planStr, remaining) = break (== ';') rest
+                in case parsePlan planStr of
+                    Right (plan, _) -> Right (Add plan, drop 1 remaining)
+                    Left err -> Left err
             'D':'e':'l':'e':'t':'e':' ':rest ->
                 case readMaybe (takeWhile C.isDigit rest) of
                     Just idx -> Right (Delete idx, dropWhile C.isDigit rest)

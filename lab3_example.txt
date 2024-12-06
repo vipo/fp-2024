@@ -1,0 +1,18 @@
+:paste
+
+BEGIN
+Add Monday 2x3 squats, 2x3 squats
+Add Tuesday 2x3 squats, 2x3 squats
+Merge 1 2
+Add Friday 2x3 squats, 2x3 squats
+Merge 1 2
+Add Saturday 2x3 squats, 2x3 squats
+Add Sunday 2x3 squats, 2x3 squats
+Add Thursday 2x3 squats, 2x3 squats
+Merge 3 4
+END
+
+List
+Save
+//stack-run fp2024-three arba Delete 3; Delete 2; Delete 1
+Load
