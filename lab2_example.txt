@@ -1,0 +1,18 @@
+>>> view
+The deck is empty.
+>>> add Two of Hearts
+Card added.
+>>> view
+Two of Hearts
+>>> add Three of Diamonds, Jack of Clubs
+Deck added.
+>>> view
+Three of Diamonds, Jack of Clubs, Two of Hearts
+>>> delete
+Deck deleted.
+>>> view
+The deck is empty.
+>>> add Joker
+Card added.
+>>> view
+Joker

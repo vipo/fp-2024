@@ -1,0 +1,5 @@
+START
+view;
+add Joker, Joker;
+delete;
+FINISH
