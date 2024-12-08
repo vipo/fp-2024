@@ -1,5 +1,5 @@
 {
-	"image": "vipo/ghcup:9.4.8-4",
+	"image": "vipo/ghcup:9.4.8-5",
 	"customizations": {
 		"vscode": {
 			"extensions": [
