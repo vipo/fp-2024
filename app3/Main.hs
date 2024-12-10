@@ -33,7 +33,7 @@ ini = liftIO $ putStrLn "Welcome! Press [TAB] for auto completion, type ':paste'
 
 completer :: (Monad m) => WordCompleter m
 completer n =
-  return $ ":paste" : Prelude.filter (L.isPrefixOf n) Lib1.completions
+  return $ Prelude.filter (L.isPrefixOf n) $ Lib1.completions ++ [":paste"]
 
 cmd :: String -> Repl ()
 cmd str = do
