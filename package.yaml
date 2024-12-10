@@ -36,11 +36,13 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - free
   - random
   - stm
   - async
   - QuickCheck
   - transformers
+  - strict
 
 executables:
   fp2024-one:
@@ -76,6 +78,32 @@ executables:
     - repline
     - mtl
     - stm
+  fp2024-four-client:
+    main:                Main.hs
+    source-dirs:         app4-client
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - fp2024
+    - repline
+    - lens
+    - wreq
+    - bytestring
+    - string-conversions
+  fp2024-four-server:
+    main:                Main.hs
+    source-dirs:         app4-server
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - fp2024
+    - repline
+    - scotty
+    - string-conversions
 
 tests:
   fp2024-test:

@@ -1,3 +1,23 @@
+LIST
+LOAD
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+SAVE
+ADD hamster Micc 1
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
 END
 ADD fish Jem 1;
 DELETE dog Max 5;
@@ -78,23 +98,3 @@ LIST
 DELETE cat Murr 4;
 ADD dog Au 8;
 ADD cat Murr 4;
-ADD bug Sim 1;
-ADD snake Long 10;
-BEGIN
-:paste
-SAVE
-END
-ADD dog Max 5;
-BEGIN
-:paste
-ADD chicken Tom 4;
-ADD chicken Tom 5;
-ADD chicken Tom 5;
-LIST
-LOAD
-SAVE
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
