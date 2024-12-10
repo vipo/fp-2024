@@ -43,6 +43,7 @@ library:
   - QuickCheck
   - transformers
   - strict
+  - deepseq
 
 executables:
   fp2024-one:
