@@ -156,7 +156,7 @@ stateTransition (State animals) (Delete animal) =
     else Left ("Animal " ++ show animal ++ " not found.")
 
 stateTransition (State animals) SaveCommand =
-    Right (Just "State saved successfully.", State animals)
+    Right (Just "\n-----State saved successfully-----", State animals)
 
 stateTransition (State animals) LoadCommand =
     Right (Just "State loaded successfully.", State animals)
@@ -165,7 +165,7 @@ stateTransition (State animals) LoadCommand =
 stateTransition (State animals) ListAnimals =
     if null animals
     then Right (Just "No animals found.", State animals)
-    else Right (Just ("Current animals: " ++ show animals), State animals)
+    else Right (Just ("\nCurrent animals: " ++ show animals), State animals)
 
 -- Handles compound queries
 stateTransition state (CompoundQuery q1 q2) =

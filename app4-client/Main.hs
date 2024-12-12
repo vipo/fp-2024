@@ -1,5 +1,3 @@
-module Main where
-
 import ClientDSL
 import Network.Wreq
 import Data.String.Conversions (cs)
@@ -15,6 +13,11 @@ main = do
     let program = do
             addAnimal "Lion" "Leo" 5
             addAnimal "Tiger" "Tina" 3
+            addAnimal "Bug" "Sim" 1
+            addAnimal "cat" "Murr" 4
+            addAnimal "snake" "Long" 10
+            deleteAnimal "cat" "Murr" 4
+            addAnimal "dog" "Au" 8
             saveState
             listAnimals
 
@@ -22,7 +25,7 @@ main = do
     let batchRequest = "BEGIN\n" ++ interpretBatch program
 
     -- Debugging: Print the batch request to check what is being sent to the server
-    putStrLn $ "Batch Request: " ++ batchRequest
+    -- putStrLn $ "Batch Request: " ++ batchRequest
 
     -- Send the batch request to the server
     result <- sendBatch batchRequest

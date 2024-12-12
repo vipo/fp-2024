@@ -2,6 +2,9 @@ module ClientDSL where
 
 import Control.Monad.Free
 import Data.List (intercalate)
+import Control.Exception (try, SomeException)
+
+
 
 -- Define the DSL
 data CommandDSL a
@@ -57,3 +60,28 @@ interpretBatch program = let (commands, _) = runBatch program in intercalate ";\
         (["LOAD"], Nothing)
     runBatch (Pure a) = ([], Just a)
 
+-- interpretOneByOne :: Program a -> IO [String]
+-- interpretOneByOne (Free (AddAnimal sp n a next)) = do
+--     sendBatch $ "ADD " ++ sp ++ " " ++ n ++ " " ++ show a
+--     interpretOneByOne next
+-- interpretOneByOne (Free (DeleteAnimal sp n a next)) = do
+--     sendBatch $ "DELETE " ++ sp ++ " " ++ n ++ " " ++ show a
+--     interpretOneByOne next
+-- interpretOneByOne (Free (ListAnimals next)) = do
+--     res <- sendBatch "LIST"
+--     interpretOneByOne (next res)
+-- interpretOneByOne (Free (SaveState next)) = do
+--     sendBatch "SAVE"
+--     interpretOneByOne next
+-- interpretOneByOne (Free (LoadState next)) = do
+--     res <- sendBatch "LOAD"
+--     interpretOneByOne (next res)
+-- interpretOneByOne (Pure _) = return []
+
+-- sendBatch :: String -> IO String
+-- sendBatch batchRequest = do
+--     let url = "http://localhost:3000"
+--     result <- try $ post url batchRequest :: IO (Either SomeException (Response L.ByteString))
+--     return $ case result of
+--         Left ex -> "Error: " ++ show ex
+--         Right response -> unpack $ response ^. responseBody
