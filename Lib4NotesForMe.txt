@@ -1,0 +1,6 @@
+1. Navigate to 'app4-server' and run
+2. stack run fp2024-four-server
+
+From any directory I can run sth, for example
+curl -X POST http://localhost:3000 -d "ADD Lion Leo 3"
+to test that it gets POST

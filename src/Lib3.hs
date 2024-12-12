@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Lib3
     ( stateTransition,
@@ -9,6 +10,7 @@ module Lib3
       marshallState,
       unmarshallState,
       renderStatements,
+      processCommand,
       Statements(..),
       Command(..),
     ) where
@@ -153,7 +155,6 @@ renderQuery (Lib2.CompoundQuery q1 q2) = renderQuery q1 ++ "; " ++ renderQuery q
 
 
 
--- made atomic
 -- One big function to update state based on a command
 -- TVar Lib2.State - application's current state in TVar 
 -- Command - some commmand in process - LoadCommand/SaveCommand/StatementCommand
@@ -216,3 +217,15 @@ stateTransition stateVar command ioChan = case command of
             Right (msg, newState) -> do
                 writeTVar stateVar newState -- Updates the TVar atomically
                 return $ Right (msg, newState)
+
+
+-- Parses a plain-text command, processes it and returns a response
+processCommand :: TVar Lib2.State -> Chan StorageOp -> String -> IO String
+processCommand stateVar ioChan input = case parseCommand input of
+    Left err -> return $ "Error: " ++ err
+    Right (command, _) -> do
+        result <- stateTransition stateVar command ioChan
+        return $ case result of
+            Left err -> "Error: " ++ err
+            Right (msg, _) -> maybe "" id msg
+

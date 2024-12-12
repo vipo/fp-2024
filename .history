@@ -1,3 +1,11 @@
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
 LIST
 LOAD
 SAVE
@@ -90,11 +98,3 @@ ADD cat Tom 2;
 BEGIN
 :paste
 LIST
-LOAD
-SAVE
-LIST
-END
-LIST
-DELETE cat Murr 4;
-ADD dog Au 8;
-ADD cat Murr 4;
