@@ -21,6 +21,9 @@ main = do
     -- Convert the DSL program to a batch request
     let batchRequest = "BEGIN\n" ++ interpretBatch program
 
+    -- Debugging: Print the batch request to check what is being sent to the server
+    putStrLn $ "Batch Request: " ++ batchRequest
+
     -- Send the batch request to the server
     result <- sendBatch batchRequest
     case result of

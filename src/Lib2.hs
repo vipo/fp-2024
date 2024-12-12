@@ -29,7 +29,9 @@ data Query
     = Add Animal
     | Delete Animal
     | ListAnimals
-    | CompoundQuery Query Query  -- recursive constructor
+    | SaveCommand
+    | LoadCommand
+    | CompoundQuery Query Query
     deriving (Show, Eq)
 
 -- <animal> ::= <species> <name> <age>
@@ -80,9 +82,17 @@ type Parser a = String -> Either String (a, String)
 
 -- <command> ::= <add_animal> | <delete_animal> | 'LIST' | <compound_query>
 parseQuery :: String -> Either String Query
-parseQuery s 
+parseQuery s
     | null s = Left "Expected some command but did not get anything"
-    | otherwise = parseList s `orElse` parseCompoundQuery s `orElse` parseAdd s `orElse` parseDelete s
+    | otherwise =
+        parseList s `orElse`
+        parseCompoundQuery s `orElse`
+        parseAdd s `orElse`
+        parseDelete s `orElse`
+        (parseLiteral "SAVE" s `andThen` \_ -> Right SaveCommand) `orElse`
+        (parseLiteral "LOAD" s `andThen` \_ -> Right LoadCommand)
+
+
 
 
 -- <compound_query> ::= <command> ';' <command>
@@ -144,6 +154,13 @@ stateTransition (State animals) (Delete animal) =
     if animal `elem` animals
     then Right (Just ("Deleted animal: " ++ show animal), State (filter (/= animal) animals))
     else Left ("Animal " ++ show animal ++ " not found.")
+
+stateTransition (State animals) SaveCommand =
+    Right (Just "State saved successfully.", State animals)
+
+stateTransition (State animals) LoadCommand =
+    Right (Just "State loaded successfully.", State animals)
+
 
 stateTransition (State animals) ListAnimals =
     if null animals

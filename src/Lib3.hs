@@ -79,21 +79,33 @@ parseCommand input
 parseStatements :: String -> Either String (Statements, String)
 parseStatements input =
   let inputTrimmed = trim input
-  in if "BEGIN" `isPrefixOf` inputTrimmed -- Checks if it starsts with BEGIN
+  in if "BEGIN" `isPrefixOf` inputTrimmed -- Checks if it starts with BEGIN
        then
          if "END" `isSuffixOf` inputTrimmed -- Checks if it ends with END
            then
              let body = trim $ drop 5 $ take (length inputTrimmed - 3) inputTrimmed -- Removes BEGIN & END and trims
              in if null body
-                  then Right (Batch [], "") -- If therr is nothing between BEGIN & END
+                  then Right (Batch [], "") -- If there's nothing between BEGIN & END
                   else
-                    let queries = map (Lib2.parseQuery . trim) (filter (not . null) $ splitOn ';' body)
-                        (errors, parsedQueries) = partitionEithers queries
+                    let commands = map (trim . trimExtra) (splitOn ';' body)
+                        parsedCommands = map parseCommandOrStatement commands
+                        (errors, queries) = partitionEithers parsedCommands
                     in if null errors
-                         then Right (Batch parsedQueries, "")
+                         then Right (Batch queries, "")
                          else Left $ "Error parsing queries: " ++ show errors
            else Left "Expected 'END' for the end of batch processing." -- If it does not end with END
        else Left "Expected 'BEGIN' for the start of batch processing." -- If it does not start with BEGIN
+
+-- Helper to trim additional characters if necessary
+trimExtra :: String -> String
+trimExtra = trim . dropWhile (`elem` [';', ' '])
+
+
+parseCommandOrStatement :: String -> Either String Lib2.Query
+parseCommandOrStatement input
+  | "SAVE" `isPrefixOf` input = Right Lib2.SaveCommand
+  | "LOAD" `isPrefixOf` input = Right Lib2.LoadCommand
+  | otherwise = Lib2.parseQuery input
 
 
 
