@@ -208,7 +208,7 @@ stateTransition stateVar command ioChan = case command of
         processBatch initialState queries
       where
         processBatch :: Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String, Lib2.State))
-        processBatch _ [] = return $ Right (Just "\nBatch processed.", Lib2.emptyState)
+        processBatch _ [] = return $ Right (Just "\nBatch processed.\n\n", Lib2.emptyState)
         processBatch _ (q:qs) = do
             result <- executeQuerySTM tvar q
             case result of

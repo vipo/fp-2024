@@ -40,16 +40,21 @@ library
       Paths_fp2024
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
     , async
     , base >=4.7 && <5
+    , bytestring
     , free
+    , lens
     , random
+    , scotty
     , stm
     , strict
+    , string-conversions
     , transformers
+    , wreq
   default-language: Haskell2010
 
 executable fp2024-four-client
@@ -62,12 +67,20 @@ executable fp2024-four-client
       app4-client
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
     , bytestring
     , fp2024
+    , free
     , lens
+    , random
     , repline
+    , scotty
+    , stm
+    , strict
     , string-conversions
+    , transformers
     , wreq
   default-language: Haskell2010
 
@@ -81,12 +94,21 @@ executable fp2024-four-server
       app4-server
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , bytestring
     , fp2024
+    , free
+    , lens
+    , random
     , repline
     , scotty
     , stm
+    , strict
     , string-conversions
+    , transformers
+    , wreq
   default-language: Haskell2010
 
 executable fp2024-one
@@ -99,9 +121,21 @@ executable fp2024-one
       app1
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , bytestring
     , fp2024
+    , free
+    , lens
+    , random
     , repline
+    , scotty
+    , stm
+    , strict
+    , string-conversions
+    , transformers
+    , wreq
   default-language: Haskell2010
 
 executable fp2024-three
@@ -114,11 +148,22 @@ executable fp2024-three
       app3
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , bytestring
     , fp2024
+    , free
+    , lens
     , mtl
+    , random
     , repline
+    , scotty
     , stm
+    , strict
+    , string-conversions
+    , transformers
+    , wreq
   default-language: Haskell2010
 
 executable fp2024-two
@@ -131,10 +176,22 @@ executable fp2024-two
       app2
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , bytestring
     , fp2024
+    , free
+    , lens
     , mtl
+    , random
     , repline
+    , scotty
+    , stm
+    , strict
+    , string-conversions
+    , transformers
+    , wreq
   default-language: Haskell2010
 
 test-suite fp2024-doctest
@@ -148,8 +205,20 @@ test-suite fp2024-doctest
       doctest
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , async
+    , base >=4.7 && <5
+    , bytestring
     , doctest
+    , free
+    , lens
+    , random
+    , scotty
+    , stm
+    , strict
+    , string-conversions
+    , transformers
+    , wreq
   default-language: Haskell2010
 
 test-suite fp2024-test
@@ -164,9 +233,20 @@ test-suite fp2024-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
+    , async
     , base >=4.7 && <5
+    , bytestring
     , fp2024
+    , free
+    , lens
+    , random
+    , scotty
+    , stm
+    , strict
+    , string-conversions
     , tasty
     , tasty-hunit
     , tasty-quickcheck
+    , transformers
+    , wreq
   default-language: Haskell2010

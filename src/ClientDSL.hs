@@ -1,8 +1,12 @@
 module ClientDSL where
 
-import Control.Monad.Free
+import Control.Monad.Free ( Free(..), liftF )
 import Data.List (intercalate)
 import Control.Exception (try, SomeException)
+import Control.Lens ((^.))
+import Network.Wreq (post, responseBody, Response)
+import qualified Data.ByteString.Lazy.Char8 as L -- Char8 for String-like operations on ByteString
+
 
 
 
@@ -60,28 +64,33 @@ interpretBatch program = let (commands, _) = runBatch program in intercalate ";\
         (["LOAD"], Nothing)
     runBatch (Pure a) = ([], Just a)
 
--- interpretOneByOne :: Program a -> IO [String]
--- interpretOneByOne (Free (AddAnimal sp n a next)) = do
---     sendBatch $ "ADD " ++ sp ++ " " ++ n ++ " " ++ show a
---     interpretOneByOne next
--- interpretOneByOne (Free (DeleteAnimal sp n a next)) = do
---     sendBatch $ "DELETE " ++ sp ++ " " ++ n ++ " " ++ show a
---     interpretOneByOne next
--- interpretOneByOne (Free (ListAnimals next)) = do
---     res <- sendBatch "LIST"
---     interpretOneByOne (next res)
--- interpretOneByOne (Free (SaveState next)) = do
---     sendBatch "SAVE"
---     interpretOneByOne next
--- interpretOneByOne (Free (LoadState next)) = do
---     res <- sendBatch "LOAD"
---     interpretOneByOne (next res)
--- interpretOneByOne (Pure _) = return []
+interpretOneByOne :: Program a -> IO [String]
+interpretOneByOne (Free (AddAnimal sp n a next)) = do
+    sendBatch $ "ADD " ++ sp ++ " " ++ n ++ " " ++ show a
+    interpretOneByOne next
+interpretOneByOne (Free (DeleteAnimal sp n a next)) = do
+    sendBatch $ "DELETE " ++ sp ++ " " ++ n ++ " " ++ show a
+    interpretOneByOne next
+interpretOneByOne (Free (ListAnimals next)) = do
+    res <- sendBatch "LIST"
+    let animalList = lines res -- Convert response into [String]
+    interpretOneByOne (next animalList)
+interpretOneByOne (Free (SaveState next)) = do
+    sendBatch "SAVE"
+    interpretOneByOne next
+interpretOneByOne (Free (LoadState next)) = do
+    res <- sendBatch "LOAD"
+    interpretOneByOne (next res)
+interpretOneByOne (Pure _) = return []
 
--- sendBatch :: String -> IO String
--- sendBatch batchRequest = do
---     let url = "http://localhost:3000"
---     result <- try $ post url batchRequest :: IO (Either SomeException (Response L.ByteString))
---     return $ case result of
---         Left ex -> "Error: " ++ show ex
---         Right response -> unpack $ response ^. responseBody
+-- ClientDSL.hs
+sendBatch :: String -> IO String
+sendBatch batchRequest = do
+    let url = "http://localhost:3000"
+    let batchRequestBody = L.pack batchRequest -- Converts String to Lazy ByteString
+    result <- try $ post url batchRequestBody :: IO (Either SomeException (Response L.ByteString))
+    return $ case result of
+        Left ex -> "Error: " ++ show ex
+        Right response -> L.unpack (response ^. responseBody) -- Converts Lazy ByteString to String
+
+

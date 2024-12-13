@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad.IO.Class (liftIO)
 import Data.String.Conversions (cs)
-import Control.Concurrent.STM (newTVarIO, TVar, atomically, readTVar, writeTVar)
+import Control.Concurrent.STM (newTVarIO, TVar)
 import Control.Concurrent (forkIO)
 import Control.Concurrent.Chan (newChan, Chan)
 import Web.Scotty

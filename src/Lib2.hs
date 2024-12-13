@@ -156,7 +156,7 @@ stateTransition (State animals) (Delete animal) =
     else Left ("Animal " ++ show animal ++ " not found.")
 
 stateTransition (State animals) SaveCommand =
-    Right (Just "\n-----State saved successfully-----", State animals)
+    Right (Just "\n\n-----State saved successfully-----\n", State animals)
 
 stateTransition (State animals) LoadCommand =
     Right (Just "State loaded successfully.", State animals)

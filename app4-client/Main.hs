@@ -28,14 +28,14 @@ main = do
     -- putStrLn $ "Batch Request: " ++ batchRequest
 
     -- Send the batch request to the server
-    result <- sendBatch batchRequest
+    result <- sendBatchMain batchRequest
     case result of
         Left err -> putStrLn $ "Error: " ++ err
-        Right response -> putStrLn $ "Response from server: " ++ response
+        Right response -> putStrLn $ "\n\nResponse from server: " ++ response
 
--- Send a batch request to the server
-sendBatch :: String -> IO (Either String String)
-sendBatch batchRequest = do
+-- Main.hs
+sendBatchMain :: String -> IO (Either String String)
+sendBatchMain batchRequest = do
     let url = "http://localhost:3000"
     let batchRequestBody = L.fromStrict (cs batchRequest :: B.ByteString)
     result <- try $ post url batchRequestBody :: IO (Either SomeException (Response L.ByteString))
