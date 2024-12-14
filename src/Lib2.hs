@@ -25,6 +25,10 @@ import qualified Data.Char as C
 data Animal = Animal { species :: String, name :: String, age :: Int }
     deriving (Show, Eq)
 
+instance Ord Animal where
+    compare (Animal s1 n1 a1) (Animal s2 n2 a2) =
+        compare (s1, n1, a1) (s2, n2, a2)
+
 data Query
     = Add Animal
     | Delete Animal

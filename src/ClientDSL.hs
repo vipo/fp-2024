@@ -73,7 +73,7 @@ interpretOneByOne (Free (DeleteAnimal sp n a next)) = do
     interpretOneByOne next
 interpretOneByOne (Free (ListAnimals next)) = do
     res <- sendBatch "LIST"
-    let animalList = lines res -- Convert response into [String]
+    let animalList = lines res
     interpretOneByOne (next animalList)
 interpretOneByOne (Free (SaveState next)) = do
     sendBatch "SAVE"

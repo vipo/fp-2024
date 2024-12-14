@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       ClientDSL
+      InMemoryInterpreter
       Lessons.Lesson01
       Lessons.Lesson07
       Lessons.Lesson10
@@ -48,6 +49,7 @@ library
     , bytestring
     , free
     , lens
+    , mtl
     , random
     , scotty
     , stm
@@ -74,6 +76,7 @@ executable fp2024-four-client
     , fp2024
     , free
     , lens
+    , mtl
     , random
     , repline
     , scotty
@@ -101,6 +104,7 @@ executable fp2024-four-server
     , fp2024
     , free
     , lens
+    , mtl
     , random
     , repline
     , scotty
@@ -128,6 +132,7 @@ executable fp2024-one
     , fp2024
     , free
     , lens
+    , mtl
     , random
     , repline
     , scotty
@@ -212,6 +217,7 @@ test-suite fp2024-doctest
     , doctest
     , free
     , lens
+    , mtl
     , random
     , scotty
     , stm
@@ -225,11 +231,22 @@ test-suite fp2024-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      ClientDSL
+      InMemoryInterpreter
+      Lessons.Lesson01
+      Lessons.Lesson07
+      Lessons.Lesson10
+      Lessons.Lesson11
+      Lessons.Lesson12
+      Lib1
+      Lib2
+      Lib3
       Paths_fp2024
   autogen-modules:
       Paths_fp2024
   hs-source-dirs:
       test
+      src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
@@ -239,6 +256,7 @@ test-suite fp2024-test
     , fp2024
     , free
     , lens
+    , mtl
     , random
     , scotty
     , stm

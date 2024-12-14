@@ -33,6 +33,7 @@ dependencies:
 - bytestring
 - string-conversions
 - scotty
+- mtl
 
 ghc-options:
 - -Wall
@@ -58,6 +59,7 @@ library:
   - QuickCheck
   - transformers
   - strict
+  - mtl
 
 executables:
   fp2024-one:
@@ -66,6 +68,7 @@ executables:
     dependencies:
     - fp2024
     - repline
+    - mtl
   fp2024-two:
     main:                Main.hs
     source-dirs:         app2
@@ -91,6 +94,7 @@ executables:
     - wreq
     - bytestring
     - string-conversions
+    - mtl
   fp2024-four-server:
     main:                Main.hs
     source-dirs:         app4-server
@@ -100,19 +104,24 @@ executables:
     - scotty
     - string-conversions
     - stm
+    - mtl
 
 tests:
   fp2024-test:
     main:                Spec.hs
-    source-dirs:         test
+    source-dirs:         
+    - test
+    - src
     dependencies:
     - fp2024
     - tasty
     - tasty-hunit
     - tasty-quickcheck
     - QuickCheck
+    - mtl
   fp2024-doctest:
     main:                Doctest.hs
     source-dirs:         doctest
     dependencies:
     - doctest
+    - mtl
