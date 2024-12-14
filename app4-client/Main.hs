@@ -1,14 +1,14 @@
 import ClientDSL
 import Network.Wreq
-import Data.String.Conversions (cs)
 import Control.Lens ((^.))
-import Control.Exception (try, SomeException)
+import Data.String.Conversions (cs)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
+import Control.Exception (try, SomeException)
 
 
 
-main :: IO ()
+main :: IO () -- defines a program using a DSL
 main = do
     let program = do
             addAnimal "Lion" "Leo" 5
@@ -21,19 +21,14 @@ main = do
             saveState
             listAnimals
 
-    -- Convert the DSL program to a batch request
     let batchRequest = "BEGIN\n" ++ interpretBatch program
 
-    -- Debugging: Print the batch request to check what is being sent to the server
-    -- putStrLn $ "Batch Request: " ++ batchRequest
-
-    -- Send the batch request to the server
     result <- sendBatchMain batchRequest
     case result of
         Left err -> putStrLn $ "Error: " ++ err
         Right response -> putStrLn $ "\n\nResponse from server: " ++ response
 
--- Main.hs
+
 sendBatchMain :: String -> IO (Either String String)
 sendBatchMain batchRequest = do
     let url = "http://localhost:3000"
@@ -42,7 +37,4 @@ sendBatchMain batchRequest = do
     return $ case result of
         Left ex -> Left $ show ex
         Right response -> Right $ cs $ response ^. responseBody
-
-
-
 
