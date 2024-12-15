@@ -1,4 +1,4 @@
 START
 delete;
-add Joker, Joker, Two of Spades;
+add Two of Spades, Queen of Diamonds, Joker;
 FINISH

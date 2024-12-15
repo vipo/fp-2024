@@ -78,7 +78,7 @@ parseString value = do
             lift $ put (drop len input)
             return value
         else
-            throwE "Invalid input"
+            throwE $"Invalid input "++ value ++"|"++ input
 
 parseWord :: String -> [(String, a)] -> Parser a
 parseWord typeName wordList = do
@@ -153,19 +153,13 @@ mergeDecks (Deck card restOfDeck) existingDeck = Deck card (mergeDecks restOfDec
 parseView :: Parser Query
 parseView = do
     _ <- parseString "view"
-    rest <- lift get
-    if all C.isSpace rest
-        then return ViewDeck
-        else throwE "Expected only whitespace after 'view'"
+    return ViewDeck
 
 -- <deleteDeck> ::= "delete"
 parseDelete :: Parser Query
 parseDelete = do
     _ <- parseString "delete"
-    rest <- lift get
-    if all C.isSpace rest
-        then return DeleteDeck
-        else throwE "Expected only whitespace after 'delete'"
+    return DeleteDeck
 
 -- <addDeck> ::= "add" <deck>
 parseAddDeck :: Parser Query

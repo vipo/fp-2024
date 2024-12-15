@@ -62,7 +62,12 @@ data Command = StatementCommand Statements |
 
 -- | Parses user's input.
 parseCommand :: String -> Either String (Command, String)
-parseCommand = runParser command
+parseCommand input =
+    let (result, rest) = parse command input
+    in case result of
+        Right cmd -> Right (cmd, rest)
+        Left err -> Left err
+
 
 command :: Parser Command
 command =
@@ -88,19 +93,20 @@ parseLoad = do
 -- You can change Lib2.parseQuery signature if needed.
 parseStatements :: Parser Statements
 parseStatements =
-  (do
-    _ <- parseString "START\n"
-    qs <- many (do
-                  q <- Lib2.parseQuery'
-                  _ <- parseString ";\n"
-                  return q
-                )
-    _ <- parseString "FINISH\n"
-    return (Batch qs)
+  ( do
+      _ <- parseString "START\n"
+      q <-
+        many
+          ( do
+              q <- parseView <|> parseDelete <|> parseAddDeck
+              _ <- parseString ";\n"
+              return q
+          )
+      _ <- parseString "FINISH\n"
+      return $ Batch q
   )
-  <|> (do
-    Single <$> Lib2.parseQuery'
-  )
+    <|> (Single <$> (parseView <|> parseDelete <|> parseAddDeck))
+
 
 
 -- | Converts program's state into Statements
@@ -145,9 +151,10 @@ stateTransition stateVar LoadCommand ioChan = do
   resultChan <- newChan
   writeChan ioChan (Load resultChan)
   dataString <- readChan resultChan
-  case runParser parseStatements dataString of
+  let (parseResult, _) = parse parseStatements dataString
+  case parseResult of
     Left parseErr -> return $ Left $ "Load failed:\n" ++ parseErr
-    Right (parsedCmds, _) -> stateTransition stateVar (StatementCommand parsedCmds) ioChan
+    Right parsedCmds -> stateTransition stateVar (StatementCommand parsedCmds) ioChan
 
 stateTransition stateVar (StatementCommand cmds) _ = atomically $ processStatements stateVar cmds
 

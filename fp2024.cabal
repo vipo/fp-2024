@@ -41,7 +41,6 @@ library
       Lib1
       Lib2
       Lib3
-      Parser
       Parsers
   other-modules:
       Paths_fp2024
