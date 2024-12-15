@@ -1,4 +1,4 @@
 BEGIN
-ADD fish Jem 1;
-ADD cat Tom 2;
+ADD Tiger Tina 3;
+ADD Lion Leo 5;
 END

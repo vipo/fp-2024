@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Lib3
     ( stateTransition,
@@ -9,6 +10,7 @@ module Lib3
       marshallState,
       unmarshallState,
       renderStatements,
+      processCommand,
       Statements(..),
       Command(..),
     ) where
@@ -77,21 +79,33 @@ parseCommand input
 parseStatements :: String -> Either String (Statements, String)
 parseStatements input =
   let inputTrimmed = trim input
-  in if "BEGIN" `isPrefixOf` inputTrimmed -- Checks if it starsts with BEGIN
+  in if "BEGIN" `isPrefixOf` inputTrimmed -- Checks if it starts with BEGIN
        then
          if "END" `isSuffixOf` inputTrimmed -- Checks if it ends with END
            then
              let body = trim $ drop 5 $ take (length inputTrimmed - 3) inputTrimmed -- Removes BEGIN & END and trims
              in if null body
-                  then Right (Batch [], "") -- If therr is nothing between BEGIN & END
+                  then Right (Batch [], "") -- If there's nothing between BEGIN & END
                   else
-                    let queries = map (Lib2.parseQuery . trim) (filter (not . null) $ splitOn ';' body)
-                        (errors, parsedQueries) = partitionEithers queries
+                    let commands = map (trim . trimExtra) (splitOn ';' body)
+                        parsedCommands = map parseCommandOrStatement commands
+                        (errors, queries) = partitionEithers parsedCommands
                     in if null errors
-                         then Right (Batch parsedQueries, "")
+                         then Right (Batch queries, "")
                          else Left $ "Error parsing queries: " ++ show errors
            else Left "Expected 'END' for the end of batch processing." -- If it does not end with END
        else Left "Expected 'BEGIN' for the start of batch processing." -- If it does not start with BEGIN
+
+-- Helper to trim additional characters if necessary
+trimExtra :: String -> String
+trimExtra = trim . dropWhile (`elem` [';', ' '])
+
+
+parseCommandOrStatement :: String -> Either String Lib2.Query
+parseCommandOrStatement input
+  | "SAVE" `isPrefixOf` input = Right Lib2.SaveCommand
+  | "LOAD" `isPrefixOf` input = Right Lib2.LoadCommand
+  | otherwise = Lib2.parseQuery input
 
 
 
@@ -153,7 +167,6 @@ renderQuery (Lib2.CompoundQuery q1 q2) = renderQuery q1 ++ "; " ++ renderQuery q
 
 
 
--- made atomic
 -- One big function to update state based on a command
 -- TVar Lib2.State - application's current state in TVar 
 -- Command - some commmand in process - LoadCommand/SaveCommand/StatementCommand
@@ -195,7 +208,7 @@ stateTransition stateVar command ioChan = case command of
         processBatch initialState queries
       where
         processBatch :: Lib2.State -> [Lib2.Query] -> STM (Either String (Maybe String, Lib2.State))
-        processBatch _ [] = return $ Right (Just "Batch processed.", Lib2.emptyState)
+        processBatch _ [] = return $ Right (Just "\nBatch processed.\n\n", Lib2.emptyState)
         processBatch _ (q:qs) = do
             result <- executeQuerySTM tvar q
             case result of
@@ -216,3 +229,15 @@ stateTransition stateVar command ioChan = case command of
             Right (msg, newState) -> do
                 writeTVar stateVar newState -- Updates the TVar atomically
                 return $ Right (msg, newState)
+
+
+-- Parses a plain-text command, processes it and returns a response
+processCommand :: TVar Lib2.State -> Chan StorageOp -> String -> IO String
+processCommand stateVar ioChan input = case parseCommand input of
+    Left err -> return $ "Error: " ++ err
+    Right (command, _) -> do
+        result <- stateTransition stateVar command ioChan
+        return $ case result of
+            Left err -> "Error: " ++ err
+            Right (msg, _) -> maybe "" id msg
+

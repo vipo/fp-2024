@@ -21,6 +21,19 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- free
+- random
+- stm
+- async
+- QuickCheck
+- transformers
+- strict
+- lens
+- wreq
+- bytestring
+- string-conversions
+- scotty
+- mtl
 
 ghc-options:
 - -Wall
@@ -32,6 +45,9 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -threaded
+- -rtsopts
+- -with-rtsopts=-N
 
 library:
   source-dirs: src
@@ -43,25 +59,21 @@ library:
   - QuickCheck
   - transformers
   - strict
+  - mtl
+  - deepseq
+
 
 executables:
   fp2024-one:
     main:                Main.hs
     source-dirs:         app1
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - fp2024
     - repline
+    - mtl
   fp2024-two:
     main:                Main.hs
     source-dirs:         app2
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - fp2024
     - repline
@@ -69,10 +81,6 @@ executables:
   fp2024-three:
     main:                Main.hs
     source-dirs:         app3
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - fp2024
     - repline
@@ -81,10 +89,6 @@ executables:
   fp2024-four-client:
     main:                Main.hs
     source-dirs:         app4-client
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - fp2024
     - repline
@@ -92,39 +96,34 @@ executables:
     - wreq
     - bytestring
     - string-conversions
+    - mtl
   fp2024-four-server:
     main:                Main.hs
     source-dirs:         app4-server
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - fp2024
     - repline
     - scotty
     - string-conversions
+    - stm
+    - mtl
 
 tests:
   fp2024-test:
     main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+    source-dirs:         
+    - test
+    - src
     dependencies:
     - fp2024
     - tasty
     - tasty-hunit
     - tasty-quickcheck
     - QuickCheck
+    - mtl
   fp2024-doctest:
     main:                Doctest.hs
     source-dirs:         doctest
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - doctest
+    - mtl

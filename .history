@@ -1,4 +1,32 @@
 LIST
+END
+SAVE
+ADD Mouse Yerry 1;
+BEGIN
+:paste
+SAVE
+END
+LIST
+ADD Tiger Tina 3;
+ADD Lion Leo 5;
+BEGIN
+:paste
+BEGIN
+END
+LIST
+SAVE;
+ADD Tiger Tina 3;
+ADD Lion Leo 5;
+BEGIN
+SAVE
+END
+ADD fish Jem 1;
+DELETE dog Max 5;
+ADD dog Max 5;
+ADD cat Tom 2;
+BEGIN
+:paste
+LIST
 LOAD
 SAVE
 END
@@ -70,31 +98,3 @@ BEGIN
 SAVE
 END
 ADD cat Whiskers 2;
-BEGIN
-:paste
-END
-ADD cat Whiskers 2;
-BEGIN
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-:paste
-END
-ADD fish Jem 1;
-DELETE dog Max 5;
-ADD dog Max 5;
-ADD cat Tom 2;
-BEGIN
-:paste
-LIST
-LOAD
-SAVE
-LIST
-END
-LIST
-DELETE cat Murr 4;
-ADD dog Au 8;
-ADD cat Murr 4;
