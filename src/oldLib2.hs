@@ -98,6 +98,7 @@ parseQuery s
 
 
 
+
 -- <compound_query> ::= <command> ';' <command>
 parseCompoundQuery :: String -> Either String Query
 parseCompoundQuery s = 

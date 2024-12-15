@@ -7,8 +7,7 @@ import qualified Data.ByteString.Lazy as L
 import Control.Exception (try, SomeException)
 
 
-
-main :: IO () -- defines a program using a DSL
+main :: IO ()
 main = do
     let program = do
             addAnimal "Lion" "Leo" 5
@@ -37,4 +36,3 @@ sendBatchMain batchRequest = do
     return $ case result of
         Left ex -> Left $ show ex
         Right response -> Right $ cs $ response ^. responseBody
-

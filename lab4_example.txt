@@ -1,0 +1,6 @@
+Response from server: Added animal: Animal {species = "Lion", name = "Leo", age = 5} Added animal: Animal {species = "Tiger", name = "Tina", age = 3} Added animal: Animal {species = "Bug", name = "Sim", age = 1} Added animal: Animal {species = "cat", name = "Murr", age = 4} Added animal: Animal {species = "snake", name = "Long", age = 10} Deleted animal: Animal {species = "cat", name = "Murr", age = 4} Added animal: Animal {species = "dog", name = "Au", age = 8} 
+
+-----State saved successfully-----
+ 
+Current animals: [Animal {species = "dog", name = "Au", age = 8},Animal {species = "snake", name = "Long", age = 10},Animal {species = "Bug", name = "Sim", age = 1},Animal {species = "Tiger", name = "Tina", age = 3},Animal {species = "Lion", name = "Leo", age = 5}] 
+Batch processed.

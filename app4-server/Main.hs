@@ -9,6 +9,7 @@ import Control.Concurrent.Chan (newChan, Chan)
 import Control.Concurrent.STM (newTVarIO, TVar)
 import Lib3 ( StorageOp, storageOpLoop, parseCommand, stateTransition )
 
+
 main :: IO ()
 main = do
     stateVar <- newTVarIO Lib2.emptyState -- stateVar is a TVar, holds the application's shared state

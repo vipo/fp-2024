@@ -1,16 +1,16 @@
+{-# OPTIONS_GHC -Wno-unused-do-bind #-}
 module ClientDSL where
 
-import Control.Monad.Free ( Free(..), liftF )
-import Data.List (intercalate)
-import Control.Exception (try, SomeException)
 import Control.Lens ((^.))
+import Data.List (intercalate)
+import Control.Monad.Free (Free(..), liftF)
+import Control.Exception (try, SomeException)
+import qualified Data.ByteString.Lazy.Char8 as L
 import Network.Wreq (post, responseBody, Response)
-import qualified Data.ByteString.Lazy.Char8 as L -- Char8 for String-like operations on ByteString
 
 
+type Program = Free CommandDSL
 
-
--- Define the DSL
 data CommandDSL a
     = AddAnimal String String Int a
     | DeleteAnimal String String Int a
@@ -18,7 +18,6 @@ data CommandDSL a
     | SaveState a
     | LoadState (String -> a)
 
--- Functor instance for CommandDSL
 instance Functor CommandDSL where
     fmap f (AddAnimal sp n a next) = AddAnimal sp n a (f next)
     fmap f (DeleteAnimal sp n a next) = DeleteAnimal sp n a (f next)
@@ -26,10 +25,7 @@ instance Functor CommandDSL where
     fmap f (SaveState next) = SaveState (f next)
     fmap f (LoadState next) = LoadState (f . next)
 
--- Free Monad wrapper
-type Program = Free CommandDSL
 
--- DSL helper functions
 addAnimal :: String -> String -> Int -> Program ()
 addAnimal sp n a = liftF $ AddAnimal sp n a ()
 
@@ -83,14 +79,11 @@ interpretOneByOne (Free (LoadState next)) = do
     interpretOneByOne (next res)
 interpretOneByOne (Pure _) = return []
 
--- ClientDSL.hs
 sendBatch :: String -> IO String
 sendBatch batchRequest = do
     let url = "http://localhost:3000"
-    let batchRequestBody = L.pack batchRequest -- Converts String to Lazy ByteString
+    let batchRequestBody = L.pack batchRequest
     result <- try $ post url batchRequestBody :: IO (Either SomeException (Response L.ByteString))
     return $ case result of
         Left ex -> "Error: " ++ show ex
-        Right response -> L.unpack (response ^. responseBody) -- Converts Lazy ByteString to String
-
-
+        Right response -> L.unpack (response ^. responseBody)

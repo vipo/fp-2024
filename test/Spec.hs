@@ -45,4 +45,3 @@ tests = testGroup "InMemoryInterpreter Tests"
             ["Tiger Tina 3"] 
             result
     ]
-
