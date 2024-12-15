@@ -1,15 +1,20 @@
 {-# LANGUAGE ImportQualifiedPost #-}
-import Test.Tasty ( TestTree, defaultMain, testGroup )
-import Test.Tasty.HUnit ( testCase, (@?=), assertBool, assertFailure )
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
+import Test.Tasty.QuickCheck (testProperty, (===), Arbitrary(..), arbitrary, shrink, oneof)
+import Test.Tasty.QuickCheck as QC
 
 import Lib1 qualified
 import Lib2 qualified
+import Lib3 qualified
+import Control.Concurrent
+import Data.Maybe
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [unitTests, propertyTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Lib2 tests"
@@ -69,3 +74,77 @@ unitTests = testGroup "Lib2 tests"
              @?= Right (Just "Artwork added.\nArtPiece {artId = 1, title = \"Title\", artType = Painting, price = 100.0, description = \"Description\"}", Lib2.State { Lib2.artworks = [artPiece] })
       ]
   ]
+propertyTests :: TestTree
+propertyTests = testGroup
+  "Lib3 property tests"
+  [
+    QC.testProperty "Saved queries reproduce original state" savedQueriesReproduceState
+  ]
+--QC.testProperty "Save-then-load preserves state" saveThenLoadTest 
+-- propertyTests :: TestTree
+-- propertyTests = testGroup "Property Tests"
+--   [ testProperty "Save-then-load preserves state" $
+--       \statements -> saveThenLoadTest statements === Right (statements, "")
+--   , testProperty "Rendering and parsing statements are consistent" $
+--       \statements -> parseRenderConsistencyTest statements === Right (statements, "")
+--   ]
+instance Arbitrary Lib2.ArtType where
+  arbitrary = oneof [pure Lib2.Painting, pure Lib2.Sculpture, pure Lib2.Digital, pure Lib2.Photograph, pure Lib2.Drawing, pure Lib2.Sketch]
+
+
+-- Property test: Save-then-load consistency
+saveThenLoadTest :: Lib2.State -> Property
+saveThenLoadTest originalState = ioProperty $ do
+    chan <- newChan
+    let serializedState = Lib3.renderStatements (Lib3.marshallState originalState)
+    saveReply <- newChan
+    writeChan chan (Lib3.Save serializedState saveReply)
+    _ <- readChan saveReply
+
+    loadReply <- newChan
+    writeChan chan (Lib3.Load loadReply)
+    loadedState <- readChan loadReply
+
+    pure $ serializedState == loadedState
+
+-- Property test: Parsing rendered statements should yield the original
+savedQueriesReproduceState :: Lib2.State -> Property
+savedQueriesReproduceState originalState =
+  let serialized = Lib3.renderStatements (Lib3.marshallState originalState)
+      parsed = Lib3.parseStatements serialized
+   in parsed === Right (Lib3.marshallState originalState, "")
+
+-- Arbitrary instance for Lib2.Query
+instance Arbitrary Lib2.Query where
+  arbitrary = do
+    artPiece <- arbitrary
+    oneof
+      [ return $ Lib2.AddArtwork artPiece
+      , return $ Lib2.SellArtwork artPiece
+      , return $ Lib2.PrintInfo
+      , Lib2.Sequence <$> arbitrary
+      ]
+  shrink (Lib2.AddArtwork art) = Lib2.AddArtwork <$> shrink art
+  shrink (Lib2.SellArtwork art) = Lib2.SellArtwork <$> shrink art
+  shrink Lib2.PrintInfo = []
+  shrink (Lib2.Sequence queries) = map Lib2.Sequence (shrink queries)
+
+--Arbitrary instance for Lib2.ArtPiece
+instance Arbitrary Lib2.ArtPiece where
+  arbitrary = 
+    Lib2.ArtPiece 
+      <$> arbitrary  -- For artId
+      <*> arbitrary  -- For title
+      <*> arbitrary  -- For artType
+      <*> arbitrary  -- For price
+      <*> arbitrary  -- For description
+  shrink art =
+    [art {Lib2.artId = id'} | id' <- shrink (Lib2.artId art)]
+    ++ [art {Lib2.title = title'} | title' <- shrink (Lib2.title art)]
+    ++ [art {Lib2.price = price'} | price' <- shrink (Lib2.price art)]
+    ++ [art {Lib2.description = desc'} | desc' <- shrink (Lib2.description art)]
+
+instance Arbitrary Lib2.State where
+  arbitrary = do
+    artworks <- arbitrary -- List of artworks
+    pure $ Lib2.State artworks -- Construct your state using appropriate fields

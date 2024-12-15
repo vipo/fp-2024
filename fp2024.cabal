@@ -47,6 +47,8 @@ library
     , base >=4.7 && <5
     , random
     , stm
+    , tasty >=1.4
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010
 
 executable fp2024-one
@@ -62,6 +64,9 @@ executable fp2024-one
       base >=4.7 && <5
     , fp2024
     , repline
+    , stm
+    , tasty >=1.4
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010
 
 executable fp2024-three
@@ -78,6 +83,9 @@ executable fp2024-three
     , fp2024
     , mtl
     , repline
+    , stm
+    , tasty >=1.4
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010
 
 executable fp2024-two
@@ -94,6 +102,9 @@ executable fp2024-two
     , fp2024
     , mtl
     , repline
+    , stm
+    , tasty >=1.4
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010
 
 test-suite fp2024-doctest
@@ -109,6 +120,9 @@ test-suite fp2024-doctest
   build-depends:
       base >=4.7 && <5
     , doctest
+    , stm
+    , tasty >=1.4
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010
 
 test-suite fp2024-test
@@ -124,6 +138,8 @@ test-suite fp2024-test
   build-depends:
       base >=4.7 && <5
     , fp2024
+    , stm
     , tasty
     , tasty-hunit
+    , tasty-quickcheck >=0.10
   default-language: Haskell2010

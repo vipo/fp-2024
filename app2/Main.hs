@@ -1,4 +1,5 @@
 {-# LANGUAGE ImportQualifiedPost #-}
+
 module Main (main) where
 
 import Control.Monad.IO.Class ()
@@ -34,10 +35,13 @@ cmd str = do
     Left e -> liftIO $ putStrLn $ "PARSE ERROR:" ++ e
     Right e -> do
       st <- lift get
-      case Lib2.stateTransition st e of
+      let (myE, _) = e
+      case Lib2.stateTransition st myE of
         Left e2 -> liftIO $ putStrLn $ "ERROR:" ++ e2
         Right (m, ns) -> lift (put ns) >> mapM_ (liftIO . putStrLn) m
 
 main :: IO ()
-main = evalStateT
-  (evalRepl (const $ pure ">>> ") cmd [] Nothing Nothing (Word completer) ini final) Lib2.emptyState
+main =
+  evalStateT
+    (evalRepl (const $ pure ">>> ") cmd [] Nothing Nothing (Word completer) ini final)
+    Lib2.emptyState

@@ -270,10 +270,18 @@ parseCommands input = case parseCommand input of
   Left _ -> Left "Unrecognized command"
 
 -- | Parses user's input.
-parseQuery :: String -> Either String Query
+parseQuery :: String -> Either String (Query, String)
 parseQuery input = case parseCommands input of
-  Right (queries, _) -> Right (Sequence queries)
+  Right (queries, rest) ->
+    if length queries == 1
+      then Right (head queries, rest) -- Single query
+      else Right (Sequence queries, rest) -- Multiple queries
   Left err -> Left err
+
+-- parseQuery :: String -> Either String (Query, String)
+-- parseQuery input = case parseCommands input of
+--   Right (queries, rest) -> Right (query, rest)
+--   Left err -> Left err
 
 -- | An entity which represents your program's state.
 data State = State
@@ -311,7 +319,6 @@ stateTransition state PrintInfo =
                then "No artworks available."
                else unlines (map show (artworks state))
   in Right (Just info, state)
-
 
 stateTransition state (Sequence queries) =
   let applyQuery (accMsg, st) q =
