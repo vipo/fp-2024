@@ -10,12 +10,14 @@ module Lib3
     Statements
     ) where
 
+
 import Control.Concurrent (Chan, newChan, readChan, writeChan)
 import Control.Concurrent.STM (STM, TVar, atomically, readTVar, writeTVar)
 import Control.Concurrent.STM.TVar
 import Data.Maybe (fromMaybe)
 import Control.Concurrent ( Chan, readChan, writeChan )
 import Lib2 (parseLiteral)
+
 import qualified Lib2
 
 data StorageOp = Save String (Chan ()) | Load (Chan String)

@@ -32,6 +32,12 @@ library
       Lessons.Lesson05
       Lessons.Lesson06
       Lessons.Lesson07
+      Lessons.Lesson08
+      Lessons.Lesson09
+      Lessons.Lesson10
+      Lessons.Lesson11
+      Lessons.Lesson12
+      Lessons.Lesson14
       Lib1
       Lib2
       Lib3
@@ -43,12 +49,53 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      async
+      QuickCheck
+    , async
     , base >=4.7 && <5
+    , deepseq
+    , free
     , random
     , stm
     , tasty >=1.4
     , tasty-quickcheck >=0.10
+    , strict
+    , transformers
+  default-language: Haskell2010
+
+executable fp2024-four-client
+  main-is: Main.hs
+  other-modules:
+      Paths_fp2024
+  autogen-modules:
+      Paths_fp2024
+  hs-source-dirs:
+      app4-client
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , fp2024
+    , lens
+    , repline
+    , string-conversions
+    , wreq
+  default-language: Haskell2010
+
+executable fp2024-four-server
+  main-is: Main.hs
+  other-modules:
+      Paths_fp2024
+  autogen-modules:
+      Paths_fp2024
+  hs-source-dirs:
+      app4-server
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , fp2024
+    , repline
+    , scotty
+    , string-conversions
   default-language: Haskell2010
 
 executable fp2024-one

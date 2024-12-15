@@ -4,6 +4,9 @@ import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.QuickCheck (testProperty, (===), Arbitrary(..), arbitrary, shrink, oneof)
 import Test.Tasty.QuickCheck as QC
 
+import Data.List
+import Data.Ord
+
 import Lib1 qualified
 import Lib2 qualified
 import Lib3 qualified
