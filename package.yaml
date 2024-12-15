@@ -60,6 +60,8 @@ library:
   - transformers
   - strict
   - mtl
+  - deepseq
+
 
 executables:
   fp2024-one:
