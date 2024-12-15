@@ -37,6 +37,7 @@ library
       Lessons.Lesson10
       Lessons.Lesson11
       Lessons.Lesson12
+      Lessons.Lesson14
       Lib1
       Lib2
       Lib3
@@ -52,6 +53,7 @@ library
       QuickCheck
     , async
     , base >=4.7 && <5
+    , deepseq
     , free
     , random
     , stm
