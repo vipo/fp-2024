@@ -8,18 +8,18 @@ module Lib3
     parseStatements,
     marshallState,
     renderStatements,
-    Parser(..),
     Statements(..),
     Command(..)
     ) where
 
+import Control.Applicative (Alternative (empty), optional, (<|>))
 import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Applicative
 import Control.Monad (forever)
 
 import qualified Lib2
-import Parser
+import Parsers
 
 data StorageOp = Save String (Chan ()) | Load (Chan String)
 -- | This function is started from main

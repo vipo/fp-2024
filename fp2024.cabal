@@ -42,6 +42,7 @@ library
       Lib2
       Lib3
       Parser
+      Parsers
   other-modules:
       Paths_fp2024
   autogen-modules:

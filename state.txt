@@ -1,5 +1,4 @@
 START
-view;
-add Joker, Joker;
 delete;
+add Joker, Joker, Two of Spades;
 FINISH
