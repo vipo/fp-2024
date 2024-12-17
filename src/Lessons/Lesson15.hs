@@ -21,7 +21,7 @@ fls :: Term
 fls = Abs "t" (Abs "f" (Var "f"))
 
 -- >>> show c0
--- "(/|t.(/|z.z))"
+-- "(/|s.(/|z.z))"
 c0 :: Term
 c0 = Abs "s" (Abs "z" (Var "z"))
 
@@ -63,9 +63,9 @@ instance Show ITerm where
   show (IAbs t) = concat ["(/|.", show t, ")"]
   show (IApp t1 t2) = concat ["(", show t1, " ", show t2, ")"]
 
--- >>> deBruijnIndecs [] tru
+-- >>> deBruijnIndeces [] tru
 -- Variable not in scope:
---   deBruijnIndecs :: [a0_aZLd[tau:1]] -> Term -> t_aZLa[sk:1]
+--   deBruijnIndeces :: [a0_abtp[tau:1]] -> Term -> t_abtm[sk:1]
 deBruijnIndices :: [String] -> Term -> ITerm
 deBruijnIndices ctx t = walk [] t
   where
