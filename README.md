@@ -9,3 +9,7 @@
 ### To Build & Test the Project, run the following commands
 1. `stack build`
 2. `stack test`
+
+### BNF
+1. **Added Command Structure**:
+   - `<command>` rule for `view`, `add`, `delete`.

@@ -1,0 +1,12 @@
+<command> ::= <viewDeck> | <addDeck> | <deleteDeck> | "save" | "load"
+
+<viewDeck> ::= "view"
+<addDeck> ::= "add" <deck>
+<deleteDeck> ::= "delete"
+
+<deck> ::= <card> | <card> ", " <deck>
+<card> ::= <rank> "of" <suit> | "Joker"
+
+<rank> ::= <number> | "Jack" | "Queen" | "King" | "Ace"
+<number> ::= "Two" | "Three" | "Four" | "Five" | "Six" | "Seven" | "Eight" | "Nine" | "Ten"
+<suit> ::= "Hearts" | "Diamonds" | "Clubs" | "Spades"
