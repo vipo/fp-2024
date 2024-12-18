@@ -8,9 +8,12 @@ import Control.Exception (try, SomeException)
 import qualified Data.ByteString.Lazy.Char8 as L
 import Network.Wreq (post, responseBody, Response)
 
-
+-- Program a - a sequence of commands from CommandDSL
+-- Free - how sequence of operations will be executed
+-- CommandDSL - dt that represents the set of opperations available in this DSL
 type Program = Free CommandDSL
 
+-- DSL supports these commands
 data CommandDSL a
     = AddAnimal String String Int a
     | DeleteAnimal String String Int a
@@ -18,8 +21,9 @@ data CommandDSL a
     | SaveState a
     | LoadState (String -> a)
 
+-- functor instance; free needs fmap to chain opperations
 instance Functor CommandDSL where
-    fmap f (AddAnimal sp n a next) = AddAnimal sp n a (f next)
+    fmap f (AddAnimal sp n a next) = AddAnimal sp n a (f next) -- applies function f to next
     fmap f (DeleteAnimal sp n a next) = DeleteAnimal sp n a (f next)
     fmap f (ListAnimals next) = ListAnimals (f . next)
     fmap f (SaveState next) = SaveState (f next)
@@ -41,8 +45,12 @@ saveState = liftF $ SaveState ()
 loadState :: Program String
 loadState = liftF $ LoadState id
 
+-- goes through entire Program (from app4-client) structure
+-- cmds - so far processed commands to strings
+-- res - final result
 interpretBatch :: Program a -> String
-interpretBatch program = let (commands, _) = runBatch program in intercalate ";\n" commands ++ "\nEND"
+interpretBatch program = let (commands, _) = runBatch program 
+                         in intercalate ";\n" commands ++ "\nEND"
   where
     runBatch :: Program a -> ([String], Maybe a)
     runBatch (Free (AddAnimal sp n a next)) =

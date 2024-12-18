@@ -1,0 +1,10 @@
+BEGIN
+ADD Tiger Tina 3;
+ADD Lion Leo 5;
+ADD dog Au 8;
+ADD snake Long 10;
+ADD bug Sim 1;
+ADD tiger Tina 3;
+ADD lion Leo 5;
+ADD cat Mickus 4;
+END
