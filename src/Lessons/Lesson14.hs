@@ -2,6 +2,7 @@
 module Lessons.Lesson14 () where
 
 import Control.Monad.Trans.Class(lift, MonadTrans)
+import Control.Monad.Trans.State
 
 newtype EitherT e m a = EitherT {
     runEitherT :: m (Either e a)

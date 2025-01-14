@@ -1,44 +1,55 @@
-{-# LANGUAGE InstanceSigs #-}
+
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Redundant lambda" #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
 module Lib2
-    ( Query(..),
+    (Query(..),
     parseQuery,
     State(..),
     emptyState,
-    stateTransition
-    ) where
+    stateTransition,
+    Deck(..),
+    Card(..),
+    Rank(..),
+    Suit(..),
+    Number(..)
+    )
+where
+  
+import Control.Applicative (Alternative (empty), optional, (<|>))
+import Parsers
 
--- | An entity which represets user input.
--- It should match the grammar from Laboratory work #1.
--- Currently it has no constructors but you can introduce
--- as many as needed.
-data Query
 
--- | The instances are needed basically for tests
-instance Eq Query where
-  (==) _ _= False
-
-instance Show Query where
-  show _ = ""
-
--- | Parses user's input.
--- The function must have tests.
+-- <command> ::= <viewDeck> | <addDeck> | <deleteDeck>
 parseQuery :: String -> Either String Query
-parseQuery _ = Left "Not implemented 2"
+parseQuery input =
+    let (result, _) = parse (parseView <|> parseDelete <|> parseAddDeck) input
+    in result
 
--- | An entity which represents your program's state.
--- Currently it has no constructors but you can introduce
--- as many as needed.
-data State
+data State = State (Maybe Deck)
+  deriving(Eq,Show)
 
--- | Creates an initial program's state.
--- It is called once when the program starts.
 emptyState :: State
-emptyState = error "Not implemented 1"
+emptyState = State Nothing
 
--- | Updates a state according to a query.
--- This allows your program to share the state
--- between repl iterations.
--- Right contains an optional message to print and
--- an updated program's state.
 stateTransition :: State -> Query -> Either String (Maybe String, State)
-stateTransition _ _ = Left "Not implemented 3"
+stateTransition (State maybeDeck) query = case query of
+    ViewDeck ->
+        case maybeDeck of
+            Just deck -> Right (Just (show deck), State maybeDeck)
+            Nothing -> Right (Just "The deck is empty.", State maybeDeck)
+    AddDeck newDeck ->
+        let updatedDeck = case maybeDeck of
+                Just existingDeck -> mergeDecks newDeck existingDeck
+                Nothing -> newDeck
+            message = case newDeck of
+                SingleCard _ -> "Card added."
+                Deck _ _ -> "Deck added."
+        in Right (Just message, State (Just updatedDeck))
+    DeleteDeck ->
+        Right (Just "Deck deleted.", State Nothing)
+
+

@@ -1,0 +1,4 @@
+START
+delete;
+add Two of Spades, Queen of Diamonds, Joker;
+FINISH

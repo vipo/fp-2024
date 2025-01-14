@@ -1,0 +1,22 @@
+>>> load
+Deck deleted.
+Deck added.
+>>> view
+Two of Spades, King of Diamonds, Joker
+>>> delete
+Deck deleted.
+>>> add Joker, Queen of Hearts
+Deck added.
+>>> view
+Joker, Queen of Hearts
+>>> save
+State saved.
+>>> delete
+Deck deleted.
+>>> view
+The deck is empty.
+>>> load
+Deck deleted.
+Deck added.
+>>> view
+Joker, Queen of Hearts
