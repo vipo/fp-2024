@@ -11,14 +11,8 @@ module Lib2
 -- It should match the grammar from Laboratory work #1.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
-data Query
-
--- | The instances are needed basically for tests
-instance Eq Query where
-  (==) _ _= False
-
-instance Show Query where
-  show _ = ""
+data Query = Print | Add Int
+  deriving (Show, Eq)
 
 -- | Parses user's input.
 -- The function must have tests.
@@ -28,12 +22,12 @@ parseQuery _ = Left "Not implemented 2"
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
 -- as many as needed.
-data State
+data State = Sum Int
 
 -- | Creates an initial program's state.
 -- It is called once when the program starts.
 emptyState :: State
-emptyState = error "Not implemented 1"
+emptyState = Sum 0
 
 -- | Updates a state according to a query.
 -- This allows your program to share the state
